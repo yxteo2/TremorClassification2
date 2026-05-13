@@ -150,6 +150,9 @@ class TremorDataset(Dataset):
         cwt_w0: float = 6.0,
         cwt_decim: int = 8,
         cwt_freq_step: float = 0.5,
+        log_compress_on: bool = True,
+        normalize: str = "per_recording",
+        spec_augment_on: bool = False,
     ) -> None:
         self.target_length = target_length
         self.fs = fs
@@ -162,6 +165,9 @@ class TremorDataset(Dataset):
         self.cwt_w0 = cwt_w0
         self.cwt_decim = cwt_decim
         self.cwt_freq_step = cwt_freq_step
+        self.log_compress_on = log_compress_on
+        self.normalize = normalize
+        self.spec_augment_on = spec_augment_on
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
@@ -187,6 +193,14 @@ class TremorDataset(Dataset):
                 x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
                 noverlap=self.noverlap, f_max=self.f_max,
             )
+        if self.log_compress_on:
+            x = log_compress(x)
+        if self.normalize == "per_recording":
+            x = per_recording_zscore(x)
+        elif self.normalize == "per_freq":
+            x = per_freq_zscore(x)
+        if self.augment and self.spec_augment_on:
+            x = spec_augment(x, self.rng)
         return torch.from_numpy(x), r.y
 
 
@@ -333,11 +347,11 @@ def main() -> None:
     p.add_argument("--stft-n-freq-bins", type=int, default=65,
                    help="(stft mode) Frequency bins per sensor (nfft/2+1).")
     p.add_argument("--no-log-compress", action="store_true",
-                   help="(stft mode) Disable log1p magnitude compression.")
+                   help="Disable log1p magnitude compression of the spectrogram.")
     p.add_argument("--normalize",
                    choices=("none", "per_freq", "per_recording"),
                    default="per_recording",
-                   help="(stft mode) Per-recording normalization. "
+                   help="Per-recording normalization applied after the TFD. "
                         "'per_recording' (default) z-scores over all bins of a "
                         "recording — preserves the spectral magnitude profile "
                         "that distinguishes PD (3-7 Hz) from ET (4-12 Hz). "
@@ -346,7 +360,7 @@ def main() -> None:
                         "tremors; only useful for non-stationary action data. "
                         "'none' relies entirely on the model's input BatchNorm.")
     p.add_argument("--spec-augment", action="store_true",
-                   help="(stft mode) SpecAugment freq/time masking on TRAIN only.")
+                   help="SpecAugment freq/time masking on TRAIN only.")
     p.add_argument("--output", type=Path, default=Path("artifacts"))
     args = p.parse_args()
 
@@ -451,8 +465,12 @@ def main() -> None:
             cwt_w0=args.cwt_w0,
             cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step,
+            log_compress_on=not args.no_log_compress,
+            normalize=args.normalize,
+            spec_augment_on=args.spec_augment,
         )
-        print(f"[tfd] method={args.tfd_method}")
+        print(f"[tfd] method={args.tfd_method}  "
+              f"log={not args.no_log_compress}  normalize={args.normalize}")
         train_ds = TremorDataset(
             train_recs, target_length=target_length, rng_seed=args.seed,
             oversample_to=args.oversample_to, augment=True, **ds_kwargs,
