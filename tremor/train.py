@@ -41,6 +41,7 @@ from tremor.spectral import (
     spec_augment,
     time_pad,
 )
+from tremor.tfd import apply_cwt
 from tremor.splits import subject_level_split
 from tremor.stft_data import STFTRecording, load_stft_recordings
 
@@ -145,6 +146,10 @@ class TremorDataset(Dataset):
         f_max: float | None = None,
         oversample_to: int | None = None,
         augment: bool = False,
+        tfd_method: str = "stft",
+        cwt_w0: float = 6.0,
+        cwt_decim: int = 8,
+        cwt_freq_step: float = 0.5,
     ) -> None:
         self.target_length = target_length
         self.fs = fs
@@ -153,6 +158,10 @@ class TremorDataset(Dataset):
         self.noverlap = noverlap
         self.f_max = f_max
         self.augment = augment
+        self.tfd_method = tfd_method
+        self.cwt_w0 = cwt_w0
+        self.cwt_decim = cwt_decim
+        self.cwt_freq_step = cwt_freq_step
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
@@ -166,10 +175,18 @@ class TremorDataset(Dataset):
             x = random_pad(r.x, self.target_length, self.rng)
         else:
             x = center_pad(r.x, self.target_length)
-        x = apply_stft(
-            x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
-            noverlap=self.noverlap, f_max=self.f_max,
-        )
+        if self.tfd_method == "cwt":
+            f_high = self.f_max if self.f_max else 15.0
+            freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
+            x = apply_cwt(
+                x, fs=self.fs, freqs=freqs, w0=self.cwt_w0, decim=self.cwt_decim,
+                f_max=self.f_max,
+            )
+        else:
+            x = apply_stft(
+                x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
+                noverlap=self.noverlap, f_max=self.f_max,
+            )
         return torch.from_numpy(x), r.y
 
 
@@ -282,6 +299,24 @@ def main() -> None:
     p.add_argument("--apply-bandpass", action="store_true",
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
+    p.add_argument("--tfd-method", choices=("stft", "cwt"), default="stft",
+                   help="Time-frequency decomposition: 'stft' (default; cheap "
+                        "linear-frequency spectrogram) or 'cwt' (Morlet "
+                        "wavelet, frequency-adaptive window — better for "
+                        "short non-stationary clips). Used in raw and "
+                        "quaternion modes only; stft mode loads precomputed "
+                        "CSVs and ignores this flag.")
+    p.add_argument("--cwt-w0", type=float, default=6.0,
+                   help="(cwt) Morlet central angular frequency parameter; "
+                        "higher = sharper freq resolution, longer wavelets.")
+    p.add_argument("--cwt-decim", type=int, default=8,
+                   help="(cwt) Temporal decimation factor applied to the CWT "
+                        "output. With fs=100 and decim=8 the output frame "
+                        "rate is 12.5 Hz, comparable to the STFT's hop=32.")
+    p.add_argument("--cwt-freq-step", type=float, default=0.5,
+                   help="(cwt) Spacing between analysis frequencies in Hz, "
+                        "swept from 3 Hz to --f-max. Step 0.5 -> ~24 bins; "
+                        "step 0.25 -> ~48 bins.")
     p.add_argument("--length-mode", choices=("pad", "truncate"), default="pad",
                    help="How to make all recordings the same length. "
                         "'pad' (default) sets target = max_length x 1.1; short "
@@ -406,24 +441,29 @@ def main() -> None:
         print(f"[oversample] target = {args.oversample_to} per class")
 
     if args.data_mode in ("raw", "quaternion"):
-        stft_kwargs = dict(
+        ds_kwargs = dict(
             fs=args.fs,
             nperseg=args.nperseg,
             nfft=args.nfft,
             noverlap=args.noverlap,
             f_max=args.f_max,
+            tfd_method=args.tfd_method,
+            cwt_w0=args.cwt_w0,
+            cwt_decim=args.cwt_decim,
+            cwt_freq_step=args.cwt_freq_step,
         )
+        print(f"[tfd] method={args.tfd_method}")
         train_ds = TremorDataset(
             train_recs, target_length=target_length, rng_seed=args.seed,
-            oversample_to=args.oversample_to, augment=True, **stft_kwargs,
+            oversample_to=args.oversample_to, augment=True, **ds_kwargs,
         )
         val_ds = TremorDataset(
             val_recs, target_length=target_length, rng_seed=args.seed + 1,
-            augment=False, **stft_kwargs,
+            augment=False, **ds_kwargs,
         )
         test_ds = TremorDataset(
             test_recs, target_length=target_length, rng_seed=args.seed + 2,
-            augment=False, **stft_kwargs,
+            augment=False, **ds_kwargs,
         )
     else:
         keep_bins = freq_bins_for_fmax(
