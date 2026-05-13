@@ -29,7 +29,7 @@ from tremor.data import (
     load_recordings,
 )
 from tremor.evaluate import classification_report
-from tremor.model import TremorBiLSTM
+from tremor.models import MODELS, build_model
 from tremor.preprocessing import apply_stft, bandpass, center_pad, random_pad
 from tremor.spectral import (
     crop_freq_bins,
@@ -226,7 +226,11 @@ def main() -> None:
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--weight-decay", type=float, default=0.01)
-    p.add_argument("--hidden", type=int, default=300)
+    p.add_argument("--model", choices=sorted(MODELS), default="tremor_bilstm",
+                   help="Network architecture. Options: " + ", ".join(sorted(MODELS)))
+    p.add_argument("--hidden", type=int, default=300,
+                   help="LSTM/GRU hidden size (or scaled base_filters for restcn).")
+    p.add_argument("--dropout", type=float, default=0.4)
     p.add_argument("--patience", type=int, default=20)
     p.add_argument(
         "--oversample-to",
@@ -375,11 +379,16 @@ def main() -> None:
     input_size = sample_x.shape[0]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = TremorBiLSTM(
+    model = build_model(
+        name=args.model,
         input_size=input_size,
         num_classes=len(CLASS_NAMES),
+        target_T=target_length,
         hidden=args.hidden,
+        dropout=args.dropout,
     ).to(device)
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"[model] {args.model} | trainable params: {n_params:,}")
     opt = torch.optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
