@@ -453,15 +453,12 @@ def build_model(
             f"Unknown model '{name}'. Available: {sorted(MODELS)}"
         )
     cls = MODELS[name]
-    if name == "tremor_bilstm":
-        return cls(input_size=input_size, num_classes=num_classes,
-                   hidden=max(hidden, 300), dropout=dropout)
-    if name in ("bilstm", "lstm", "gru", "resbilstm"):
+    if name in ("tremor_bilstm", "bilstm", "lstm", "gru", "resbilstm"):
         return cls(input_size=input_size, num_classes=num_classes,
                    hidden=hidden, dropout=dropout)
     if name == "restcn":
         return cls(input_size=input_size, num_classes=num_classes,
-                   base_filters=max(hidden // 4, 16), dropout=dropout)
+                   base_filters=hidden, dropout=dropout)
     if name == "ast":
         if target_T is None:
             raise ValueError("AST needs target_T (the time-frame count after padding).")

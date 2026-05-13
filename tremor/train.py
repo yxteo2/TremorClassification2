@@ -230,7 +230,9 @@ def main() -> None:
     p.add_argument("--model", choices=sorted(MODELS), default="tremor_bilstm",
                    help="Network architecture. Options: " + ", ".join(sorted(MODELS)))
     p.add_argument("--hidden", type=int, default=300,
-                   help="LSTM/GRU hidden size (or scaled base_filters for restcn).")
+                   help="Hidden size: LSTM/GRU units for the recurrent models, "
+                        "Conv1D base_filters for restcn. Used as-is — no floor "
+                        "or scaling applied.")
     p.add_argument("--dropout", type=float, default=0.4)
     p.add_argument("--patience", type=int, default=20)
     p.add_argument(
@@ -317,6 +319,12 @@ def main() -> None:
         target_length = int(max(lengths) * 1.1)
     else:
         target_length = int(min(lengths))
+    if target_length < 2:
+        raise SystemExit(
+            f"target length is {target_length}, too small to train on. "
+            f"Recording lengths range {min(lengths)}-{max(lengths)}; "
+            f"check the data folder or switch --length-mode."
+        )
     print(
         f"[length] mode={args.length_mode}  "
         f"min={min(lengths)} max={max(lengths)}  -> target={target_length}"
@@ -342,6 +350,13 @@ def main() -> None:
 
     if args.auto_oversample:
         per_class = Counter(r.y for r in train_recs)
+        missing = [c for c in range(len(CLASS_NAMES)) if per_class.get(c, 0) == 0]
+        if missing:
+            print(
+                f"[oversample] WARNING: classes with zero training samples will "
+                f"stay empty (cannot oversample from nothing): "
+                f"{[CLASS_NAMES[i] for i in missing]}"
+            )
         args.oversample_to = max(per_class.values()) * 3
         print(f"[oversample] auto target = {args.oversample_to} per class")
     elif args.oversample_to:
@@ -449,7 +464,11 @@ def main() -> None:
             print(f"Early stopping at epoch {epoch} (patience={args.patience}).")
             break
 
-    assert best_state is not None
+    if best_state is None:
+        raise SystemExit(
+            "Training produced no validation improvement (e.g. --epochs 0). "
+            "Increase --epochs and try again."
+        )
     model.load_state_dict(best_state)
     torch.save(best_state, args.output / "model.pt")
 
