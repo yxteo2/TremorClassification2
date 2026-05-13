@@ -30,7 +30,7 @@ from tremor.data import (
 )
 from tremor.evaluate import classification_report
 from tremor.model import TremorBiLSTM
-from tremor.preprocessing import apply_stft, center_pad, random_pad
+from tremor.preprocessing import apply_stft, bandpass, center_pad, random_pad
 from tremor.splits import subject_level_split
 
 
@@ -50,13 +50,19 @@ class TremorDataset(Dataset):
         target_length: int,
         fs: float,
         nperseg: int,
+        nfft: int,
+        noverlap: int,
         rng_seed: int,
+        f_max: float | None = None,
         oversample_to: int | None = None,
         augment: bool = False,
     ) -> None:
         self.target_length = target_length
         self.fs = fs
         self.nperseg = nperseg
+        self.nfft = nfft
+        self.noverlap = noverlap
+        self.f_max = f_max
         self.augment = augment
         self.rng = np.random.default_rng(rng_seed)
 
@@ -81,7 +87,10 @@ class TremorDataset(Dataset):
             x = random_pad(r.x, self.target_length, self.rng)
         else:
             x = center_pad(r.x, self.target_length)
-        x = apply_stft(x, fs=self.fs, nperseg=self.nperseg)
+        x = apply_stft(
+            x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
+            noverlap=self.noverlap, f_max=self.f_max,
+        )
         return torch.from_numpy(x), r.y
 
 
@@ -142,6 +151,20 @@ def main() -> None:
         default=None,
         help="Per-class oversampling target for the TRAINING fold only.",
     )
+    p.add_argument("--fs", type=float, default=60.0,
+                   help="Sampling rate in Hz after the downsize factor (default 60).")
+    p.add_argument("--nperseg", type=int, default=128,
+                   help="STFT window length in samples (MATLAB default 128).")
+    p.add_argument("--nfft", type=int, default=256,
+                   help="STFT FFT length in samples (MATLAB default 256).")
+    p.add_argument("--noverlap", type=int, default=96,
+                   help="STFT overlap in samples (MATLAB default 96, i.e. 75%).")
+    p.add_argument("--f-max", type=float, default=None,
+                   help="Drop STFT bins above this frequency (Hz). "
+                        "Typical tremor cutoff: 15 Hz.")
+    p.add_argument("--apply-bandpass", action="store_true",
+                   help="Apply a 3-30 Hz zero-phase bandpass to each recording "
+                        "before STFT (only needed if data is not pre-filtered).")
     p.add_argument("--output", type=Path, default=Path("artifacts"))
     args = p.parse_args()
 
@@ -155,6 +178,10 @@ def main() -> None:
     recs = filter_by_length(recs, min_len=min_len, max_len=max_len)
     if not recs:
         raise SystemExit("No recordings loaded.")
+
+    if args.apply_bandpass:
+        for r in recs:
+            r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
 
     subjects = [r.subject for r in recs]
     labels = [r.y for r in recs]
@@ -181,30 +208,34 @@ def main() -> None:
         per_class = Counter(r.y for r in train_recs)
         args.oversample_to = max(per_class.values()) * 3
 
+    stft_kwargs = dict(
+        fs=args.fs,
+        nperseg=args.nperseg,
+        nfft=args.nfft,
+        noverlap=args.noverlap,
+        f_max=args.f_max,
+    )
     train_ds = TremorDataset(
         train_recs,
         target_length=target_length,
-        fs=60.0,
-        nperseg=64,
         rng_seed=args.seed,
         oversample_to=args.oversample_to,
         augment=True,
+        **stft_kwargs,
     )
     val_ds = TremorDataset(
         val_recs,
         target_length=target_length,
-        fs=60.0,
-        nperseg=64,
         rng_seed=args.seed + 1,
         augment=False,
+        **stft_kwargs,
     )
     test_ds = TremorDataset(
         test_recs,
         target_length=target_length,
-        fs=60.0,
-        nperseg=64,
         rng_seed=args.seed + 2,
         augment=False,
+        **stft_kwargs,
     )
 
     train_loader = DataLoader(
