@@ -5,8 +5,8 @@ Data layout convention (matches the original MATLAB project):
     Time-domain recording:
         shape  (channels=3, time=T)
         rows are sensor channels in order (L=lower arm, H=hand, U=upper arm)
-        columns are samples at fs = 60 Hz (after the downsize factor of
-        0.6 that the MATLAB pipeline applied earlier).
+        columns are samples at fs = 100 Hz (no downsampling — preserves
+        the full tremor spectrum up to Nyquist = 50 Hz).
 
     STFT representation fed to the BiLSTM:
         shape  (channels * n_freq_bins, n_time_bins)
@@ -139,7 +139,7 @@ def _frame(x: np.ndarray, nperseg: int, hop: int) -> np.ndarray:
 
 def stft_magnitude(
     channel: np.ndarray,
-    fs: float = 60.0,
+    fs: float = 100.0,
     nperseg: int = 128,
     nfft: int = 256,
     noverlap: int = 96,
@@ -164,7 +164,7 @@ def stft_magnitude(
 
 def apply_stft(
     x: np.ndarray,
-    fs: float = 60.0,
+    fs: float = 100.0,
     nperseg: int = 128,
     nfft: int = 256,
     noverlap: int = 96,

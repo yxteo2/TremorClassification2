@@ -46,7 +46,7 @@ def _parse_subject_and_class(filename: str) -> tuple[str, int]:
 
 def load_recordings(
     root: Path | str,
-    feature: str = "downsize_filtered_amplitudes",
+    feature: str = "filtered_amplitudes",
     action: str = "DRINK",
 ) -> list[Recording]:
     data_dir = Path(root) / "ProcessedData" / "raw data" / feature / action

@@ -137,7 +137,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--data-root", required=True, type=Path)
     p.add_argument("--action", default="DRINK")
-    p.add_argument("--feature", default="downsize_filtered_amplitudes")
+    p.add_argument("--feature", default="filtered_amplitudes")
     p.add_argument("--seed", type=int, default=39)
     p.add_argument("--epochs", type=int, default=500)
     p.add_argument("--batch-size", type=int, default=64)
@@ -151,8 +151,8 @@ def main() -> None:
         default=None,
         help="Per-class oversampling target for the TRAINING fold only.",
     )
-    p.add_argument("--fs", type=float, default=60.0,
-                   help="Sampling rate in Hz after the downsize factor (default 60).")
+    p.add_argument("--fs", type=float, default=100.0,
+                   help="Sampling rate in Hz of the input recordings (default 100, no downsampling).")
     p.add_argument("--nperseg", type=int, default=128,
                    help="STFT window length in samples (MATLAB default 128).")
     p.add_argument("--nfft", type=int, default=256,
