@@ -261,6 +261,14 @@ def main() -> None:
     p.add_argument("--apply-bandpass", action="store_true",
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
+    p.add_argument("--length-mode", choices=("pad", "truncate"), default="pad",
+                   help="How to make all recordings the same length. "
+                        "'pad' (default) sets target = max_length x 1.1; short "
+                        "recordings get random/centred zero-padding, only the "
+                        "longest get a small centre-crop. "
+                        "'truncate' sets target = min_length so the model sees "
+                        "a smaller, denser tensor; long recordings get randomly "
+                        "truncated (train) or centre-cropped (val/test).")
     p.add_argument("--stft-fs", type=float, default=100.0,
                    help="(stft mode) Original sampling rate the STFTs were "
                         "computed at — used to map --f-max to bin count.")
@@ -297,15 +305,22 @@ def main() -> None:
         if args.apply_bandpass:
             for r in recs:
                 r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
-        target_length = int(max(r.x.shape[1] for r in recs) * 1.1)
     else:
         recs = load_stft_recordings(
             args.data_root, action=args.action, feature=args.feature
         )
         if not recs:
             raise SystemExit(f"No STFT files under {args.feature}/{args.action}.")
-        # target_length is in TIME FRAMES here, not samples.
-        target_length = int(max(r.x.shape[1] for r in recs) * 1.1)
+
+    lengths = [r.x.shape[1] for r in recs]
+    if args.length_mode == "pad":
+        target_length = int(max(lengths) * 1.1)
+    else:
+        target_length = int(min(lengths))
+    print(
+        f"[length] mode={args.length_mode}  "
+        f"min={min(lengths)} max={max(lengths)}  -> target={target_length}"
+    )
 
     subjects = [r.subject for r in recs]
     labels = [r.y for r in recs]
