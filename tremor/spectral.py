@@ -18,14 +18,28 @@ def log_compress(S: np.ndarray, eps: float = 1e-8) -> np.ndarray:
 
 
 def per_freq_zscore(S: np.ndarray, eps: float = 1e-6) -> np.ndarray:
-    """Z-score each frequency row across time within one recording."""
+    """Z-score each frequency row across time within one recording.
+
+    WARNING: tremor signals are quasi-stationary, so the magnitude of
+    the tremor bin barely varies across time. Dividing each row by its
+    own time-axis std flattens that bin to zero and erases the
+    spectral peak — i.e. erases the very feature that distinguishes
+    PD (3-7 Hz) from ET (4-12 Hz). Prefer ``per_recording_zscore``
+    unless your signal is genuinely non-stationary across the window.
+    """
     mu = S.mean(axis=1, keepdims=True)
     sd = S.std(axis=1, keepdims=True) + eps
     return ((S - mu) / sd).astype(S.dtype, copy=False)
 
 
 def per_recording_zscore(S: np.ndarray, eps: float = 1e-6) -> np.ndarray:
-    """Z-score over all (freq, time) bins of one recording."""
+    """Z-score over all (freq, time) bins of one recording.
+
+    Removes inter-recording amplitude differences (sensor calibration,
+    patient-specific gain) while preserving the relative magnitudes
+    across freq bins — i.e. the spectral profile that the classifier
+    needs. Recommended default for tremor STFT.
+    """
     mu = float(S.mean())
     sd = float(S.std()) + eps
     return ((S - mu) / sd).astype(S.dtype, copy=False)

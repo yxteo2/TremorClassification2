@@ -282,10 +282,15 @@ def main() -> None:
                    help="(stft mode) Disable log1p magnitude compression.")
     p.add_argument("--normalize",
                    choices=("none", "per_freq", "per_recording"),
-                   default="per_freq",
+                   default="per_recording",
                    help="(stft mode) Per-recording normalization. "
-                        "'per_freq' (default) z-scores each frequency row "
-                        "across time — the most reliable choice.")
+                        "'per_recording' (default) z-scores over all bins of a "
+                        "recording — preserves the spectral magnitude profile "
+                        "that distinguishes PD (3-7 Hz) from ET (4-12 Hz). "
+                        "'per_freq' z-scores each frequency row across time "
+                        "and DESTROYS the spectral peak for quasi-stationary "
+                        "tremors; only useful for non-stationary action data. "
+                        "'none' relies entirely on the model's input BatchNorm.")
     p.add_argument("--spec-augment", action="store_true",
                    help="(stft mode) SpecAugment freq/time masking on TRAIN only.")
     p.add_argument("--output", type=Path, default=Path("artifacts"))
