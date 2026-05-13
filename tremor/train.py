@@ -41,7 +41,8 @@ from tremor.spectral import (
     spec_augment,
     time_pad,
 )
-from tremor.tfd import apply_cwt
+from tremor.losses import build_loss_fn
+from tremor.tfd import apply_cwt, apply_hht
 from tremor.splits import subject_level_split
 from tremor.stft_data import STFTRecording, load_stft_recordings
 
@@ -150,6 +151,7 @@ class TremorDataset(Dataset):
         cwt_w0: float = 6.0,
         cwt_decim: int = 8,
         cwt_freq_step: float = 0.5,
+        hht_max_imfs: int = 8,
         log_compress_on: bool = True,
         normalize: str = "per_recording",
         spec_augment_on: bool = False,
@@ -165,6 +167,7 @@ class TremorDataset(Dataset):
         self.cwt_w0 = cwt_w0
         self.cwt_decim = cwt_decim
         self.cwt_freq_step = cwt_freq_step
+        self.hht_max_imfs = hht_max_imfs
         self.log_compress_on = log_compress_on
         self.normalize = normalize
         self.spec_augment_on = spec_augment_on
@@ -187,6 +190,13 @@ class TremorDataset(Dataset):
             x = apply_cwt(
                 x, fs=self.fs, freqs=freqs, w0=self.cwt_w0, decim=self.cwt_decim,
                 f_max=self.f_max,
+            )
+        elif self.tfd_method == "hht":
+            f_high = self.f_max if self.f_max else 15.0
+            freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
+            x = apply_hht(
+                x, fs=self.fs, freqs=freqs, max_imfs=self.hht_max_imfs,
+                decim=self.cwt_decim, f_max=self.f_max,
             )
         else:
             x = apply_stft(
@@ -313,13 +323,17 @@ def main() -> None:
     p.add_argument("--apply-bandpass", action="store_true",
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
-    p.add_argument("--tfd-method", choices=("stft", "cwt"), default="stft",
-                   help="Time-frequency decomposition: 'stft' (default; cheap "
-                        "linear-frequency spectrogram) or 'cwt' (Morlet "
-                        "wavelet, frequency-adaptive window — better for "
-                        "short non-stationary clips). Used in raw and "
-                        "quaternion modes only; stft mode loads precomputed "
-                        "CSVs and ignores this flag.")
+    p.add_argument("--tfd-method", choices=("stft", "cwt", "hht"), default="stft",
+                   help="Time-frequency decomposition: "
+                        "'stft' (default; cheap linear-frequency spectrogram), "
+                        "'cwt' (Morlet wavelet, frequency-adaptive window — "
+                        "better for short non-stationary clips), "
+                        "'hht' (Hilbert-Huang via EMD; best for genuinely "
+                        "non-stationary tremor but slowest, needs EMD-signal). "
+                        "Used in raw and quaternion modes only.")
+    p.add_argument("--hht-max-imfs", type=int, default=8,
+                   help="(hht) Number of EMD intrinsic mode functions to keep "
+                        "per channel before computing instantaneous frequency.")
     p.add_argument("--cwt-w0", type=float, default=6.0,
                    help="(cwt) Morlet central angular frequency parameter; "
                         "higher = sharper freq resolution, longer wavelets.")
@@ -361,6 +375,20 @@ def main() -> None:
                         "'none' relies entirely on the model's input BatchNorm.")
     p.add_argument("--spec-augment", action="store_true",
                    help="SpecAugment freq/time masking on TRAIN only.")
+    p.add_argument("--loss", choices=("ce", "weighted_ce", "focal"),
+                   default="focal",
+                   help="Loss function. 'ce' is plain cross-entropy. "
+                        "'weighted_ce' adds inverse-frequency class weights "
+                        "(handles class imbalance). 'focal' (default) adds "
+                        "the (1-p_t)^gamma down-weight on top of weighted_ce "
+                        "to focus on hard examples.")
+    p.add_argument("--focal-gamma", type=float, default=1.5,
+                   help="Focusing parameter for focal loss. 0 = weighted CE; "
+                        "1-2.5 are typical for moderately imbalanced 3-class "
+                        "problems.")
+    p.add_argument("--label-smoothing", type=float, default=0.0,
+                   help="Label smoothing for the loss. 0.05-0.1 is a mild "
+                        "regulariser; values >= 0.2 can hurt accuracy.")
     p.add_argument("--output", type=Path, default=Path("artifacts"))
     args = p.parse_args()
 
@@ -465,6 +493,7 @@ def main() -> None:
             cwt_w0=args.cwt_w0,
             cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step,
+            hht_max_imfs=args.hht_max_imfs,
             log_compress_on=not args.no_log_compress,
             normalize=args.normalize,
             spec_augment_on=args.spec_augment,
@@ -536,7 +565,16 @@ def main() -> None:
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.8)
-    loss_fn = torch.nn.CrossEntropyLoss()
+    loss_fn = build_loss_fn(
+        loss_type=args.loss,
+        train_labels=[r.y for r in train_recs],
+        num_classes=len(CLASS_NAMES),
+        focal_gamma=args.focal_gamma,
+        label_smoothing=args.label_smoothing,
+        device=device,
+    )
+    print(f"[loss] type={args.loss}  focal_gamma={args.focal_gamma}  "
+          f"label_smoothing={args.label_smoothing}")
 
     best_val_loss = float("inf")
     best_state: dict | None = None

@@ -3,3 +3,4 @@ pandas>=2.0
 scipy>=1.10
 scikit-learn>=1.3
 torch>=2.0
+EMD-signal>=1.5  # optional, only needed for --tfd-method {hht, emd}

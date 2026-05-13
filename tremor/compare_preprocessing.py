@@ -33,7 +33,7 @@ import numpy as np
 def _apply_tfd(signal: np.ndarray, tfd_method: str, fs: float, f_max: float,
                cwt_step: float = 0.5) -> np.ndarray:
     """Compute the (F, T) magnitude spectrogram for one (channels, time) signal."""
-    from tremor.tfd import apply_stft, apply_cwt
+    from tremor.tfd import apply_stft, apply_cwt, apply_hht
 
     if tfd_method == "stft":
         return apply_stft(signal, fs=fs, nperseg=128, nfft=256, noverlap=96,
@@ -41,6 +41,10 @@ def _apply_tfd(signal: np.ndarray, tfd_method: str, fs: float, f_max: float,
     if tfd_method == "cwt":
         freqs = np.arange(3.0, f_max + 1e-9, cwt_step)
         return apply_cwt(signal, fs=fs, freqs=freqs, w0=6.0, decim=8,
+                         f_max=f_max)
+    if tfd_method == "hht":
+        freqs = np.arange(3.0, f_max + 1e-9, cwt_step)
+        return apply_hht(signal, fs=fs, freqs=freqs, max_imfs=8, decim=8,
                          f_max=f_max)
     raise ValueError(f"unknown tfd_method {tfd_method!r}")
 
@@ -194,7 +198,7 @@ def _synthetic_dataset(seed: int = 0, n_per_class: int = 15, n_samples: int = 50
 # Recipe sweeps
 # ---------------------------------------------------------------------
 
-TFD_METHODS = ("stft", "cwt")
+TFD_METHODS = ("stft", "cwt", "hht")
 NORM_CHOICES = ("none", "per_recording", "per_freq")
 LOG_CHOICES = (True, False)
 
@@ -203,13 +207,17 @@ def _sweep_for_timeseries(signals, labels, fs, f_max):
     """All TFD * log * normalize combos for time-domain inputs."""
     rows = []
     for tfd, log_on, norm in product(TFD_METHODS, LOG_CHOICES, NORM_CHOICES):
-        if tfd == "cwt" and not log_on and norm == "none":
-            # Unnormalized CWT magnitudes are wildly heavy-tailed; skip.
+        if tfd in ("cwt", "hht") and not log_on and norm == "none":
+            # Unnormalized magnitudes are wildly heavy-tailed; skip.
             continue
-        fisher, lda = _evaluate_recipe(
-            signals, labels, tfd_method=tfd, normalize=norm,
-            log_compress_on=log_on, fs=fs, f_max=f_max,
-        )
+        try:
+            fisher, lda = _evaluate_recipe(
+                signals, labels, tfd_method=tfd, normalize=norm,
+                log_compress_on=log_on, fs=fs, f_max=f_max,
+            )
+        except ImportError as e:
+            print(f"  skipping {tfd}: {e}")
+            break
         rows.append({
             "tfd": tfd, "log": log_on, "normalize": norm,
             "fisher": fisher, "lda": lda,
