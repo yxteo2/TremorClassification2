@@ -31,6 +31,7 @@ from tremor.data import (
 from tremor.evaluate import classification_report
 from tremor.models import MODELS, build_model
 from tremor.preprocessing import apply_stft, bandpass, center_pad, random_pad
+from tremor.quaternion_data import load_quaternion_recordings
 from tremor.spectral import (
     crop_freq_bins,
     freq_bins_for_fmax,
@@ -215,13 +216,31 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--data-root", required=True, type=Path)
     p.add_argument("--action", default="DRINK")
-    p.add_argument("--data-mode", choices=("raw", "stft"), default="stft",
-                   help="'raw': load time-domain amplitudes and apply STFT here. "
-                        "'stft' (default): load precomputed STFT magnitude CSVs "
-                        "from ProcessedData/<feature>/<ACTION>/<CLASS>/.")
+    p.add_argument("--data-mode",
+                   choices=("raw", "stft", "quaternion"), default="stft",
+                   help="'raw': time-domain amplitudes from "
+                        "ProcessedData/<feature>/<ACTION>/, STFT applied here. "
+                        "'stft' (default): precomputed STFT magnitude CSVs "
+                        "from ProcessedData/<feature>/<ACTION>/<CLASS>/. "
+                        "'quaternion': raw IMU quaternion CSVs from "
+                        "ProcessedData/<feature>/<ACTION>/<CLASS>/, "
+                        "converted to angular velocity then STFT.")
+    p.add_argument("--quaternion-mode",
+                   choices=("angular_velocity", "components"),
+                   default="angular_velocity",
+                   help="(quaternion mode) 'angular_velocity' (default) "
+                        "computes omega = 2*(dq/dt)*q^-1 per sensor -> "
+                        "9 channels in rad/s. 'components' keeps the raw 12 "
+                        "quaternion columns and lets the bandpass strip the "
+                        "baseline orientation.")
+    p.add_argument("--quaternion-convention",
+                   choices=("xyzw", "wxyz"), default="xyzw",
+                   help="(quaternion mode) Component order in each 4-tuple. "
+                        "Drive's raw_quaternion files use 'xyzw' (scalar last).")
     p.add_argument("--feature", default="stft",
                    help="ProcessedData subfolder. For raw mode use e.g. "
-                        "'filtered_amplitudes'; for stft mode use 'stft'.")
+                        "'filtered_amplitudes'; for stft mode use 'stft'; "
+                        "for quaternion mode use 'raw_quaternion'.")
     p.add_argument("--seed", type=int, default=39)
     p.add_argument("--epochs", type=int, default=500)
     p.add_argument("--batch-size", type=int, default=64)
@@ -312,6 +331,25 @@ def main() -> None:
         if args.apply_bandpass:
             for r in recs:
                 r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
+    elif args.data_mode == "quaternion":
+        feature = args.feature if args.feature != "stft" else "raw_quaternion"
+        recs = load_quaternion_recordings(
+            args.data_root, action=args.action, fs=args.fs,
+            mode=args.quaternion_mode, convention=args.quaternion_convention,
+            feature=feature,
+        )
+        if not recs:
+            raise SystemExit(
+                f"No quaternion files under {feature}/{args.action}."
+            )
+        if args.apply_bandpass:
+            for r in recs:
+                r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
+        print(
+            f"[quaternion] mode={args.quaternion_mode} "
+            f"convention={args.quaternion_convention} "
+            f"channels={recs[0].x.shape[0]}"
+        )
     else:
         recs = load_stft_recordings(
             args.data_root, action=args.action, feature=args.feature
@@ -367,7 +405,7 @@ def main() -> None:
     elif args.oversample_to:
         print(f"[oversample] target = {args.oversample_to} per class")
 
-    if args.data_mode == "raw":
+    if args.data_mode in ("raw", "quaternion"):
         stft_kwargs = dict(
             fs=args.fs,
             nperseg=args.nperseg,
