@@ -27,7 +27,7 @@ from tremor.data import CLASS_MAP
 
 CLASS_FOLDER_TO_LETTER = {"N": "N", "PD": "P", "ET": "E"}
 
-_TRIAL_SUFFIX = re.compile(r"\s+\d+$")
+_TRIAL_SUFFIX = re.compile(r"[_\s]+\d+$")
 
 
 @dataclass
@@ -59,7 +59,9 @@ def load_stft_recordings(
             continue
         label = CLASS_MAP[letter]
         for path in sorted(class_dir.glob("*.txt")):
-            arr = pd.read_csv(path, header=None).to_numpy(dtype=np.float32)
+            arr = pd.read_csv(
+                path, sep=None, engine="python", header=None
+            ).to_numpy(dtype=np.float32)
             if arr.size == 0:
                 continue
             x = arr.T  # files are (time, features); model wants (features, time)

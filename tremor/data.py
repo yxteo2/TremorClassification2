@@ -24,7 +24,7 @@ import pandas as pd
 CLASS_MAP = {"N": 0, "P": 1, "E": 2}
 CLASS_NAMES = ("N", "PD", "ET")
 
-_TRIAL_SUFFIX = re.compile(r"_\d+$")
+_TRIAL_SUFFIX = re.compile(r"[_\s]+\d+$")
 
 
 @dataclass
@@ -55,7 +55,7 @@ def load_recordings(
 
     recordings: list[Recording] = []
     for path in sorted(data_dir.rglob("*.txt")):
-        df = pd.read_csv(path, sep=None, engine="python", header=0)
+        df = pd.read_csv(path, sep=None, engine="python", header=None)
         arr = df.to_numpy(dtype=np.float32).T
         if arr.size == 0:
             continue

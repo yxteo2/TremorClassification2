@@ -125,7 +125,7 @@ class TremorBiLSTM(nn.Module):
             if i < len(self.blocks) - 1:
                 x = self.relu(x)
                 x = self.dropout(x)
-        x = x[:, -1, :]
+        x = x.mean(dim=1)
         x = self.out_bn(x)
         x = self.dropout(x)
         return self.fc(x)
@@ -163,7 +163,7 @@ class BiLSTM(nn.Module):
         x = x.permute(0, 2, 1)
         x = self.bi_stack(x)
         x, _ = self.lstm_final(x)
-        x = x[:, -1, :]
+        x = x.mean(dim=1)
         x = self.out_bn(x)
         x = self.dropout(x)
         x = self.fc_stack(x)
@@ -196,7 +196,7 @@ class LSTM(nn.Module):
         x = x.permute(0, 2, 1)
         x, _ = self.lstm(x)
         x = self.relu(x)
-        x = self.dropout(x[:, -1, :])
+        x = self.dropout(x.mean(dim=1))
         x = self.fc_stack(x)
         return self.fc(x)
 
@@ -221,7 +221,7 @@ class GRU(nn.Module):
         x = x.permute(0, 2, 1)
         x, _ = self.gru(x)
         x = self.relu(x)
-        x = self.dropout(x[:, -1, :])
+        x = self.dropout(x.mean(dim=1))
         return self.fc(x)
 
 
@@ -260,7 +260,7 @@ class ResNetBiLSTM(nn.Module):
         x = self.lstm_stack(x)
         x, _ = self.lstm_final(x)
         x = self.final_norm(x)
-        x = self.dropout(x[:, -1, :])
+        x = self.dropout(x.mean(dim=1))
         x = self.fc_stack(x)
         return self.fc(x)
 

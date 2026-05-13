@@ -53,6 +53,27 @@ ACTION_LENGTH_LIMITS: dict[str, tuple[int, int]] = {
 }
 
 
+def _oversample_per_class(recs, oversample_to, rng):
+    """Oversample each class to ``oversample_to`` items.
+
+    Returns the original list unchanged when ``oversample_to`` is None.
+    Empty classes are skipped (they cannot be sampled from) instead of
+    raising — set up that case with a clear message at the call site.
+    """
+    if oversample_to is None or oversample_to <= 0:
+        return list(recs)
+    by_class: dict[int, list] = {}
+    for r in recs:
+        by_class.setdefault(r.y, []).append(r)
+    balanced = []
+    for cls, items in by_class.items():
+        if not items:
+            continue
+        idx = rng.integers(0, len(items), size=oversample_to)
+        balanced.extend(items[i] for i in idx)
+    return balanced
+
+
 class STFTDataset(Dataset):
     """Dataset over precomputed STFT magnitude matrices.
 
@@ -88,17 +109,7 @@ class STFTDataset(Dataset):
         self.augment = augment
         self.rng = np.random.default_rng(rng_seed)
 
-        if oversample_to is None:
-            self.recs = list(recs)
-        else:
-            by_class: dict[int, list[STFTRecording]] = {}
-            for r in recs:
-                by_class.setdefault(r.y, []).append(r)
-            balanced: list[STFTRecording] = []
-            for items in by_class.values():
-                idx = self.rng.integers(0, len(items), size=oversample_to)
-                balanced.extend(items[i] for i in idx)
-            self.recs = balanced
+        self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
         return len(self.recs)
@@ -143,17 +154,7 @@ class TremorDataset(Dataset):
         self.augment = augment
         self.rng = np.random.default_rng(rng_seed)
 
-        if oversample_to is None:
-            self.recs = list(recs)
-        else:
-            by_class: dict[int, list[Recording]] = {}
-            for r in recs:
-                by_class.setdefault(r.y, []).append(r)
-            balanced: list[Recording] = []
-            for items in by_class.values():
-                idx = self.rng.integers(0, len(items), size=oversample_to)
-                balanced.extend(items[i] for i in idx)
-            self.recs = balanced
+        self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
         return len(self.recs)
@@ -181,7 +182,7 @@ def _train_one_epoch(model, loader, opt, loss_fn, device):
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        total_loss += float(loss) * x.size(0)
+        total_loss += loss.item() * x.size(0)
         n += x.size(0)
     return total_loss / max(n, 1)
 
@@ -193,7 +194,7 @@ def _evaluate(model, loader, loss_fn, device):
     for x, y in loader:
         x, y = x.to(device), y.to(device)
         logits = model(x)
-        total_loss += float(loss_fn(logits, y)) * x.size(0)
+        total_loss += loss_fn(logits, y).item() * x.size(0)
         correct += int((logits.argmax(-1) == y).sum())
         n += x.size(0)
     return total_loss / max(n, 1), correct / max(n, 1)
@@ -236,7 +237,15 @@ def main() -> None:
         "--oversample-to",
         type=int,
         default=None,
-        help="Per-class oversampling target for the TRAINING fold only.",
+        help="Per-class oversampling target for the TRAINING fold only. "
+             "Pass 0 or omit to disable. Pass a positive integer (e.g. 200) "
+             "to draw that many samples per class with replacement.",
+    )
+    p.add_argument(
+        "--auto-oversample",
+        action="store_true",
+        help="Override --oversample-to with 3 x the largest class count "
+             "(quick way to get a roughly balanced training set).",
     )
     p.add_argument("--fs", type=float, default=100.0,
                    help="Sampling rate in Hz of the input recordings (default 100, no downsampling).")
@@ -316,9 +325,12 @@ def main() -> None:
     print(f"Class distribution (val):   {Counter(r.y for r in val_recs)}")
     print(f"Class distribution (test):  {Counter(r.y for r in test_recs)}")
 
-    if args.oversample_to is None:
+    if args.auto_oversample:
         per_class = Counter(r.y for r in train_recs)
         args.oversample_to = max(per_class.values()) * 3
+        print(f"[oversample] auto target = {args.oversample_to} per class")
+    elif args.oversample_to:
+        print(f"[oversample] target = {args.oversample_to} per class")
 
     if args.data_mode == "raw":
         stft_kwargs = dict(
