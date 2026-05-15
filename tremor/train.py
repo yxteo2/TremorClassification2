@@ -565,9 +565,10 @@ def main() -> None:
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.8)
+    train_labels = [r.y for r in train_recs]
     loss_fn = build_loss_fn(
         loss_type=args.loss,
-        train_labels=[r.y for r in train_recs],
+        train_labels=train_labels,
         num_classes=len(CLASS_NAMES),
         focal_gamma=args.focal_gamma,
         label_smoothing=args.label_smoothing,
@@ -575,6 +576,23 @@ def main() -> None:
     )
     print(f"[loss] type={args.loss}  focal_gamma={args.focal_gamma}  "
           f"label_smoothing={args.label_smoothing}")
+    if args.loss in ("weighted_ce", "focal"):
+        from tremor.losses import compute_class_weights
+        weights = compute_class_weights(train_labels, len(CLASS_NAMES))
+        counts = Counter(train_labels)
+        print("[loss] class weights (inverse-frequency, mean=1):")
+        for i, name in enumerate(CLASS_NAMES):
+            print(f"       {name:>3s}  count={counts.get(i, 0):4d}  "
+                  f"weight={float(weights[i]):.3f}")
+        if args.auto_oversample or args.oversample_to:
+            print(
+                "[loss] WARNING: oversampling is active AND class weights are "
+                "applied. The training set sees a balanced label distribution "
+                "but the loss still uses inverse-frequency weights from the "
+                "original distribution — minority classes get double-corrected. "
+                "Pick ONE of: '--auto-oversample / --oversample-to' or "
+                "'--loss focal / weighted_ce'."
+            )
 
     best_val_loss = float("inf")
     best_state: dict | None = None

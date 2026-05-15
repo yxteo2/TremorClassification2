@@ -28,18 +28,24 @@ import torch.nn.functional as F
 
 
 def compute_class_weights(
-    labels: Sequence[int], num_classes: int, eps: float = 1e-8
+    labels: Sequence[int], num_classes: int,
 ) -> torch.Tensor:
-    """Inverse-frequency class weights normalised to mean 1.
+    """Inverse-frequency class weights, normalised over non-empty classes.
 
-    ``weight_i = (1 / p_i) / mean_j(1 / p_j)`` where ``p_i`` is the
-    relative frequency of class ``i`` in the training set.
+    ``weight_i = (1 / count_i) / mean_{j: count_j > 0}(1 / count_j)``
+
+    Classes with zero training samples get a weight of 0 (cannot occur in
+    the loss anyway). The mean over non-empty classes is 1, so the
+    weighted-loss magnitude stays comparable to plain cross-entropy and
+    the relative weighting is purely a function of sample size:
+    halving a class's count doubles its weight.
     """
     counts = np.bincount(np.asarray(labels), minlength=num_classes).astype(np.float64)
-    total = float(max(counts.sum(), 1))
-    p = counts / total
-    inv_p = 1.0 / np.maximum(p, eps)
-    weights = inv_p / np.mean(inv_p)
+    weights = np.zeros(num_classes, dtype=np.float64)
+    nonzero = counts > 0
+    if nonzero.any():
+        inv = 1.0 / counts[nonzero]
+        weights[nonzero] = inv / inv.mean()
     return torch.tensor(weights, dtype=torch.float32)
 
 
