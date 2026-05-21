@@ -1,14 +1,24 @@
-"""Load tremor recordings from the ProcessedData directory.
+"""Load tremor recordings from amplitude/time-domain folders.
 
-File layout mirrors the original MATLAB project:
-    <root>/ProcessedData/raw data/<feature>/<action>/*/*.txt
+The user's Drive has the time-domain (`filtered_amplitudes` etc.)
+data at the **top level**:
+    <root>/filtered_amplitudes/<ACTION>/<file>.txt
 
-Each .txt contains an amplitudes table where columns are (L, H, U) sensor
-channels and rows are timesteps. The leading character of the file name
-encodes the class: N (Normal), P (PD), E (ET). The trailing underscore-
-delimited integer (e.g. ``_1``, ``_2``) is a TRIAL index for the same
-subject. To prevent subject-level leakage the subject id is the file
-stem with the trial suffix stripped.
+The processed-feature folders (`stft`, `raw_quaternion`, …) live
+under `ProcessedData/`:
+    <root>/ProcessedData/<feature>/<ACTION>/<CLASS>/<file>.txt
+
+To accept both, ``load_recordings`` searches several candidate roots
+in order and uses the first that exists.
+
+Each .txt contains an amplitudes table where columns are (L, H, U)
+sensor channels and rows are timesteps. The class label is encoded in
+the **leading character** of the filename — N (Normal), P (PD), E
+(ET) — and that's how this loader assigns labels (class subfolders,
+if present, are walked transparently via ``rglob``).
+
+Subject IDs strip the trailing trial number so all trials of one
+patient share a group ID and stay together under group-aware splits.
 """
 
 from __future__ import annotations
@@ -44,14 +54,36 @@ def _parse_subject_and_class(filename: str) -> tuple[str, int]:
     return subject, CLASS_MAP[leading]
 
 
+def _resolve_data_dir(root: Path, feature: str, action: str) -> Path:
+    """Find the first matching layout among the conventions we support."""
+    candidates = [
+        root / feature / action,                          # top-level, e.g. filtered_amplitudes/
+        root / "ProcessedData" / feature / action,        # processed-feature, e.g. stft/, raw_quaternion/
+        root / "ProcessedData" / "raw data" / feature / action,  # legacy MATLAB layout
+    ]
+    for c in candidates:
+        if c.is_dir():
+            return c
+    raise FileNotFoundError(
+        "No data directory found for feature='{f}' action='{a}'. "
+        "Tried: {c}".format(f=feature, a=action,
+                            c=", ".join(str(p) for p in candidates))
+    )
+
+
 def load_recordings(
     root: Path | str,
     feature: str = "filtered_amplitudes",
     action: str = "DRINK",
 ) -> list[Recording]:
-    data_dir = Path(root) / "ProcessedData" / "raw data" / feature / action
-    if not data_dir.is_dir():
-        raise FileNotFoundError(f"Data directory not found: {data_dir}")
+    """Load all amplitude recordings for one (feature, action) combination.
+
+    Walks ``data_dir`` recursively, so class subfolders (if present)
+    are handled transparently. Each file's class label is parsed from
+    its filename's leading letter; rows are interpreted as timesteps
+    and columns as sensor channels.
+    """
+    data_dir = _resolve_data_dir(Path(root), feature, action)
 
     recordings: list[Recording] = []
     for path in sorted(data_dir.rglob("*.txt")):
@@ -59,7 +91,11 @@ def load_recordings(
         arr = df.to_numpy(dtype=np.float32).T
         if arr.size == 0:
             continue
-        subject, label = _parse_subject_and_class(path.name)
+        try:
+            subject, label = _parse_subject_and_class(path.name)
+        except ValueError:
+            # Skip files whose leading character isn't a known class
+            continue
         recordings.append(Recording(x=arr, y=label, subject=subject, path=path))
     return recordings
 
