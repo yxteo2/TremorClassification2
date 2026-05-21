@@ -25,7 +25,6 @@ from torch.utils.data import DataLoader, Dataset
 from tremor.data import (
     CLASS_NAMES,
     Recording,
-    filter_by_length,
     load_recordings,
 )
 from tremor.evaluate import classification_report
@@ -45,15 +44,6 @@ from tremor.losses import build_loss_fn
 from tremor.tfd import apply_cwt, apply_hht
 from tremor.splits import subject_level_split
 from tremor.stft_data import STFTRecording, load_stft_recordings
-
-
-ACTION_LENGTH_LIMITS: dict[str, tuple[int, int]] = {
-    "DRINK": (1000, 5000),
-    "EAT": (1, 8000),
-    "FNF": (1, 5000),
-    "OUT": (500, 1500),
-    "REST": (500, 1500),
-}
 
 
 def _oversample_per_class(recs, oversample_to, rng):
@@ -260,15 +250,12 @@ def _load_recordings_for_mode(args):
     Returns a list of Recording / STFTRecording objects.
     """
     if args.data_mode == "raw":
-        min_len, max_len = ACTION_LENGTH_LIMITS.get(args.action, (1, 10**9))
         recs = load_recordings(
             args.data_root, feature=args.feature, action=args.action,
         )
-        recs = filter_by_length(recs, min_len=min_len, max_len=max_len)
         if not recs:
             raise FileNotFoundError(
-                f"No usable recordings under {args.feature}/{args.action} "
-                f"(after length-filtering)."
+                f"No recordings under {args.feature}/{args.action}."
             )
         return recs
 
