@@ -253,6 +253,48 @@ def _collect(model, loader, device):
     return np.concatenate(logits_list), np.concatenate(y_list)
 
 
+def _load_recordings_for_mode(args):
+    """Dispatch to the right loader based on ``--data-mode``.
+
+    Raises FileNotFoundError when the expected folder isn't present.
+    Returns a list of Recording / STFTRecording objects.
+    """
+    if args.data_mode == "raw":
+        min_len, max_len = ACTION_LENGTH_LIMITS.get(args.action, (1, 10**9))
+        recs = load_recordings(
+            args.data_root, feature=args.feature, action=args.action,
+        )
+        recs = filter_by_length(recs, min_len=min_len, max_len=max_len)
+        if not recs:
+            raise FileNotFoundError(
+                f"No usable recordings under {args.feature}/{args.action} "
+                f"(after length-filtering)."
+            )
+        return recs
+
+    if args.data_mode == "quaternion":
+        feature = args.feature if args.feature != "stft" else "raw_quaternion"
+        recs = load_quaternion_recordings(
+            args.data_root, action=args.action, fs=args.fs,
+            mode=args.quaternion_mode, convention=args.quaternion_convention,
+            feature=feature,
+        )
+        if not recs:
+            raise FileNotFoundError(
+                f"No quaternion files under {feature}/{args.action}."
+            )
+        return recs
+
+    recs = load_stft_recordings(
+        args.data_root, action=args.action, feature=args.feature,
+    )
+    if not recs:
+        raise FileNotFoundError(
+            f"No STFT files under {args.feature}/{args.action}."
+        )
+    return recs
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--data-root", required=True, type=Path)
@@ -316,7 +358,7 @@ def main() -> None:
     p.add_argument("--nfft", type=int, default=256,
                    help="STFT FFT length in samples (MATLAB default 256).")
     p.add_argument("--noverlap", type=int, default=96,
-                   help="STFT overlap in samples (MATLAB default 96, i.e. 75%).")
+                   help="STFT overlap in samples (MATLAB default 96, i.e. 75%%).")
     p.add_argument("--f-max", type=float, default=None,
                    help="Drop STFT bins above this frequency (Hz). "
                         "Typical tremor cutoff: 15 Hz.")
@@ -397,42 +439,23 @@ def main() -> None:
 
     args.output.mkdir(parents=True, exist_ok=True)
 
-    if args.data_mode == "raw":
-        min_len, max_len = ACTION_LENGTH_LIMITS.get(args.action, (1, 10**9))
-        recs = load_recordings(
-            args.data_root, feature=args.feature, action=args.action
-        )
-        recs = filter_by_length(recs, min_len=min_len, max_len=max_len)
-        if not recs:
-            raise SystemExit("No recordings loaded.")
-        if args.apply_bandpass:
-            for r in recs:
-                r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
+    try:
+        recs = _load_recordings_for_mode(args)
+    except FileNotFoundError as e:
+        raise SystemExit(f"error: {e}") from None
+
+    if args.data_mode == "raw" and args.apply_bandpass:
+        for r in recs:
+            r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
     elif args.data_mode == "quaternion":
-        feature = args.feature if args.feature != "stft" else "raw_quaternion"
-        recs = load_quaternion_recordings(
-            args.data_root, action=args.action, fs=args.fs,
-            mode=args.quaternion_mode, convention=args.quaternion_convention,
-            feature=feature,
-        )
-        if not recs:
-            raise SystemExit(
-                f"No quaternion files under {feature}/{args.action}."
-            )
-        if args.apply_bandpass:
-            for r in recs:
-                r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
         print(
             f"[quaternion] mode={args.quaternion_mode} "
             f"convention={args.quaternion_convention} "
             f"channels={recs[0].x.shape[0]}"
         )
-    else:
-        recs = load_stft_recordings(
-            args.data_root, action=args.action, feature=args.feature
-        )
-        if not recs:
-            raise SystemExit(f"No STFT files under {args.feature}/{args.action}.")
+        if args.apply_bandpass:
+            for r in recs:
+                r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
 
     lengths = [r.x.shape[1] for r in recs]
     if args.length_mode == "pad":
