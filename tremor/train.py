@@ -282,6 +282,28 @@ def _load_recordings_for_mode(args):
     return recs
 
 
+def _seed_everything(seed: int) -> None:
+    """Seed every RNG the training run touches.
+
+    - ``torch.manual_seed``     -> model init, dropout, BatchNorm running stats
+    - ``torch.cuda.manual_seed_all`` -> all GPU RNGs (no-op on CPU)
+    - ``np.random.seed``        -> legacy numpy global RNG
+    - ``random.seed``           -> Python stdlib RNG (defensive; not used here)
+
+    The per-dataset ``np.random.default_rng`` instances (oversampling,
+    random padding, SpecAugment) are seeded separately with
+    ``args.seed`` / ``+1`` / ``+2`` for train / val / test so that
+    augmentation order is also reproducible.
+    """
+    import random as _stdrandom
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    _stdrandom.seed(seed)
+    print(f"[seed] all RNGs seeded with {seed}")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--data-root", required=True, type=Path)
@@ -421,9 +443,7 @@ def main() -> None:
     p.add_argument("--output", type=Path, default=Path("artifacts"))
     args = p.parse_args()
 
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-
+    _seed_everything(args.seed)
     args.output.mkdir(parents=True, exist_ok=True)
 
     try:
