@@ -101,22 +101,54 @@ def spec_augment(
     return out
 
 
+def fit_length(
+    x: np.ndarray,
+    target_T: int,
+    mode: str = "center",
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Crop or zero-pad along the last axis to exactly ``target_T`` columns.
+
+    Args:
+        x: 2-D array of shape ``(rows, time)``.
+        target_T: desired final length along the time axis.
+        mode: ``"center"`` (default) places the signal in the middle,
+              ``"random"`` picks a random offset for both crop and pad.
+              ``"random"`` requires an rng.
+        rng: numpy Generator used when ``mode="random"``.
+
+    The same function handles both cases:
+      * ``T > target_T`` -> crop (lose ``T - target_T`` columns)
+      * ``T < target_T`` -> zero-pad with ``target_T - T`` columns
+      * ``T == target_T`` -> return unchanged
+    """
+    if x.ndim != 2:
+        raise ValueError(f"fit_length expects a 2-D array, got {x.shape}")
+    if mode not in ("center", "random"):
+        raise ValueError(f"mode must be 'center' or 'random', got {mode!r}")
+    if mode == "random" and rng is None:
+        raise ValueError("mode='random' requires an rng")
+
+    F, T = x.shape
+    if T == target_T:
+        return x
+
+    if T > target_T:
+        start = (T - target_T) // 2 if mode == "center" \
+                else int(rng.integers(0, T - target_T + 1))
+        return x[:, start : start + target_T]
+
+    out = np.zeros((F, target_T), dtype=x.dtype)
+    offset = (target_T - T) // 2 if mode == "center" \
+             else int(rng.integers(0, target_T - T + 1))
+    out[:, offset : offset + T] = x
+    return out
+
+
 def time_pad(
     S: np.ndarray, target_T: int, rng: np.random.Generator | None = None
 ) -> np.ndarray:
-    """Zero-pad / centre-crop along the time axis to ``target_T`` frames.
-
-    If ``rng`` is provided, the padding offset is randomised (training);
-    otherwise the signal is centred (val / test).
-    """
-    F, T = S.shape
-    if T >= target_T:
-        start = (T - target_T) // 2
-        return S[:, start : start + target_T]
-    out = np.zeros((F, target_T), dtype=S.dtype)
-    if rng is None:
-        offset = (target_T - T) // 2
-    else:
-        offset = int(rng.integers(0, target_T - T + 1))
-    out[:, offset : offset + T] = S
-    return out
+    """Legacy wrapper. Prefer :func:`fit_length`."""
+    return fit_length(S, target_T,
+                      mode="random" if rng is not None else "center",
+                      rng=rng)

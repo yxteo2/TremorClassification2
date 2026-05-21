@@ -29,16 +29,16 @@ from tremor.data import (
 )
 from tremor.evaluate import classification_report
 from tremor.models import MODELS, build_model
-from tremor.preprocessing import apply_stft, bandpass, center_pad, random_pad
+from tremor.preprocessing import apply_stft, bandpass
 from tremor.quaternion_data import load_quaternion_recordings
 from tremor.spectral import (
     crop_freq_bins,
+    fit_length,
     freq_bins_for_fmax,
     log_compress,
     per_freq_zscore,
     per_recording_zscore,
     spec_augment,
-    time_pad,
 )
 from tremor.losses import build_loss_fn
 from tremor.tfd import apply_cwt, apply_hht
@@ -89,6 +89,8 @@ class STFTDataset(Dataset):
         log_compress_on: bool,
         normalize: str,  # 'none' | 'per_freq' | 'per_recording'
         spec_augment_on: bool,
+        length_mode: str = "truncate",  # 'truncate' | 'pad'
+        pad_mode: str = "random",       # 'center' | 'random' (only used in pad mode)
         oversample_to: int | None = None,
         augment: bool = False,
     ) -> None:
@@ -99,6 +101,8 @@ class STFTDataset(Dataset):
         self.log_compress_on = log_compress_on
         self.normalize = normalize
         self.spec_augment_on = spec_augment_on
+        self.length_mode = length_mode
+        self.pad_mode = pad_mode
         self.augment = augment
         self.rng = np.random.default_rng(rng_seed)
 
@@ -106,6 +110,14 @@ class STFTDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.recs)
+
+    def _fit_mode(self) -> str:
+        """Resolve crop/pad offset strategy from length_mode + augment + pad_mode."""
+        if not self.augment:
+            return "center"
+        if self.length_mode == "truncate":
+            return "random"      # random crop -> train-time augmentation
+        return self.pad_mode      # 'random' or 'center' as the user chose
 
     def __getitem__(self, i: int) -> tuple[torch.Tensor, int]:
         r = self.recs[i]
@@ -118,7 +130,7 @@ class STFTDataset(Dataset):
             x = per_freq_zscore(x)
         elif self.normalize == "per_recording":
             x = per_recording_zscore(x)
-        x = time_pad(x, self.target_T, rng=self.rng if self.augment else None)
+        x = fit_length(x, self.target_T, mode=self._fit_mode(), rng=self.rng)
         if self.augment and self.spec_augment_on:
             x = spec_augment(x, self.rng)
         return torch.from_numpy(x), r.y
@@ -145,6 +157,8 @@ class TremorDataset(Dataset):
         log_compress_on: bool = True,
         normalize: str = "per_recording",
         spec_augment_on: bool = False,
+        length_mode: str = "truncate",
+        pad_mode: str = "random",
     ) -> None:
         self.target_length = target_length
         self.fs = fs
@@ -161,6 +175,8 @@ class TremorDataset(Dataset):
         self.log_compress_on = log_compress_on
         self.normalize = normalize
         self.spec_augment_on = spec_augment_on
+        self.length_mode = length_mode
+        self.pad_mode = pad_mode
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
@@ -168,12 +184,17 @@ class TremorDataset(Dataset):
     def __len__(self) -> int:
         return len(self.recs)
 
+    def _fit_mode(self) -> str:
+        if not self.augment:
+            return "center"
+        if self.length_mode == "truncate":
+            return "random"
+        return self.pad_mode
+
     def __getitem__(self, i: int) -> tuple[torch.Tensor, int]:
         r = self.recs[i]
-        if self.augment:
-            x = random_pad(r.x, self.target_length, self.rng)
-        else:
-            x = center_pad(r.x, self.target_length)
+        x = fit_length(r.x, self.target_length,
+                        mode=self._fit_mode(), rng=self.rng)
         if self.tfd_method == "cwt":
             f_high = self.f_max if self.f_max else 15.0
             freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
@@ -396,14 +417,19 @@ def main() -> None:
                    help="(cwt) Spacing between analysis frequencies in Hz, "
                         "swept from 3 Hz to --f-max. Step 0.5 -> ~24 bins; "
                         "step 0.25 -> ~48 bins.")
-    p.add_argument("--length-mode", choices=("pad", "truncate"), default="pad",
+    p.add_argument("--length-mode", choices=("truncate", "pad"), default="truncate",
                    help="How to make all recordings the same length. "
-                        "'pad' (default) sets target = max_length x 1.1; short "
-                        "recordings get random/centred zero-padding, only the "
-                        "longest get a small centre-crop. "
-                        "'truncate' sets target = min_length so the model sees "
-                        "a smaller, denser tensor; long recordings get randomly "
-                        "truncated (train) or centre-cropped (val/test).")
+                        "'truncate' (default): target = min_length; long "
+                        "recordings get randomly cropped (train) or centre-"
+                        "cropped (val/test) — no padding. "
+                        "'pad': target = max_length; short recordings get "
+                        "zero-padded according to --pad-mode.")
+    p.add_argument("--pad-mode", choices=("random", "center"), default="random",
+                   help="(pad mode only) Where to place the signal inside the "
+                        "padded window. 'random' (default) picks a random "
+                        "offset per training sample — acts as a time-shift "
+                        "augmentation. 'center' places it dead centre, no "
+                        "randomness. Val/test always uses centre regardless.")
     p.add_argument("--stft-fs", type=float, default=100.0,
                    help="(stft mode) Original sampling rate the STFTs were "
                         "computed at — used to map --f-max to bin count.")
@@ -466,7 +492,7 @@ def main() -> None:
 
     lengths = [r.x.shape[1] for r in recs]
     if args.length_mode == "pad":
-        target_length = int(max(lengths) * 1.1)
+        target_length = int(max(lengths))
     else:
         target_length = int(min(lengths))
     if target_length < 2:
@@ -476,8 +502,9 @@ def main() -> None:
             f"check the data folder or switch --length-mode."
         )
     print(
-        f"[length] mode={args.length_mode}  "
-        f"min={min(lengths)} max={max(lengths)}  -> target={target_length}"
+        f"[length] mode={args.length_mode}"
+        + (f" (pad_mode={args.pad_mode})" if args.length_mode == "pad" else "")
+        + f"  min={min(lengths)} max={max(lengths)}  -> target={target_length}"
     )
 
     subjects = [r.subject for r in recs]
@@ -527,6 +554,8 @@ def main() -> None:
             log_compress_on=not args.no_log_compress,
             normalize=args.normalize,
             spec_augment_on=args.spec_augment,
+            length_mode=args.length_mode,
+            pad_mode=args.pad_mode,
         )
         print(f"[tfd] method={args.tfd_method}  "
               f"log={not args.no_log_compress}  normalize={args.normalize}")
@@ -559,6 +588,8 @@ def main() -> None:
             log_compress_on=not args.no_log_compress,
             normalize=args.normalize,
             spec_augment_on=args.spec_augment,
+            length_mode=args.length_mode,
+            pad_mode=args.pad_mode,
         )
         train_ds = STFTDataset(
             train_recs, rng_seed=args.seed,
