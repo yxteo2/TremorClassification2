@@ -1,7 +1,8 @@
-"""Load IMU quaternion recordings from ``ProcessedData/raw_quaternion``.
+"""Load IMU quaternion recordings.
 
-Folder layout (mirrors the user's Drive):
-    <root>/ProcessedData/raw_quaternion/<ACTION>/<CLASS>/<class> <subject>_<action> <trial>.txt
+Folder layout (the user keeps the data outside ProcessedData):
+    <root>/<feature>/<ACTION>/<CLASS>/<class> <subject>_<action> <trial>.txt
+    e.g.  Data/raw_quaternion/OUT/PD/PD 14_OUT.txt
 
 Each .txt is comma-separated, shape ``(T, 12)`` — 3 sensors x 4 unit
 quaternion components, scalar-last ``(x, y, z, w)``, sampled at fs=100 Hz.
@@ -38,9 +39,19 @@ def load_quaternion_recordings(
     feature: str = "raw_quaternion",
     n_sensors: int = 3,
 ) -> list[Recording]:
-    data_dir = Path(root) / "ProcessedData" / feature / action
-    if not data_dir.is_dir():
-        raise FileNotFoundError(f"Quaternion directory not found: {data_dir}")
+    # Two layouts are supported: <root>/<feature>/<ACTION>/  (user's local
+    # convention) or <root>/ProcessedData/<feature>/<ACTION>/ (older
+    # processed-data convention). Use the first one that exists.
+    candidates = [
+        Path(root) / feature / action,
+        Path(root) / "ProcessedData" / feature / action,
+    ]
+    data_dir = next((p for p in candidates if p.is_dir()), None)
+    if data_dir is None:
+        raise FileNotFoundError(
+            f"Quaternion directory not found. Tried: "
+            f"{', '.join(str(p) for p in candidates)}"
+        )
 
     recordings: list[Recording] = []
     for class_dir in sorted(p for p in data_dir.iterdir() if p.is_dir()):

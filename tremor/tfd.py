@@ -38,6 +38,8 @@ from tremor.preprocessing import apply_stft  # noqa: F401 — re-exported
 __all__ = [
     "apply_stft", "apply_cwt", "apply_welch",
     "apply_hht", "apply_emd_imfs",
+    "marginal_hilbert_spectrum", "dominant_imf_frequencies",
+    "apply_wavelet_packet",
     "compare_tfd_separability",
 ]
 
@@ -248,6 +250,175 @@ def apply_hht(
             grid = grid[:, ::decim][:, :out_T]
         out[c * n_f : (c + 1) * n_f, : grid.shape[1]] = grid
     return out
+
+
+def marginal_hilbert_spectrum(
+    x: np.ndarray, fs: float = 100.0,
+    freqs: np.ndarray | None = None,
+    max_imfs: int = 8, f_max: float | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Marginal Hilbert spectrum — proper way to read HHT peak frequency.
+
+    The marginal Hilbert spectrum integrates ``amplitude(t, f)`` over time
+    to produce a 1-D ``energy(f)`` curve. This is the correct frequency-
+    domain summary of an HHT decomposition; using ``argmax`` on the
+    binned (freq, time) magnitude as we do in :func:`apply_hht` collapses
+    to the lowest bin because of how energy spreads across IMFs.
+
+    Args:
+        x: ``(channels, time)`` input signal.
+        fs, freqs, max_imfs, f_max: as in :func:`apply_hht`.
+
+    Returns:
+        ``(freqs, energy)`` where ``energy[c, f]`` is the time-integrated
+        amplitude for channel ``c`` at frequency bin ``f``.
+    """
+    from scipy.signal import hilbert
+
+    if freqs is None:
+        freqs = np.arange(0.5, 15.01, 0.5)
+    freqs = np.asarray(freqs, dtype=np.float64)
+    if f_max is not None:
+        freqs = freqs[freqs <= f_max]
+
+    n_ch, _ = x.shape
+    n_f = len(freqs)
+    edges = np.concatenate([[-np.inf],
+                            (freqs[:-1] + freqs[1:]) / 2.0,
+                            [np.inf]])
+
+    energy = np.zeros((n_ch, n_f), dtype=np.float32)
+    for c in range(n_ch):
+        imfs = _emd_imfs(x[c], max_imfs=max_imfs)
+        for imf in imfs:
+            if np.allclose(imf, 0):
+                continue
+            a = hilbert(imf.astype(np.float64))
+            amp = np.abs(a).astype(np.float32)
+            phase = np.unwrap(np.angle(a))
+            f_inst = np.empty_like(phase, dtype=np.float32)
+            f_inst[1:] = np.diff(phase) * fs / (2 * np.pi)
+            f_inst[0] = f_inst[1]
+            bin_idx = np.digitize(f_inst, edges) - 1
+            valid = (bin_idx >= 0) & (bin_idx < n_f)
+            np.add.at(energy[c], bin_idx[valid], amp[valid])
+    return freqs.astype(np.float32), energy
+
+
+def dominant_imf_frequencies(
+    x: np.ndarray, fs: float = 100.0, max_imfs: int = 8,
+    f_max: float | None = 15.0,
+) -> np.ndarray:
+    """Per-IMF amplitude-weighted mean instantaneous frequency.
+
+    Standard HHT readout for picking the dominant tremor frequency:
+    decompose the signal into IMFs, then for each IMF report
+    ``sum(amp * f_inst) / sum(amp)``. The IMF with the largest total
+    amplitude in the tremor band is the dominant one.
+
+    Args:
+        x: ``(channels, time)`` input signal.
+        fs: sampling rate in Hz.
+        max_imfs: number of IMFs per channel to retain.
+        f_max: discard IMFs whose dominant frequency exceeds this
+            (filters out high-frequency noise IMFs).
+
+    Returns:
+        ``(channels, max_imfs)`` array of amplitude-weighted mean
+        instantaneous frequency per IMF (NaN for empty / out-of-band IMFs).
+    """
+    from scipy.signal import hilbert
+
+    n_ch, T = x.shape
+    out = np.full((n_ch, max_imfs), np.nan, dtype=np.float32)
+    for c in range(n_ch):
+        imfs = _emd_imfs(x[c], max_imfs=max_imfs)
+        for i, imf in enumerate(imfs):
+            if np.allclose(imf, 0):
+                continue
+            a = hilbert(imf.astype(np.float64))
+            amp = np.abs(a)
+            phase = np.unwrap(np.angle(a))
+            f_inst = np.empty_like(phase)
+            f_inst[1:] = np.diff(phase) * fs / (2 * np.pi)
+            f_inst[0] = f_inst[1]
+            wsum = float((amp * np.abs(f_inst)).sum())
+            asum = float(amp.sum() + 1e-12)
+            f_mean = wsum / asum
+            if f_max is None or 0.0 <= f_mean <= f_max:
+                out[c, i] = f_mean
+    return out
+
+
+def apply_wavelet_packet(
+    x: np.ndarray, fs: float = 100.0, level: int = 5,
+    wavelet: str = "db4", f_max: float | None = None,
+    log_energy: bool = True,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Wavelet packet decomposition: per-band time-domain energy.
+
+    Builds a full binary tree of length ``level``, giving ``2**level``
+    equal-width frequency sub-bands. For each band, returns the
+    time-localised energy (squared coefficient magnitude). The output
+    shape is ``(channels * n_bands, n_time_frames)`` where
+    ``n_time_frames = T // 2**level`` (downsampled by the wavelet
+    decimation cascade).
+
+    Args:
+        x: ``(channels, time)`` input signal.
+        fs: sampling rate; band centres are ``(k + 0.5) * fs / 2**(level+1)``.
+        level: decomposition depth; level 5 at fs=100 gives 32 bands
+            of ~1.56 Hz width each.
+        wavelet: any ``pywt`` wavelet name (``db4``, ``sym8``, ``coif5`` …).
+        f_max: optional upper-frequency cap.
+        log_energy: if True, return ``log1p(|coeff|**2)``; useful for
+            heavy-tailed tremor magnitudes.
+
+    Returns:
+        ``(band_centres_Hz, decomposition)`` — frequency vector and
+        ``(channels * n_kept_bands, n_time_frames)`` band energy.
+    """
+    try:
+        import pywt
+    except ImportError as e:
+        raise ImportError(
+            "Wavelet packets require PyWavelets. Install with: pip install pywavelets"
+        ) from e
+
+    n_ch, T = x.shape
+    n_bands = 2 ** level
+    band_width = fs / 2.0 / n_bands
+    band_centres = (np.arange(n_bands) + 0.5) * band_width
+
+    keep = np.arange(n_bands)
+    if f_max is not None:
+        keep = keep[band_centres[keep] <= f_max]
+    band_centres = band_centres[keep]
+
+    per_ch = []
+    for c in range(n_ch):
+        wp = pywt.WaveletPacket(
+            data=x[c].astype(np.float64), wavelet=wavelet,
+            mode="symmetric", maxlevel=level,
+        )
+        # Frequency-sorted nodes (grey-code permutation) so band index k
+        # corresponds to the k-th frequency band of width fs/2/n_bands.
+        nodes = [n.path for n in wp.get_level(level, order="freq")]
+        bands = []
+        for k in keep:
+            coeffs = np.asarray(wp[nodes[int(k)]].data, dtype=np.float32)
+            energy = coeffs ** 2
+            if log_energy:
+                energy = np.log1p(energy)
+            bands.append(energy)
+        # All band rows have the same length after decomposition
+        min_len = min(b.shape[0] for b in bands)
+        per_ch.append(np.stack([b[:min_len] for b in bands]))
+
+    # Stack across channels
+    min_t = min(p.shape[1] for p in per_ch)
+    out = np.concatenate([p[:, :min_t] for p in per_ch], axis=0).astype(np.float32)
+    return band_centres.astype(np.float32), out
 
 
 def _flatten_feature(method_output: np.ndarray) -> np.ndarray:

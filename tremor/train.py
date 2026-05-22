@@ -41,7 +41,7 @@ from tremor.spectral import (
     spec_augment,
 )
 from tremor.losses import build_loss_fn
-from tremor.tfd import apply_cwt, apply_hht
+from tremor.tfd import apply_cwt, apply_hht, apply_wavelet_packet
 from tremor.splits import subject_level_split
 from tremor.stft_data import STFTRecording, load_stft_recordings
 
@@ -154,6 +154,8 @@ class TremorDataset(Dataset):
         cwt_decim: int = 8,
         cwt_freq_step: float = 0.5,
         hht_max_imfs: int = 8,
+        wp_level: int = 5,
+        wp_wavelet: str = "db4",
         log_compress_on: bool = True,
         normalize: str = "per_recording",
         spec_augment_on: bool = False,
@@ -172,6 +174,8 @@ class TremorDataset(Dataset):
         self.cwt_decim = cwt_decim
         self.cwt_freq_step = cwt_freq_step
         self.hht_max_imfs = hht_max_imfs
+        self.wp_level = wp_level
+        self.wp_wavelet = wp_wavelet
         self.log_compress_on = log_compress_on
         self.normalize = normalize
         self.spec_augment_on = spec_augment_on
@@ -208,6 +212,12 @@ class TremorDataset(Dataset):
             x = apply_hht(
                 x, fs=self.fs, freqs=freqs, max_imfs=self.hht_max_imfs,
                 decim=self.cwt_decim, f_max=self.f_max,
+            )
+        elif self.tfd_method == "wavelet_packet":
+            _bc, x = apply_wavelet_packet(
+                x, fs=self.fs, level=self.wp_level,
+                wavelet=self.wp_wavelet, f_max=self.f_max,
+                log_energy=True,
             )
         else:
             x = apply_stft(
@@ -395,17 +405,25 @@ def main() -> None:
     p.add_argument("--apply-bandpass", action="store_true",
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
-    p.add_argument("--tfd-method", choices=("stft", "cwt", "hht"), default="stft",
+    p.add_argument("--tfd-method",
+                   choices=("stft", "cwt", "hht", "wavelet_packet"), default="stft",
                    help="Time-frequency decomposition: "
                         "'stft' (default; cheap linear-frequency spectrogram), "
                         "'cwt' (Morlet wavelet, frequency-adaptive window — "
                         "better for short non-stationary clips), "
-                        "'hht' (Hilbert-Huang via EMD; best for genuinely "
-                        "non-stationary tremor but slowest, needs EMD-signal). "
+                        "'hht' (Hilbert-Huang via EMD; best for non-stationary "
+                        "tremor but slowest, needs EMD-signal), "
+                        "'wavelet_packet' (dyadic sub-band energy via PyWavelets). "
                         "Used in raw and quaternion modes only.")
     p.add_argument("--hht-max-imfs", type=int, default=8,
                    help="(hht) Number of EMD intrinsic mode functions to keep "
                         "per channel before computing instantaneous frequency.")
+    p.add_argument("--wp-level", type=int, default=5,
+                   help="(wavelet_packet) Decomposition depth. Level 5 at "
+                        "fs=100 -> 32 bands of ~1.56 Hz width each.")
+    p.add_argument("--wp-wavelet", default="db4",
+                   help="(wavelet_packet) Mother wavelet name "
+                        "(db4 / sym8 / coif5 / ...).")
     p.add_argument("--cwt-w0", type=float, default=6.0,
                    help="(cwt) Morlet central angular frequency parameter; "
                         "higher = sharper freq resolution, longer wavelets.")
@@ -551,6 +569,8 @@ def main() -> None:
             cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step,
             hht_max_imfs=args.hht_max_imfs,
+            wp_level=args.wp_level,
+            wp_wavelet=args.wp_wavelet,
             log_compress_on=not args.no_log_compress,
             normalize=args.normalize,
             spec_augment_on=args.spec_augment,
