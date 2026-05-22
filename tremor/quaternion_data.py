@@ -44,7 +44,7 @@ def load_quaternion_recordings(
     # processed-data convention). Use the first one that exists.
     candidates = [
         Path(root) / feature / action,
-        Path(root) / "ProcessedData" / feature / action,
+        Path(root) / feature / action,
     ]
     data_dir = next((p for p in candidates if p.is_dir()), None)
     if data_dir is None:

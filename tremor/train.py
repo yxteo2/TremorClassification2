@@ -340,13 +340,13 @@ def main() -> None:
     p.add_argument("--data-root", required=True, type=Path)
     p.add_argument("--action", default="DRINK")
     p.add_argument("--data-mode",
-                   choices=("raw", "stft", "quaternion"), default="stft",
+                   choices=("raw", "stft", "quaternion"), default="quaternion",
                    help="'raw': time-domain amplitudes from "
-                        "ProcessedData/<feature>/<ACTION>/, STFT applied here. "
+                        "<feature>/<ACTION>/, STFT applied here. "
                         "'stft' (default): precomputed STFT magnitude CSVs "
-                        "from ProcessedData/<feature>/<ACTION>/<CLASS>/. "
+                        "from <feature>/<ACTION>/<CLASS>/. "
                         "'quaternion': raw IMU quaternion CSVs from "
-                        "ProcessedData/<feature>/<ACTION>/<CLASS>/, "
+                        "<feature>/<ACTION>/<CLASS>/, "
                         "converted to angular velocity then STFT.")
     p.add_argument("--quaternion-mode",
                    choices=("angular_velocity", "components"),
