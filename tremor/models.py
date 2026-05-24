@@ -325,7 +325,8 @@ class CustomAST(nn.Module):
 
     def __init__(self, input_size: int, num_classes: int = 3,
                  input_tdim: int = 512, fstride: int = 10, tstride: int = 10,
-                 model_name: str = "deit_base_distilled_patch16_384"):
+                 model_name: str = "deit_base_distilled_patch16_384",
+                 pretrained: bool = True):
         super().__init__()
         try:
             import timm
@@ -337,7 +338,7 @@ class CustomAST(nn.Module):
         self.input_fdim = input_size
         self.input_tdim = input_tdim
 
-        self.v = timm.create_model(model_name, pretrained=True)
+        self.v = timm.create_model(model_name, pretrained=pretrained)
 
         embed_dim = self.v.pos_embed.shape[2]
         original_num_patches = self.v.patch_embed.num_patches
@@ -446,6 +447,7 @@ def build_model(
     target_T: int | None = None,
     hidden: int = 128,
     dropout: float = 0.4,
+    ast_pretrained: bool = True,
 ) -> nn.Module:
     """Instantiate a model by registry name with sensible defaults."""
     if name not in MODELS:
@@ -463,5 +465,5 @@ def build_model(
         if target_T is None:
             raise ValueError("AST needs target_T (the time-frame count after padding).")
         return cls(input_size=input_size, num_classes=num_classes,
-                   input_tdim=target_T)
+                   input_tdim=target_T, pretrained=ast_pretrained)
     raise AssertionError(f"unhandled model name: {name}")
