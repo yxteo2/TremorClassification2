@@ -5,6 +5,15 @@ The raw_quaternion folder stores orientations as 12-column CSVs:
 convention is scalar-last ``(x, y, z, w)``: a near-identity
 orientation has its largest absolute component in the final column.
 
+Sensor order within each 12-column row:
+    cols  0..3 : HAND        (distal — strongest tremor amplitude)
+    cols  4..7 : LOWER ARM
+    cols  8..11: UPPER ARM   (proximal — weakest tremor amplitude)
+
+The distal-to-proximal amplitude gradient is itself a clinically
+relevant feature: PD pill-rolling tremor is strongest at the hand,
+while ET tends to spread more uniformly across the arm.
+
 For tremor classification we want the SIGNAL of orientation change,
 not orientation itself. Two ways to extract it:
 
@@ -13,6 +22,8 @@ not orientation itself. Two ways to extract it:
      time series (3 sensors x 3 axes). Theoretically clean: omega
      is a Lie-algebra-valued vector that the STFT can analyse
      directly. This is the recommended mode.
+     Channel order in the output: hand_x, hand_y, hand_z, lowerarm_x,
+     lowerarm_y, lowerarm_z, upperarm_x, upperarm_y, upperarm_z.
 
   2. ``components`` — keep the raw 12-channel quaternion stream and
      rely on a downstream bandpass (3-15 Hz) to strip the
@@ -24,6 +35,58 @@ not orientation itself. Two ways to extract it:
 from __future__ import annotations
 
 import numpy as np
+
+
+# Sensor labels by index — used in plots / per-sensor analyses.
+SENSOR_NAMES = ("hand", "lower_arm", "upper_arm")
+
+
+def channel_names(mode: str = "angular_velocity") -> list[str]:
+    """Return the channel name for each row of process_quaternion_data output.
+
+    For ``angular_velocity`` (9 channels): e.g. ``hand_x``, ``hand_y``, ...
+    For ``components`` (12 channels): e.g. ``hand_qx``, ``hand_qy``, ...
+    """
+    if mode == "angular_velocity":
+        return [f"{s}_{ax}" for s in SENSOR_NAMES for ax in ("x", "y", "z")]
+    if mode == "components":
+        return [f"{s}_q{ax}" for s in SENSOR_NAMES for ax in ("x", "y", "z", "w")]
+    raise ValueError(f"unknown mode {mode!r}")
+
+
+def select_sensor_channels(
+    x: np.ndarray, sensors: list[str] | tuple[str, ...],
+    mode: str = "angular_velocity",
+) -> np.ndarray:
+    """Keep only the rows of ``x`` that belong to the requested sensors.
+
+    The tremor literature (Deuschl 1998; Elble 2009) focuses on the
+    distal limb because tremor amplitude is largest there; selecting
+    ``sensors=['hand']`` reduces 9-channel angular-velocity (or
+    12-channel quaternion) input to 3 (or 4) hand-only channels.
+
+    Args:
+        x: array of shape ``(n_channels, time)`` produced by
+            :func:`process_quaternion_data`.
+        sensors: subset of ``{'hand', 'lower_arm', 'upper_arm'}``,
+            in any order.
+        mode: ``'angular_velocity'`` (3 channels/sensor) or
+            ``'components'`` (4 channels/sensor).
+
+    Returns:
+        ``(len(sensors) * channels_per_sensor, time)`` slice of ``x``.
+    """
+    per_sensor = 3 if mode == "angular_velocity" else 4
+    name_to_idx = {n: i for i, n in enumerate(SENSOR_NAMES)}
+    keep: list[int] = []
+    for s in sensors:
+        if s not in name_to_idx:
+            raise ValueError(
+                f"unknown sensor {s!r}; must be one of {SENSOR_NAMES}"
+            )
+        i = name_to_idx[s]
+        keep.extend(range(i * per_sensor, (i + 1) * per_sensor))
+    return x[keep]
 
 
 def _quat_components(q: np.ndarray, convention: str):

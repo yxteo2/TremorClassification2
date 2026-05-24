@@ -30,6 +30,7 @@ from tremor.data import (
 from tremor.evaluate import classification_report
 from tremor.models import MODELS, build_model
 from tremor.preprocessing import apply_stft, bandpass
+from tremor.quaternion import select_sensor_channels
 from tremor.quaternion_data import load_quaternion_recordings
 from tremor.spectral import (
     crop_freq_bins,
@@ -360,6 +361,13 @@ def main() -> None:
                    choices=("xyzw", "wxyz"), default="xyzw",
                    help="(quaternion mode) Component order in each 4-tuple. "
                         "Drive's raw_quaternion files use 'xyzw' (scalar last).")
+    p.add_argument("--quaternion-sensors", default="hand",
+                   help="(quaternion mode) Comma-separated subset of "
+                        "{hand, lower_arm, upper_arm} to keep. Default "
+                        "'hand' matches the tremor-literature convention "
+                        "of analysing distal-limb tremor only; pass "
+                        "'hand,lower_arm,upper_arm' for the full 9-channel "
+                        "(or 12-channel components) input.")
     p.add_argument("--feature", default="stft",
                    help="ProcessedData subfolder. For raw mode use e.g. "
                         "'filtered_amplitudes'; for stft mode use 'stft'; "
@@ -499,10 +507,14 @@ def main() -> None:
         for r in recs:
             r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
     elif args.data_mode == "quaternion":
+        sensors = [s.strip() for s in args.quaternion_sensors.split(",") if s.strip()]
+        if sensors and len(sensors) < 3:
+            for r in recs:
+                r.x = select_sensor_channels(r.x, sensors, mode=args.quaternion_mode)
         print(
             f"[quaternion] mode={args.quaternion_mode} "
             f"convention={args.quaternion_convention} "
-            f"channels={recs[0].x.shape[0]}"
+            f"sensors={sensors}  channels={recs[0].x.shape[0]}"
         )
         if args.apply_bandpass:
             for r in recs:
@@ -622,8 +634,11 @@ def main() -> None:
             test_recs, rng_seed=args.seed + 2, augment=False, **stft_ds_kwargs,
         )
 
+    # drop_last=True on TRAIN so BatchNorm never sees a singleton tail batch
+    # (e.g. after auto-oversample makes the dataset size mod batch_size == 1
+    # and a tensor of shape (1, F, T) crashes BatchNorm1d in training mode).
     train_loader = DataLoader(
-        train_ds, batch_size=args.batch_size, shuffle=True, drop_last=False
+        train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True
     )
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
     test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False)

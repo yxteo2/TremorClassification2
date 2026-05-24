@@ -99,7 +99,9 @@ def _train_one(method, fold_idx, train_recs, val_recs, args, device):
         augment=False, rng_seed=args.seed + 1, oversample_to=None,
     )
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
+    train_loader = DataLoader(
+        train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True
+    )
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
     sample_x, _ = train_ds[0]
