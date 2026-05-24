@@ -10,3 +10,5 @@ ProcessedData/
 artifacts/
 *.pt
 *.ckpt
+Data/_artifacts*/
+Data/cv_results*/
