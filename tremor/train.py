@@ -94,6 +94,7 @@ class STFTDataset(Dataset):
         pad_mode: str = "random",       # 'center' | 'random' (only used in pad mode)
         oversample_to: int | None = None,
         augment: bool = False,
+        crops_per_epoch: int = 1,
     ) -> None:
         self.target_T = target_T
         self.n_sensors = n_sensors
@@ -105,12 +106,13 @@ class STFTDataset(Dataset):
         self.length_mode = length_mode
         self.pad_mode = pad_mode
         self.augment = augment
+        self.crops_per_epoch = max(1, int(crops_per_epoch)) if augment else 1
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
-        return len(self.recs)
+        return len(self.recs) * self.crops_per_epoch
 
     def _fit_mode(self) -> str:
         """Resolve crop/pad offset strategy from length_mode + augment + pad_mode."""
@@ -121,7 +123,7 @@ class STFTDataset(Dataset):
         return self.pad_mode      # 'random' or 'center' as the user chose
 
     def __getitem__(self, i: int) -> tuple[torch.Tensor, int]:
-        r = self.recs[i]
+        r = self.recs[i % len(self.recs)]
         x = r.x
         if self.keep_bins < self.n_freq_bins:
             x = crop_freq_bins(x, self.n_sensors, self.n_freq_bins, self.keep_bins)
@@ -162,6 +164,8 @@ class TremorDataset(Dataset):
         spec_augment_on: bool = False,
         length_mode: str = "truncate",
         pad_mode: str = "random",
+        crops_per_epoch: int = 1,
+        noise_std: float = 0.0,
     ) -> None:
         self.target_length = target_length
         self.fs = fs
@@ -182,12 +186,14 @@ class TremorDataset(Dataset):
         self.spec_augment_on = spec_augment_on
         self.length_mode = length_mode
         self.pad_mode = pad_mode
+        self.crops_per_epoch = max(1, int(crops_per_epoch)) if augment else 1
+        self.noise_std = float(noise_std) if augment else 0.0
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
-        return len(self.recs)
+        return len(self.recs) * self.crops_per_epoch
 
     def _fit_mode(self) -> str:
         if not self.augment:
@@ -197,9 +203,15 @@ class TremorDataset(Dataset):
         return self.pad_mode
 
     def __getitem__(self, i: int) -> tuple[torch.Tensor, int]:
-        r = self.recs[i]
+        r = self.recs[i % len(self.recs)]
         x = fit_length(r.x, self.target_length,
                         mode=self._fit_mode(), rng=self.rng)
+        if self.noise_std > 0.0:
+            # Per-channel relative noise: scale stdev by each channel's RMS so
+            # large- and small-amplitude sensors get a comparable SNR hit.
+            rms = np.sqrt(np.mean(x * x, axis=1, keepdims=True) + 1e-12)
+            x = x + (self.noise_std * rms *
+                     self.rng.standard_normal(x.shape)).astype(x.dtype)
         if self.tfd_method == "cwt":
             f_high = self.f_max if self.f_max else 15.0
             freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
@@ -492,6 +504,26 @@ def main() -> None:
     p.add_argument("--label-smoothing", type=float, default=0.0,
                    help="Label smoothing for the loss. 0.05-0.1 is a mild "
                         "regulariser; values >= 0.2 can hurt accuracy.")
+    p.add_argument("--noise-std", type=float, default=0.0,
+                   help="(raw/quaternion mode) Add per-channel Gaussian noise "
+                        "to each training sample, with stdev = noise-std * "
+                        "channel RMS. 0 = off. 0.02-0.10 is a typical range; "
+                        "0.05 ~ 26 dB SNR. Applied AFTER cropping and BEFORE "
+                        "the TFD so noise propagates into the spectrogram.")
+    p.add_argument("--crops-per-epoch", type=int, default=1,
+                   help="How many random crops to draw per recording per "
+                        "training epoch (train set only — val/test always "
+                        "centre-crop once). 1 = current behaviour. Useful "
+                        "with --length-mode truncate and a small --target-T "
+                        "to multiply effective dataset size for under-"
+                        "represented classes (e.g. ET). 4-8 typical.")
+    p.add_argument("--target-T", type=int, default=None,
+                   help="Override the auto-computed target window length "
+                        "(in raw timesteps; the TFD/STFT runs on the cropped "
+                        "window). Default: min recording length in truncate "
+                        "mode, max in pad mode. Setting this shorter than "
+                        "min length makes random crops genuinely diverse, "
+                        "which is what --crops-per-epoch needs to help.")
     p.add_argument("--output", type=Path, default=Path("artifacts"))
     args = p.parse_args()
 
@@ -521,7 +553,15 @@ def main() -> None:
                 r.x = bandpass(r.x, fs=args.fs, band=(3.0, 30.0))
 
     lengths = [r.x.shape[1] for r in recs]
-    if args.length_mode == "pad":
+    if args.target_T is not None:
+        target_length = int(args.target_T)
+        if target_length > min(lengths) and args.length_mode == "truncate":
+            print(
+                f"[length] WARNING: --target-T={target_length} exceeds "
+                f"min recording length {min(lengths)}; in truncate mode the "
+                f"shortest recording will fall back to centre-pad."
+            )
+    elif args.length_mode == "pad":
         target_length = int(max(lengths))
     else:
         target_length = int(min(lengths))
@@ -593,7 +633,9 @@ def main() -> None:
               f"log={not args.no_log_compress}  normalize={args.normalize}")
         train_ds = TremorDataset(
             train_recs, target_length=target_length, rng_seed=args.seed,
-            oversample_to=args.oversample_to, augment=True, **ds_kwargs,
+            oversample_to=args.oversample_to, augment=True,
+            crops_per_epoch=args.crops_per_epoch,
+            noise_std=args.noise_std, **ds_kwargs,
         )
         val_ds = TremorDataset(
             val_recs, target_length=target_length, rng_seed=args.seed + 1,
@@ -625,7 +667,8 @@ def main() -> None:
         )
         train_ds = STFTDataset(
             train_recs, rng_seed=args.seed,
-            oversample_to=args.oversample_to, augment=True, **stft_ds_kwargs,
+            oversample_to=args.oversample_to, augment=True,
+            crops_per_epoch=args.crops_per_epoch, **stft_ds_kwargs,
         )
         val_ds = STFTDataset(
             val_recs, rng_seed=args.seed + 1, augment=False, **stft_ds_kwargs,
