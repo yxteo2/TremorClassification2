@@ -36,6 +36,7 @@ from tremor.data import CLASS_NAMES
 from tremor.evaluate import classification_report
 from tremor.losses import build_loss_fn, compute_class_weights
 from tremor.models import build_model
+from tremor.quaternion import select_sensor_channels
 from tremor.quaternion_data import load_quaternion_recordings
 from tremor.stft_data import load_stft_recordings
 from tremor.train import TremorDataset, STFTDataset, _seed_everything
@@ -44,10 +45,16 @@ from tremor.train import TremorDataset, STFTDataset, _seed_everything
 def _load_recs(args):
     if args.data_mode == "quaternion":
         feature = "raw_quaternion" if args.feature == "stft" else args.feature
-        return load_quaternion_recordings(
+        recs = load_quaternion_recordings(
             args.data_root, action=args.action, fs=args.fs,
             mode="angular_velocity", feature=feature,
         )
+        sensors = [s.strip() for s in (args.quaternion_sensors or "").split(",") if s.strip()]
+        if sensors and len(sensors) < 3:
+            for r in recs:
+                r.x = select_sensor_channels(r.x, sensors, mode="angular_velocity")
+            print(f"[cv] kept sensors={sensors}  channels={recs[0].x.shape[0]}")
+        return recs
     if args.data_mode == "stft":
         return load_stft_recordings(
             args.data_root, action=args.action, feature=args.feature,
@@ -220,6 +227,8 @@ def main():
     p.add_argument("--spec-augment", action="store_true")
     p.add_argument("--length-mode", choices=("truncate", "pad"), default="truncate")
     p.add_argument("--pad-mode", choices=("random", "center"), default="random")
+    p.add_argument("--quaternion-sensors", default="hand",
+                   help="Comma-separated subset of {hand, lower_arm, upper_arm}.")
     p.add_argument("--output", type=Path, default=Path("cv_results"))
     args = p.parse_args()
 
@@ -245,6 +254,9 @@ def main():
         counts = Counter(labels.tolist())
         args.oversample_to = max(counts.values())
         print(f"[cv] --oversample-to auto-set to {args.oversample_to}")
+    elif args.oversample_to <= 0:
+        args.oversample_to = None
+        print("[cv] oversample disabled (focal loss only)")
 
     # Subject-level k-fold over subjects (each fold = held-out subjects -> test;
     # remaining subjects further split 80/20 into train/val).
