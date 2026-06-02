@@ -12,3 +12,4 @@ artifacts/
 *.ckpt
 Data/_artifacts*/
 Data/cv_results*/
+cv_results/
