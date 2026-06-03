@@ -42,7 +42,7 @@ from tremor.spectral import (
     spec_augment,
 )
 from tremor.losses import build_loss_fn
-from tremor.tfd import apply_cwt, apply_hht, apply_wavelet_packet
+from tremor.tfd import apply_cwt, apply_hht, apply_vmd, apply_wavelet_packet
 from tremor.splits import subject_level_split
 from tremor.stft_data import STFTRecording, load_stft_recordings
 
@@ -157,6 +157,9 @@ class TremorDataset(Dataset):
         cwt_decim: int = 8,
         cwt_freq_step: float = 0.5,
         hht_max_imfs: int = 8,
+        hht_imf_band: tuple[float, float] | None = None,
+        vmd_k: int = 5,
+        vmd_alpha: float = 2000.0,
         wp_level: int = 5,
         wp_wavelet: str = "db4",
         log_compress_on: bool = True,
@@ -179,6 +182,9 @@ class TremorDataset(Dataset):
         self.cwt_decim = cwt_decim
         self.cwt_freq_step = cwt_freq_step
         self.hht_max_imfs = hht_max_imfs
+        self.hht_imf_band = hht_imf_band
+        self.vmd_k = vmd_k
+        self.vmd_alpha = vmd_alpha
         self.wp_level = wp_level
         self.wp_wavelet = wp_wavelet
         self.log_compress_on = log_compress_on
@@ -224,6 +230,14 @@ class TremorDataset(Dataset):
             freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
             x = apply_hht(
                 x, fs=self.fs, freqs=freqs, max_imfs=self.hht_max_imfs,
+                decim=self.cwt_decim, f_max=self.f_max,
+                imf_band=self.hht_imf_band,
+            )
+        elif self.tfd_method == "vmd":
+            f_high = self.f_max if self.f_max else 15.0
+            freqs = np.arange(3.0, f_high + 1e-9, self.cwt_freq_step)
+            x = apply_vmd(
+                x, fs=self.fs, freqs=freqs, K=self.vmd_k, alpha=self.vmd_alpha,
                 decim=self.cwt_decim, f_max=self.f_max,
             )
         elif self.tfd_method == "wavelet_packet":
@@ -426,7 +440,7 @@ def main() -> None:
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
     p.add_argument("--tfd-method",
-                   choices=("stft", "cwt", "hht", "wavelet_packet"), default="stft",
+                   choices=("stft", "cwt", "hht", "vmd", "wavelet_packet"), default="stft",
                    help="Time-frequency decomposition: "
                         "'stft' (default; cheap linear-frequency spectrogram), "
                         "'cwt' (Morlet wavelet, frequency-adaptive window — "
@@ -438,6 +452,21 @@ def main() -> None:
     p.add_argument("--hht-max-imfs", type=int, default=8,
                    help="(hht) Number of EMD intrinsic mode functions to keep "
                         "per channel before computing instantaneous frequency.")
+    p.add_argument("--hht-imf-band", nargs=2, type=float, default=None,
+                   metavar=("F_LO", "F_HI"),
+                   help="(hht) Keep only IMFs whose amplitude-weighted mean "
+                        "instantaneous frequency falls in [F_LO, F_HI] Hz. "
+                        "E.g. '3 15' drops the trend residue and high-"
+                        "frequency noise IMFs, focusing on the tremor band.")
+    p.add_argument("--vmd-k", type=int, default=5,
+                   help="(vmd) Number of variational modes to extract. "
+                        "5 is the canonical default; lower for cleaner "
+                        "biosignals, higher if you suspect multiple "
+                        "overlapping rhythms.")
+    p.add_argument("--vmd-alpha", type=float, default=2000.0,
+                   help="(vmd) Bandwidth penalty per mode. Higher = "
+                        "tighter modes but noisier residuals. 1000-3000 "
+                        "is the standard range for biosignals.")
     p.add_argument("--wp-level", type=int, default=5,
                    help="(wavelet_packet) Decomposition depth. Level 5 at "
                         "fs=100 -> 32 bands of ~1.56 Hz width each.")
@@ -621,6 +650,9 @@ def main() -> None:
             cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step,
             hht_max_imfs=args.hht_max_imfs,
+            hht_imf_band=tuple(args.hht_imf_band) if args.hht_imf_band else None,
+            vmd_k=args.vmd_k,
+            vmd_alpha=args.vmd_alpha,
             wp_level=args.wp_level,
             wp_wavelet=args.wp_wavelet,
             log_compress_on=not args.no_log_compress,

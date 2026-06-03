@@ -38,6 +38,7 @@ from tremor.preprocessing import apply_stft  # noqa: F401 — re-exported
 __all__ = [
     "apply_stft", "apply_cwt", "apply_welch",
     "apply_hht", "apply_emd_imfs",
+    "apply_vmd",
     "marginal_hilbert_spectrum", "dominant_imf_frequencies",
     "apply_wavelet_packet",
     "compare_tfd_separability",
@@ -188,17 +189,21 @@ def apply_hht(
     max_imfs: int = 8,
     f_max: float | None = None,
     decim: int = 1,
+    imf_band: tuple[float, float] | None = None,
 ) -> np.ndarray:
     """Hilbert-Huang spectrogram.
 
     Pipeline:
         1. EMD each channel into IMFs.
-        2. Analytic signal per IMF via the Hilbert transform.
-        3. Instantaneous frequency = ``(1/2pi) * d/dt(unwrap(angle))``.
-        4. Instantaneous amplitude = ``|analytic|``.
-        5. For each time step, accumulate amplitude into the frequency
+        2. (optional) keep only IMFs whose amplitude-weighted mean
+           instantaneous frequency lies in ``imf_band`` — drops noise-
+           dominated high-freq IMFs and the trend residue.
+        3. Analytic signal per IMF via the Hilbert transform.
+        4. Instantaneous frequency = ``(1/2pi) * d/dt(unwrap(angle))``.
+        5. Instantaneous amplitude = ``|analytic|``.
+        6. For each time step, accumulate amplitude into the frequency
            bin closest to the instantaneous frequency. Repeat for all
-           IMFs of all channels and write into a per-channel grid.
+           kept IMFs of all channels and write into a per-channel grid.
 
     Args:
         x: ``(channels, time)`` input.
@@ -238,6 +243,100 @@ def apply_hht(
             if np.allclose(imf, 0):
                 continue
             analytic = hilbert(imf.astype(np.float64))
+            inst_amp = np.abs(analytic).astype(np.float32)
+            inst_phase = np.unwrap(np.angle(analytic))
+            inst_freq = np.empty_like(inst_phase, dtype=np.float32)
+            inst_freq[1:] = np.diff(inst_phase) * fs / (2 * np.pi)
+            inst_freq[0] = inst_freq[1]
+            if imf_band is not None:
+                w = inst_amp.sum()
+                if w <= 0:
+                    continue
+                mean_if = float((inst_amp * inst_freq).sum() / w)
+                if not (imf_band[0] <= mean_if <= imf_band[1]):
+                    continue
+            bin_idx = np.digitize(inst_freq, freq_edges) - 1
+            valid = (bin_idx >= 0) & (bin_idx < n_f)
+            np.add.at(grid, (bin_idx[valid], np.where(valid)[0]), inst_amp[valid])
+        if decim > 1:
+            grid = grid[:, ::decim][:, :out_T]
+        out[c * n_f : (c + 1) * n_f, : grid.shape[1]] = grid
+    return out
+
+
+def apply_vmd(
+    x: np.ndarray,
+    fs: float = 100.0,
+    freqs: np.ndarray | None = None,
+    K: int = 5,
+    alpha: float = 2000.0,
+    tau: float = 0.0,
+    f_max: float | None = None,
+    decim: int = 1,
+    DC: int = 0,
+    init: int = 1,
+    tol: float = 1e-7,
+) -> np.ndarray:
+    """Variational Mode Decomposition + Hilbert spectrum.
+
+    Unlike EMD's greedy sifting (which mode-mixes), VMD jointly extracts
+    ``K`` narrow-band intrinsic modes that minimise total bandwidth subject
+    to summing back to the input. Designed for quasi-stationary
+    oscillations — exactly the character of tremor.
+
+    The mode-by-mode bandwidth penalty ``alpha`` controls how tight
+    each mode is in frequency. 1000-3000 is the standard range for
+    biosignals; higher = more concentrated = riskier with noise.
+
+    Pipeline:
+        1. VMD each channel into K modes.
+        2. Analytic signal per mode via Hilbert transform.
+        3. Bin amplitude by instantaneous frequency on ``freqs`` grid.
+        4. Optional temporal decimation.
+
+    Returns:
+        ``(channels * n_kept_freqs, ceil(time/decim))`` magnitude grid in
+        the same layout as :func:`apply_hht` so it drops into the existing
+        downstream pipeline.
+    """
+    from scipy.signal import hilbert
+    from vmdpy import VMD
+
+    if freqs is None:
+        freqs = np.arange(3.0, 15.01, 0.5)
+    freqs = np.asarray(freqs, dtype=np.float64)
+    if f_max is not None:
+        freqs = freqs[freqs <= f_max]
+
+    n_ch, T = x.shape
+    n_f = len(freqs)
+    out_T = (T + decim - 1) // decim
+    out = np.zeros((n_ch * n_f, out_T), dtype=np.float32)
+
+    freq_edges = np.concatenate([
+        [-np.inf],
+        (freqs[:-1] + freqs[1:]) / 2.0,
+        [np.inf],
+    ])
+
+    # VMD requires even-length signal; pad by one if odd.
+    pad = T % 2
+    for c in range(n_ch):
+        sig = x[c].astype(np.float64)
+        if pad:
+            sig = np.concatenate([sig, sig[-1:]])
+        try:
+            modes, _, _ = VMD(sig, alpha, tau, K, DC, init, tol)
+        except Exception:
+            # VMD can fail on near-constant signals; skip and leave zeros.
+            continue
+        if pad:
+            modes = modes[:, :T]
+        grid = np.zeros((n_f, T), dtype=np.float32)
+        for mode in modes:
+            if np.allclose(mode, 0):
+                continue
+            analytic = hilbert(mode)
             inst_amp = np.abs(analytic).astype(np.float32)
             inst_phase = np.unwrap(np.angle(analytic))
             inst_freq = np.empty_like(inst_phase, dtype=np.float32)

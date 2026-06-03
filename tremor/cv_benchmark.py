@@ -110,6 +110,8 @@ def _make_dataset(recs, target_T, args, tfd_method, *, augment, rng_seed,
             f_max=args.f_max, rng_seed=rng_seed, augment=augment,
             tfd_method=tfd_method, cwt_w0=args.cwt_w0, cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step, hht_max_imfs=args.hht_max_imfs,
+            hht_imf_band=tuple(args.hht_imf_band) if args.hht_imf_band else None,
+            vmd_k=args.vmd_k, vmd_alpha=args.vmd_alpha,
             wp_level=args.wp_level, wp_wavelet=args.wp_wavelet,
             log_compress_on=not args.no_log_compress, normalize=args.normalize,
             length_mode=args.length_mode, pad_mode=args.pad_mode,
@@ -228,7 +230,8 @@ def main():
     p.add_argument("--data-mode", choices=("quaternion", "stft"), default="quaternion")
     p.add_argument("--feature", default="stft")
     p.add_argument("--tfd-methods", nargs="+",
-                   default=["stft", "cwt", "hht", "wavelet_packet"])
+                   default=["stft", "cwt", "hht", "wavelet_packet"],
+                   choices=("stft", "cwt", "hht", "vmd", "wavelet_packet"))
     p.add_argument("--n-folds", type=int, default=5)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--model", default="bilstm")
@@ -255,6 +258,13 @@ def main():
     p.add_argument("--cwt-decim", type=int, default=8)
     p.add_argument("--cwt-freq-step", type=float, default=0.5)
     p.add_argument("--hht-max-imfs", type=int, default=8)
+    p.add_argument("--hht-imf-band", nargs=2, type=float, default=None,
+                   metavar=("F_LO", "F_HI"),
+                   help="Keep only IMFs with mean inst. freq in [F_LO, F_HI] Hz.")
+    p.add_argument("--vmd-k", type=int, default=5,
+                   help="(vmd) Number of variational modes.")
+    p.add_argument("--vmd-alpha", type=float, default=2000.0,
+                   help="(vmd) Bandwidth penalty per mode.")
     p.add_argument("--wp-level", type=int, default=5)
     p.add_argument("--wp-wavelet", default="db4")
     p.add_argument("--stft-n-sensors", type=int, default=3)
