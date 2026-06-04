@@ -113,6 +113,8 @@ def _make_dataset(recs, target_T, args, tfd_method, *, augment, rng_seed,
             hht_imf_band=tuple(args.hht_imf_band) if args.hht_imf_band else None,
             vmd_k=args.vmd_k, vmd_alpha=args.vmd_alpha,
             wp_level=args.wp_level, wp_wavelet=args.wp_wavelet,
+            aux_features=args.aux_features,
+            aux_features_n_imfs=args.aux_features_n_imfs,
             log_compress_on=not args.no_log_compress, normalize=args.normalize,
             length_mode=args.length_mode, pad_mode=args.pad_mode,
             spec_augment_on=args.spec_augment, oversample_to=oversample_to,
@@ -265,6 +267,11 @@ def main():
                    help="(vmd) Number of variational modes.")
     p.add_argument("--vmd-alpha", type=float, default=2000.0,
                    help="(vmd) Bandwidth penalty per mode.")
+    p.add_argument("--aux-features", action="store_true",
+                   help="Add scalar IMF/Hilbert features as extra constant-in-"
+                        "time rows of every TFD input. Targets PD vs ET "
+                        "regularity discriminator directly.")
+    p.add_argument("--aux-features-n-imfs", type=int, default=2)
     p.add_argument("--wp-level", type=int, default=5)
     p.add_argument("--wp-wavelet", default="db4")
     p.add_argument("--stft-n-sensors", type=int, default=3)

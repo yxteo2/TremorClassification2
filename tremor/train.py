@@ -162,6 +162,8 @@ class TremorDataset(Dataset):
         vmd_alpha: float = 2000.0,
         wp_level: int = 5,
         wp_wavelet: str = "db4",
+        aux_features: bool = False,
+        aux_features_n_imfs: int = 2,
         log_compress_on: bool = True,
         normalize: str = "per_recording",
         spec_augment_on: bool = False,
@@ -187,6 +189,8 @@ class TremorDataset(Dataset):
         self.vmd_alpha = vmd_alpha
         self.wp_level = wp_level
         self.wp_wavelet = wp_wavelet
+        self.aux_features = aux_features
+        self.aux_features_n_imfs = aux_features_n_imfs
         self.log_compress_on = log_compress_on
         self.normalize = normalize
         self.spec_augment_on = spec_augment_on
@@ -197,6 +201,22 @@ class TremorDataset(Dataset):
         self.rng = np.random.default_rng(rng_seed)
 
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
+
+        # Precompute scalar features per recording (once — features are a
+        # global signature of the trial, not of any one random crop).
+        self._aux_cache: list[np.ndarray] | None = None
+        if self.aux_features:
+            from tremor.features import extract_imf_features
+            self._aux_cache = [
+                extract_imf_features(r.x, fs=self.fs, n_imfs=self.aux_features_n_imfs)
+                for r in self.recs
+            ]
+            # z-score across the cache so features sit on a comparable scale
+            # to the (already-normalised) spectrogram rows.
+            stack = np.stack(self._aux_cache, axis=0)
+            mu = stack.mean(axis=0)
+            sd = stack.std(axis=0) + 1e-6
+            self._aux_cache = [(f - mu) / sd for f in self._aux_cache]
 
     def __len__(self) -> int:
         return len(self.recs) * self.crops_per_epoch
@@ -259,6 +279,12 @@ class TremorDataset(Dataset):
             x = per_freq_zscore(x)
         if self.augment and self.spec_augment_on:
             x = spec_augment(x, self.rng)
+        if self._aux_cache is not None:
+            feats = self._aux_cache[i % len(self.recs)]
+            aux_rows = np.broadcast_to(
+                feats[:, None], (feats.shape[0], x.shape[1])
+            ).astype(np.float32, copy=False)
+            x = np.concatenate([aux_rows, x], axis=0)
         return torch.from_numpy(x), r.y
 
 
@@ -473,6 +499,18 @@ def main() -> None:
     p.add_argument("--wp-wavelet", default="db4",
                    help="(wavelet_packet) Mother wavelet name "
                         "(db4 / sym8 / coif5 / ...).")
+    p.add_argument("--aux-features", action="store_true",
+                   help="Concatenate scalar IMF + Hilbert features (mean/std "
+                        "of instantaneous frequency, amplitude regularity, "
+                        "drift slope, peak freq, band energy — ~30 scalars) "
+                        "as constant-in-time extra rows of the TFD input. "
+                        "Targets PD vs ET discrimination directly (ET has "
+                        "high IF variance, PD low). Quaternion mode only.")
+    p.add_argument("--aux-features-n-imfs", type=int, default=2,
+                   help="(aux features) Number of top-amplitude IMFs to "
+                        "summarise per channel. 2 IMFs x 4 stats x 3 "
+                        "channels + 2 global stats x 3 channels = 30 "
+                        "scalar features at default.")
     p.add_argument("--cwt-w0", type=float, default=6.0,
                    help="(cwt) Morlet central angular frequency parameter; "
                         "higher = sharper freq resolution, longer wavelets.")
@@ -655,6 +693,8 @@ def main() -> None:
             vmd_alpha=args.vmd_alpha,
             wp_level=args.wp_level,
             wp_wavelet=args.wp_wavelet,
+            aux_features=args.aux_features,
+            aux_features_n_imfs=args.aux_features_n_imfs,
             log_compress_on=not args.no_log_compress,
             normalize=args.normalize,
             spec_augment_on=args.spec_augment,
