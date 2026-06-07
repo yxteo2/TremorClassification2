@@ -36,6 +36,7 @@ from tremor.data import CLASS_NAMES
 from tremor.evaluate import classification_report
 from tremor.losses import build_loss_fn, compute_class_weights
 from tremor.models import build_model
+from tremor.quaternion import select_sensor_channels
 from tremor.quaternion_data import load_quaternion_recordings
 from tremor.stft_data import load_stft_recordings
 from tremor.train import TremorDataset, STFTDataset, _seed_everything
@@ -44,15 +45,52 @@ from tremor.train import TremorDataset, STFTDataset, _seed_everything
 def _load_recs(args):
     if args.data_mode == "quaternion":
         feature = "raw_quaternion" if args.feature == "stft" else args.feature
-        return load_quaternion_recordings(
+        recs = load_quaternion_recordings(
             args.data_root, action=args.action, fs=args.fs,
             mode="angular_velocity", feature=feature,
         )
+        sensors = [s.strip() for s in (args.quaternion_sensors or "").split(",") if s.strip()]
+        if sensors and len(sensors) < 3:
+            for r in recs:
+                r.x = select_sensor_channels(r.x, sensors, mode="angular_velocity")
+            print(f"[cv] kept sensors={sensors}  channels={recs[0].x.shape[0]}")
+        return recs
     if args.data_mode == "stft":
         return load_stft_recordings(
             args.data_root, action=args.action, feature=args.feature,
         )
     raise ValueError(f"--data-mode {args.data_mode} not supported here")
+
+
+def _build_target_class_loso_splits(
+    subjects: np.ndarray, labels: np.ndarray, target_label: int,
+    balance_subjects_per_class: int, rng_seed: int,
+) -> list[tuple[np.ndarray, np.ndarray]]:
+    """One fold per unique subject of ``target_label``.
+
+    Each fold's test set holds out THAT one target subject's recordings
+    plus ``balance_subjects_per_class`` randomly-sampled subjects from
+    every other class — so per-class F1 is well-defined per fold. The
+    remaining recordings form the trainval pool. Pooling the per-fold
+    predictions covers every target-class subject exactly once.
+    """
+    target_subjects = np.unique(subjects[labels == target_label])
+    if len(target_subjects) == 0:
+        raise SystemExit(f"No subjects found with target_label={target_label}")
+    other_classes = sorted(set(np.unique(labels).tolist()) - {target_label})
+    rng = np.random.default_rng(rng_seed)
+
+    splits: list[tuple[np.ndarray, np.ndarray]] = []
+    for tsubj in target_subjects:
+        test_subj_set = {tsubj}
+        for c in other_classes:
+            pool = np.unique(subjects[labels == c])
+            n_pick = min(balance_subjects_per_class, len(pool))
+            picked = rng.choice(pool, size=n_pick, replace=False)
+            test_subj_set.update(picked.tolist())
+        test_mask = np.isin(subjects, list(test_subj_set))
+        splits.append((np.where(~test_mask)[0], np.where(test_mask)[0]))
+    return splits
 
 
 def _make_dataset(recs, target_T, args, tfd_method, *, augment, rng_seed,
@@ -110,6 +148,8 @@ def _train_one(method, fold_idx, train_recs, val_recs, args, device):
         name=args.model, input_size=input_size,
         num_classes=len(CLASS_NAMES), target_T=input_tdim,
         hidden=args.hidden, dropout=args.dropout,
+        pretrained=getattr(args, "ast_pretrained", True),
+        freeze_backbone=getattr(args, "freeze_backbone", True),
     ).to(device)
 
     opt = torch.optim.Adam(model.parameters(), lr=args.lr,
@@ -220,6 +260,29 @@ def main():
     p.add_argument("--spec-augment", action="store_true")
     p.add_argument("--length-mode", choices=("truncate", "pad"), default="truncate")
     p.add_argument("--pad-mode", choices=("random", "center"), default="random")
+    p.add_argument("--quaternion-sensors", default="hand",
+                   help="Comma-separated subset of {hand, lower_arm, upper_arm}.")
+    p.add_argument("--loso-target-class", default="",
+                   help="If set (e.g. 'ET'), do target-class LOSO instead of "
+                        "GroupKFold: one fold per unique subject of that class, "
+                        "each tested exactly once. Predictions are pooled into "
+                        "one honest per-class number — the right protocol when "
+                        "one class is small.")
+    p.add_argument("--loso-balance-subjects", type=int, default=2,
+                   help="(loso mode) Non-target subjects per other class added "
+                        "to each fold's test set for class balance.")
+    p.add_argument("--ast-pretrained", dest="ast_pretrained",
+                   action="store_true", default=True,
+                   help="(ast/resnet18) Use pretrained backbone weights (default).")
+    p.add_argument("--no-ast-pretrained", dest="ast_pretrained",
+                   action="store_false",
+                   help="(ast/resnet18) Train backbone from scratch.")
+    p.add_argument("--freeze-backbone", dest="freeze_backbone",
+                   action="store_true", default=True,
+                   help="(ast/resnet18) Freeze the pretrained backbone (default).")
+    p.add_argument("--no-freeze-backbone", dest="freeze_backbone",
+                   action="store_false",
+                   help="(ast/resnet18) Fine-tune the whole backbone.")
     p.add_argument("--output", type=Path, default=Path("cv_results"))
     args = p.parse_args()
 
@@ -245,15 +308,35 @@ def main():
         counts = Counter(labels.tolist())
         args.oversample_to = max(counts.values())
         print(f"[cv] --oversample-to auto-set to {args.oversample_to}")
+    elif args.oversample_to <= 0:
+        args.oversample_to = None
+        print("[cv] oversampling disabled (rely on focal loss only)")
 
-    # Subject-level k-fold over subjects (each fold = held-out subjects -> test;
-    # remaining subjects further split 80/20 into train/val).
-    gkf = GroupKFold(n_splits=args.n_folds)
+    # Choose the cross-validation scheme.
+    if args.loso_target_class:
+        if args.loso_target_class not in CLASS_NAMES:
+            raise SystemExit(
+                f"--loso-target-class={args.loso_target_class!r} not in {CLASS_NAMES}"
+            )
+        target_label = CLASS_NAMES.index(args.loso_target_class)
+        split_iter = _build_target_class_loso_splits(
+            subjects, labels, target_label,
+            balance_subjects_per_class=args.loso_balance_subjects,
+            rng_seed=args.seed,
+        )
+        n_folds = len(split_iter)
+        print(f"[cv] target-class LOSO on '{args.loso_target_class}' "
+              f"({n_folds} folds)")
+    else:
+        gkf = GroupKFold(n_splits=args.n_folds)
+        split_iter = list(gkf.split(np.zeros(len(recs)), labels, groups=subjects))
+        n_folds = args.n_folds
+
     all_results: dict[str, list[dict]] = defaultdict(list)
+    pooled_logits: dict[str, list[np.ndarray]] = defaultdict(list)
+    pooled_y: dict[str, list[np.ndarray]] = defaultdict(list)
 
-    for fold_idx, (trainval_idx, test_idx) in enumerate(
-        gkf.split(np.zeros(len(recs)), labels, groups=subjects), start=1
-    ):
+    for fold_idx, (trainval_idx, test_idx) in enumerate(split_iter, start=1):
         # Carve val out of trainval
         rng = np.random.default_rng(args.seed + fold_idx)
         trainval_subj = np.unique(subjects[trainval_idx])
@@ -269,7 +352,7 @@ def main():
 
         train_dist = dict(Counter(r.y for r in train_recs))
         test_dist  = dict(Counter(r.y for r in test_recs))
-        print(f"\n=== fold {fold_idx}/{args.n_folds} ===")
+        print(f"\n=== fold {fold_idx}/{n_folds} ===")
         print(f"  train: {len(train_recs)} ({train_dist})")
         print(f"  val:   {len(val_recs)}")
         print(f"  test:  {len(test_recs)} ({test_dist})")
@@ -298,6 +381,8 @@ def main():
                     "confusion_matrix": report["confusion_matrix"],
                     "n_train": len(train_recs), "n_test": len(test_recs),
                 })
+                pooled_logits[method].append(logits)
+                pooled_y[method].append(y_true)
                 print(f"    -> acc={report['accuracy']:.3f}  "
                       f"N_f1={report['per_class']['N']['f1']:.2f}  "
                       f"PD_f1={report['per_class']['PD']['f1']:.2f}  "
@@ -337,6 +422,30 @@ def main():
             f"{f1['ET'].mean():.4f},{f1['ET'].std():.4f}"
         )
     (args.output / "summary.csv").write_text("\n".join(summary_lines) + "\n")
+
+    # Pooled report: concatenate every fold's test predictions and score once.
+    # This is the headline number for a small minority class (ET), where
+    # per-fold F1 swings wildly on 1-2 test samples but the pooled AUC is stable.
+    if any(pooled_logits[m] for m in args.tfd_methods):
+        print("\n" + "=" * 72)
+        print("POOLED  (concatenate per-fold test predictions, then score once)")
+        print("=" * 72)
+        print(f"{'method':>15s}  {'acc':>6s}  {'N_F1':>6s}  {'PD_F1':>6s}  "
+              f"{'ET_F1':>6s}  {'N_AUC':>6s}  {'PD_AUC':>6s}  {'ET_AUC':>6s}")
+        for method in args.tfd_methods:
+            if not pooled_logits[method]:
+                continue
+            logits_cat = np.concatenate(pooled_logits[method], axis=0)
+            y_cat = np.concatenate(pooled_y[method], axis=0)
+            rep = classification_report(logits_cat, y_cat, CLASS_NAMES)
+            pc = rep["per_class"]
+            print(f"{method:>15s}  {rep['accuracy']:>6.3f}  "
+                  f"{pc['N']['f1']:>6.2f}  {pc['PD']['f1']:>6.2f}  "
+                  f"{pc['ET']['f1']:>6.2f}  {pc['N']['auc']:>6.2f}  "
+                  f"{pc['PD']['auc']:>6.2f}  {pc['ET']['auc']:>6.2f}")
+            (args.output / method / "pooled_report.json").write_text(
+                json.dumps(rep, indent=2)
+            )
     print(f"\nResults saved to {args.output}/")
 
 

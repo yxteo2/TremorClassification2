@@ -26,6 +26,40 @@ from __future__ import annotations
 import numpy as np
 
 
+# Sensor labels by index — distal-to-proximal along the arm.
+SENSOR_NAMES = ("hand", "lower_arm", "upper_arm")
+
+
+def select_sensor_channels(
+    x: np.ndarray, sensors: list[str] | tuple[str, ...],
+    mode: str = "angular_velocity",
+) -> np.ndarray:
+    """Keep only the rows of ``x`` belonging to the requested sensors.
+
+    The tremor literature (Deuschl 1998; Elble 2009) focuses on the
+    distal limb because tremor amplitude is largest there; selecting
+    ``sensors=['hand']`` reduces 9-channel angular-velocity (or
+    12-channel quaternion) input to 3 (or 4) hand-only channels.
+
+    Args:
+        x: ``(n_channels, time)`` array from :func:`process_quaternion_data`.
+        sensors: subset of ``{'hand', 'lower_arm', 'upper_arm'}``.
+        mode: ``'angular_velocity'`` (3 ch/sensor) or ``'components'`` (4).
+
+    Returns:
+        ``(len(sensors) * channels_per_sensor, time)`` slice of ``x``.
+    """
+    per_sensor = 3 if mode == "angular_velocity" else 4
+    name_to_idx = {n: i for i, n in enumerate(SENSOR_NAMES)}
+    keep: list[int] = []
+    for s in sensors:
+        if s not in name_to_idx:
+            raise ValueError(f"unknown sensor {s!r}; must be one of {SENSOR_NAMES}")
+        i = name_to_idx[s]
+        keep.extend(range(i * per_sensor, (i + 1) * per_sensor))
+    return x[keep]
+
+
 def _quat_components(q: np.ndarray, convention: str):
     """Split an (..., 4) quaternion into its scalar (w) and vector (x, y, z) parts."""
     if convention == "xyzw":
