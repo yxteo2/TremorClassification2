@@ -134,19 +134,19 @@ class STFTDataset(Dataset):
         if self.augment and self.spec_augment_on:
             x = spec_augment(x, self.rng)
         return torch.from_numpy(x), r.y
-
-
+        
+            
 class TremorDataset(Dataset):
     def __init__(
         self,
         recs: list[Recording],
         target_length: int,
-        fs: float,
-        nperseg: int,
-        nfft: int,
-        noverlap: int,
-        rng_seed: int,
-        f_max: float | None = None,
+        fs: float = 100,
+        nperseg: int = 128,
+        nfft: int = 128,
+        noverlap: int = 96,
+        rng_seed: int = 42,
+        f_max: float = 30.0,
         oversample_to: int | None = None,
         augment: bool = False,
         tfd_method: str = "stft",
@@ -224,6 +224,7 @@ class TremorDataset(Dataset):
                 x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
                 noverlap=self.noverlap, f_max=self.f_max,
             )
+            
         if self.log_compress_on:
             x = log_compress(x)
         if self.normalize == "per_recording":
