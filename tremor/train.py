@@ -456,13 +456,17 @@ def main() -> None:
 
     sample_x, _ = train_ds[0]
     input_size = sample_x.shape[0]
+    # Time-frame count AFTER the TFD (STFT/CWT/...), not the raw sample
+    # count. AST sizes its positional embedding from this; passing the
+    # raw target_length here mis-sizes pos_embed and crashes the add.
+    input_tdim = sample_x.shape[1]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = build_model(
         name=args.model,
         input_size=input_size,
         num_classes=len(CLASS_NAMES),
-        target_T=target_length,
+        target_T=input_tdim,
         hidden=args.hidden,
         dropout=args.dropout,
         pretrained=not args.no_pretrained,
