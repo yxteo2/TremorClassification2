@@ -325,7 +325,8 @@ class CustomAST(nn.Module):
 
     def __init__(self, input_size: int, num_classes: int = 3,
                  input_tdim: int = 512, fstride: int = 10, tstride: int = 10,
-                 model_name: str = "deit_base_distilled_patch16_384"):
+                 model_name: str = "deit_base_distilled_patch16_384",
+                 pretrained: bool = True, freeze_backbone: bool = False):
         super().__init__()
         try:
             import timm
@@ -337,7 +338,7 @@ class CustomAST(nn.Module):
         self.input_fdim = input_size
         self.input_tdim = input_tdim
 
-        self.v = timm.create_model(model_name, pretrained=True)
+        self.v = timm.create_model(model_name, pretrained=pretrained)
 
         embed_dim = self.v.pos_embed.shape[2]
         original_num_patches = self.v.patch_embed.num_patches
@@ -388,6 +389,15 @@ class CustomAST(nn.Module):
             nn.Linear(embed_dim, num_classes),
         )
 
+        if freeze_backbone:
+            # Freeze every backbone tensor; mlp_head + patch_embed projection
+            # (replaced for 1-channel input) + pos_embed remain trainable.
+            for name, p in self.v.named_parameters():
+                if name.startswith("patch_embed.proj") or name == "pos_embed":
+                    p.requires_grad = True
+                else:
+                    p.requires_grad = False
+
     @staticmethod
     def _get_grid_shape(fstride, tstride, fdim, tdim, embed_dim):
         test = torch.zeros(1, 1, fdim, tdim)
@@ -424,6 +434,71 @@ class _ASTPatchEmbed(nn.Module):
         return x.flatten(2).transpose(1, 2)
 
 
+class ResNet18Pretrained(nn.Module):
+    """ImageNet-pretrained ResNet18 adapted to (B, F, T) tremor spectrograms.
+
+    The input ``(B, F, T)`` is reshaped to ``(B, n_input_channels, F /
+    n_input_channels, T)`` — one image per sensor-axis — then a 1x1 conv
+    maps n_input_channels -> 3 (RGB-equivalent) so the rest of the
+    network sees what it was pretrained on. Tiny spectrograms are
+    bilinearly upsampled to ``resize_to x resize_to`` before the
+    backbone so the 5 stride-2 stages don't shrink the feature map to
+    1x1.
+
+    With ``freeze_backbone=True`` only the channel adapter and the new
+    classification head learn — minimises overfit risk on small data
+    (the actual problem here: ~190 train samples for 3 classes).
+    """
+
+    def __init__(self, input_size: int, num_classes: int = 3,
+                 n_input_channels: int = 9, resize_to: int = 96,
+                 pretrained: bool = True, freeze_backbone: bool = True,
+                 dropout: float = 0.4):
+        super().__init__()
+        try:
+            import torchvision.models as tvm
+        except ImportError as e:
+            raise ImportError(
+                "ResNet18Pretrained requires torchvision. Install with: pip install torchvision"
+            ) from e
+
+        if input_size % n_input_channels != 0:
+            raise ValueError(
+                f"input_size={input_size} not divisible by n_input_channels="
+                f"{n_input_channels}; pass --quaternion-sensors or set "
+                f"n_input_channels to a value that divides the F axis."
+            )
+        self.n_input_channels = n_input_channels
+        self.bins_per_channel = input_size // n_input_channels
+        self.resize_to = resize_to
+
+        # Map sensor-axis channels (9 by default) to 3 RGB-equivalent.
+        self.channel_adapter = nn.Conv2d(n_input_channels, 3, kernel_size=1)
+
+        weights = tvm.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
+        self.backbone = tvm.resnet18(weights=weights)
+        if freeze_backbone:
+            for p in self.backbone.parameters():
+                p.requires_grad = False
+        # Replace classification head with a fresh 3-class one.
+        in_features = self.backbone.fc.in_features
+        self.backbone.fc = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(in_features, num_classes),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x: (B, F, T)  ->  (B, n_input_channels, bins_per_channel, T)
+        b, f, t = x.shape
+        x = x.view(b, self.n_input_channels, self.bins_per_channel, t)
+        x = self.channel_adapter(x)              # (B, 3, bins_per_channel, T)
+        x = torch.nn.functional.interpolate(
+            x, size=(self.resize_to, self.resize_to),
+            mode="bilinear", align_corners=False,
+        )
+        return self.backbone(x)
+
+
 # ---------------------------------------------------------------------
 # Registry / factory
 # ---------------------------------------------------------------------
@@ -436,6 +511,7 @@ MODELS: dict[str, Callable[..., nn.Module]] = {
     "resbilstm": ResNetBiLSTM,
     "restcn": ResTCN,
     "ast": CustomAST,
+    "resnet18": ResNet18Pretrained,
 }
 
 
@@ -446,8 +522,17 @@ def build_model(
     target_T: int | None = None,
     hidden: int = 128,
     dropout: float = 0.4,
+    pretrained: bool = True,
+    freeze_backbone: bool = True,
+    n_input_channels: int = 9,
+    resize_to: int = 96,
 ) -> nn.Module:
-    """Instantiate a model by registry name with sensible defaults."""
+    """Instantiate a model by registry name with sensible defaults.
+
+    ``pretrained`` and ``freeze_backbone`` only affect the
+    transfer-learning models (``ast``, ``resnet18``). ``n_input_channels``
+    + ``resize_to`` only affect ``resnet18``.
+    """
     if name not in MODELS:
         raise ValueError(
             f"Unknown model '{name}'. Available: {sorted(MODELS)}"
@@ -463,5 +548,11 @@ def build_model(
         if target_T is None:
             raise ValueError("AST needs target_T (the time-frame count after padding).")
         return cls(input_size=input_size, num_classes=num_classes,
-                   input_tdim=target_T)
+                   input_tdim=target_T, pretrained=pretrained,
+                   freeze_backbone=freeze_backbone)
+    if name == "resnet18":
+        return cls(input_size=input_size, num_classes=num_classes,
+                   n_input_channels=n_input_channels, resize_to=resize_to,
+                   pretrained=pretrained, freeze_backbone=freeze_backbone,
+                   dropout=dropout)
     raise AssertionError(f"unhandled model name: {name}")

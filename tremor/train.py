@@ -180,6 +180,26 @@ def main() -> None:
                         "or scaling applied.")
     p.add_argument("--dropout", type=float, default=0.4)
     p.add_argument("--patience", type=int, default=20)
+    p.add_argument("--no-pretrained", action="store_true",
+                   help="(ast, resnet18) Skip the pretrained download and "
+                        "train the backbone from scratch. Useful when "
+                        "HuggingFace / torchvision can't reach the "
+                        "internet.")
+    p.add_argument("--no-freeze-backbone", action="store_true",
+                   help="(ast, resnet18) Fine-tune the full backbone "
+                        "instead of freezing it. Recommended only when "
+                        "you have a lot of training data; with our ~190 "
+                        "samples freeze-backbone usually wins.")
+    p.add_argument("--n-input-channels", type=int, default=9,
+                   help="(resnet18) Number of sensor-axis channels in the "
+                        "input. With 3 sensors x 3 axes = 9 by default; "
+                        "use 3 if you pass --quaternion-sensors hand to "
+                        "the loader.")
+    p.add_argument("--resize-to", type=int, default=96,
+                   help="(resnet18) Spatial size the spectrogram is "
+                        "upsampled to before entering the backbone. "
+                        "Default 96 keeps detail without exploding "
+                        "compute; bump to 128/224 only if you have GPU.")
     p.add_argument(
         "--oversample-to",
         type=int,
@@ -445,6 +465,10 @@ def main() -> None:
         target_T=target_length,
         hidden=args.hidden,
         dropout=args.dropout,
+        pretrained=not args.no_pretrained,
+        freeze_backbone=not args.no_freeze_backbone,
+        n_input_channels=args.n_input_channels,
+        resize_to=args.resize_to,
     ).to(device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"[model] {args.model} | trainable params: {n_params:,}")
