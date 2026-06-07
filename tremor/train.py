@@ -198,13 +198,16 @@ def main() -> None:
                    help="Sampling rate in Hz of the input recordings (default 100, no downsampling).")
     p.add_argument("--nperseg", type=int, default=128,
                    help="STFT window length in samples (MATLAB default 128).")
-    p.add_argument("--nfft", type=int, default=256,
-                   help="STFT FFT length in samples (MATLAB default 256).")
+    p.add_argument("--nfft", type=int, default=128,
+                   help="STFT FFT length in samples. Default 128 matches "
+                        "MATLAB's stft() (no zero-padding, 65 one-sided "
+                        "bins at fs=100). Use 256 for 2x freq resolution.")
     p.add_argument("--noverlap", type=int, default=96,
                    help="STFT overlap in samples (MATLAB default 96, i.e. 75%%).")
-    p.add_argument("--f-max", type=float, default=None,
+    p.add_argument("--f-max", type=float, default=30.0,
                    help="Drop STFT bins above this frequency (Hz). "
-                        "Typical tremor cutoff: 15 Hz.")
+                        "Default 30 covers tremor band + harmonics; "
+                        "pass an empty/negative to keep all bins.")
     p.add_argument("--apply-bandpass", action="store_true",
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")

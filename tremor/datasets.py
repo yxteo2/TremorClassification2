@@ -97,7 +97,7 @@ class STFTDataset(Dataset):
         self.pad_mode = pad_mode
         self.augment = augment
         self.rng = np.random.default_rng(rng_seed)
-
+       
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
@@ -174,7 +174,6 @@ class TremorDataset(Dataset):
         self.length_mode = length_mode
         self.pad_mode = pad_mode
         self.rng = np.random.default_rng(rng_seed)
-
         self.recs = _oversample_per_class(recs, oversample_to, self.rng)
 
     def __len__(self) -> int:
