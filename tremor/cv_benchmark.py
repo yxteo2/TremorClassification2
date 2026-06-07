@@ -104,9 +104,11 @@ def _train_one(method, fold_idx, train_recs, val_recs, args, device):
 
     sample_x, _ = train_ds[0]
     input_size = sample_x.shape[0]
+    # post-TFD time-frame count, not the raw sample length (AST needs this)
+    input_tdim = sample_x.shape[1]
     model = build_model(
         name=args.model, input_size=input_size,
-        num_classes=len(CLASS_NAMES), target_T=target_T,
+        num_classes=len(CLASS_NAMES), target_T=input_tdim,
         hidden=args.hidden, dropout=args.dropout,
     ).to(device)
 
