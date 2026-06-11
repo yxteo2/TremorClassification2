@@ -28,7 +28,13 @@ from tremor.spectral import (
     spec_augment,
 )
 from tremor.stft_data import STFTRecording
-from tremor.tfd import apply_cwt, apply_hht, apply_wavelet_packet
+from tremor.tfd import (
+    apply_cwt,
+    apply_hht,
+    apply_multitaper,
+    apply_sst,
+    apply_wavelet_packet,
+)
 
 
 __all__ = [
@@ -209,6 +215,16 @@ class TremorDataset(Dataset):
                 x, fs=self.fs, level=self.wp_level,
                 wavelet=self.wp_wavelet, f_max=self.f_max,
                 log_energy=True,
+            )
+        elif self.tfd_method == "multitaper":
+            x = apply_multitaper(
+                x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
+                noverlap=self.noverlap, f_max=self.f_max,
+            )
+        elif self.tfd_method == "sst":
+            x = apply_sst(
+                x, fs=self.fs, nperseg=self.nperseg, nfft=self.nfft,
+                noverlap=self.noverlap, f_max=self.f_max,
             )
         else:
             x = apply_stft(

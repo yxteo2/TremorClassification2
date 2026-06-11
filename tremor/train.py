@@ -232,7 +232,8 @@ def main() -> None:
                    help="Apply a 3-30 Hz zero-phase bandpass to each recording "
                         "before STFT (raw mode only).")
     p.add_argument("--tfd-method",
-                   choices=("stft", "cwt", "hht", "wavelet_packet"), default="stft",
+                   choices=("stft", "cwt", "hht", "wavelet_packet",
+                            "multitaper", "sst"), default="stft",
                    help="Time-frequency decomposition: "
                         "'stft' (default; cheap linear-frequency spectrogram), "
                         "'cwt' (Morlet wavelet, frequency-adaptive window — "

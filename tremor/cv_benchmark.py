@@ -222,7 +222,9 @@ def main():
     p.add_argument("--data-mode", choices=("quaternion", "stft"), default="quaternion")
     p.add_argument("--feature", default="stft")
     p.add_argument("--tfd-methods", nargs="+",
-                   default=["stft", "cwt", "hht", "wavelet_packet"])
+                   default=["stft", "cwt", "hht", "wavelet_packet"],
+                   choices=["stft", "cwt", "hht", "wavelet_packet",
+                            "multitaper", "sst"])
     p.add_argument("--n-folds", type=int, default=5)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--model", default="bilstm")

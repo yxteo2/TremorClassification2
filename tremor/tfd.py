@@ -32,16 +32,147 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import welch
 
-from tremor.preprocessing import apply_stft  # noqa: F401 — re-exported
+from tremor.preprocessing import apply_stft, _frame, _hann_periodic  # noqa: F401
 
 
 __all__ = [
     "apply_stft", "apply_cwt", "apply_welch",
     "apply_hht", "apply_emd_imfs",
+    "apply_multitaper", "apply_sst",
     "marginal_hilbert_spectrum", "dominant_imf_frequencies",
     "apply_wavelet_packet",
     "compare_tfd_separability",
 ]
+
+
+def _multitaper_channel(
+    channel: np.ndarray, fs: float, nperseg: int, nfft: int,
+    noverlap: int, n_tapers: int, nw: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Multitaper magnitude spectrogram of one channel.
+
+    Averages the power spectra from ``n_tapers`` orthogonal DPSS
+    (Slepian) windows, then takes the square root. The taper average
+    drives down spectral-estimate variance — valuable on short, noisy
+    IMU clips where a single Hann window gives a jittery spectrogram.
+
+    Returns ``(f_hz, mag)`` with ``mag`` shape ``(n_freq_bins, n_frames)``.
+    """
+    from scipy.signal.windows import dpss
+
+    hop = nperseg - noverlap
+    frames = _frame(channel.astype(np.float64, copy=False), nperseg, hop)
+    tapers = dpss(nperseg, NW=nw, Kmax=n_tapers)        # (n_tapers, nperseg)
+    psd_sum = None
+    for w in tapers:
+        spec = np.fft.rfft(frames * w, n=nfft, axis=1)  # (n_frames, n_freq)
+        p = (np.abs(spec) ** 2)
+        psd_sum = p if psd_sum is None else psd_sum + p
+    psd = psd_sum / n_tapers
+    mag = np.sqrt(psd).astype(np.float32).T            # (n_freq, n_frames)
+    f = np.fft.rfftfreq(nfft, d=1.0 / fs).astype(np.float32)
+    return f, mag
+
+
+def apply_multitaper(
+    x: np.ndarray,
+    fs: float = 100.0,
+    nperseg: int = 128,
+    nfft: int = 128,
+    noverlap: int = 96,
+    f_max: float | None = None,
+    n_tapers: int = 4,
+    nw: float = 2.5,
+) -> np.ndarray:
+    """Stack per-channel multitaper magnitude spectrograms.
+
+    Same output layout as :func:`apply_stft`
+    (``(channels * n_kept_freq_bins, n_time_bins)``) so it drops into the
+    existing dataset pipeline. ``nw`` is the time-bandwidth product and
+    ``n_tapers`` should be < ``2*nw`` for well-concentrated tapers.
+    """
+    parts: list[np.ndarray] = []
+    for ch in range(x.shape[0]):
+        f, mag = _multitaper_channel(
+            x[ch], fs=fs, nperseg=nperseg, nfft=nfft, noverlap=noverlap,
+            n_tapers=n_tapers, nw=nw,
+        )
+        if f_max is not None:
+            mag = mag[f <= f_max]
+        parts.append(mag)
+    return np.concatenate(parts, axis=0)
+
+
+def _sst_channel(
+    channel: np.ndarray, fs: float, nperseg: int, nfft: int, noverlap: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Synchrosqueezed STFT magnitude of one channel.
+
+    Standard STFT smears a pure tone across several frequency bins
+    (window bandwidth). Synchrosqueezing reassigns each bin's magnitude
+    to the bin nearest its *instantaneous frequency* — estimated from the
+    cross-frame phase derivative — producing a sharply concentrated
+    time-frequency map. This makes the subtle PD-vs-ET spectral shape
+    crisper for a downstream model, while keeping the STFT machinery
+    that already works.
+
+    Returns ``(f_hz, mag)`` with ``mag`` shape ``(n_freq_bins, n_frames)``.
+    """
+    hop = nperseg - noverlap
+    win = _hann_periodic(nperseg, dtype=np.float64)
+    # Time-derivative of the window (in seconds^-1), used to estimate the
+    # instantaneous frequency WITHIN each frame — no cross-frame aliasing.
+    dwin = np.gradient(win) * fs
+
+    sig = channel.astype(np.float64, copy=False)
+    frames = _frame(sig, nperseg, hop)
+    spec_h = np.fft.rfft(frames * win, n=nfft, axis=1).T    # (n_freq, n_frames)
+    spec_dh = np.fft.rfft(frames * dwin, n=nfft, axis=1).T
+    f = np.fft.rfftfreq(nfft, d=1.0 / fs).astype(np.float64)
+    n_freq, n_frames = spec_h.shape
+
+    mag_spec = np.abs(spec_h).astype(np.float32)
+    # Reassigned (instantaneous) frequency: f_k - Im(STFT_dh / STFT_h)/(2pi).
+    nonzero = np.abs(spec_h) > (1e-8 * (np.abs(spec_h).max() + 1e-12))
+    correction = np.zeros((n_freq, n_frames), dtype=np.float64)
+    ratio = np.zeros_like(spec_h)
+    ratio[nonzero] = spec_dh[nonzero] / spec_h[nonzero]
+    correction = np.imag(ratio) / (2.0 * np.pi)
+    if_hz = f[:, None] - correction
+    # weak bins keep their own centre frequency (no reliable phase)
+    if_hz[~nonzero] = np.broadcast_to(f[:, None], if_hz.shape)[~nonzero]
+
+    # Synchrosqueeze: reassign each magnitude to the row nearest its IF.
+    out = np.zeros((n_freq, n_frames), dtype=np.float32)
+    df = f[1] - f[0]
+    target = np.clip(np.round(if_hz / df).astype(int), 0, n_freq - 1)
+    cols = np.broadcast_to(np.arange(n_frames), (n_freq, n_frames))
+    np.add.at(out, (target.ravel(), cols.ravel()), mag_spec.ravel())
+    return f.astype(np.float32), out
+
+
+def apply_sst(
+    x: np.ndarray,
+    fs: float = 100.0,
+    nperseg: int = 128,
+    nfft: int = 128,
+    noverlap: int = 96,
+    f_max: float | None = None,
+) -> np.ndarray:
+    """Stack per-channel synchrosqueezed-STFT magnitudes.
+
+    Same output layout as :func:`apply_stft` so it slots into the
+    existing dataset / model pipeline unchanged.
+    """
+    parts: list[np.ndarray] = []
+    for ch in range(x.shape[0]):
+        f, mag = _sst_channel(
+            x[ch], fs=fs, nperseg=nperseg, nfft=nfft, noverlap=noverlap,
+        )
+        if f_max is not None:
+            mag = mag[f <= f_max]
+        parts.append(mag)
+    return np.concatenate(parts, axis=0)
 
 
 def _morlet_wavelet(fs: float, freq: float, w0: float = 6.0) -> np.ndarray:
