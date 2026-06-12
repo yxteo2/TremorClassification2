@@ -385,7 +385,8 @@ def main():
                 })
                 pooled_logits[method].append(logits)
                 pooled_y[method].append(y_true)
-                print(f"    -> acc={report['accuracy']:.3f}  "
+                print(f"    -> macroF1={report['macro_f1']:.3f}  "
+                      f"acc={report['accuracy']:.3f}  "
                       f"N_f1={report['per_class']['N']['f1']:.2f}  "
                       f"PD_f1={report['per_class']['PD']['f1']:.2f}  "
                       f"ET_f1={report['per_class']['ET']['f1']:.2f}")
@@ -398,13 +399,14 @@ def main():
         json.dumps({k: v for k, v in all_results.items()}, indent=2)
     )
 
-    # Summary table
-    print("\n" + "=" * 72)
+    # Summary table — macro-F1 first, per skill ("Lead with macro-F1 and ET F1").
+    print("\n" + "=" * 80)
     print("SUMMARY  (mean ± SD across folds)")
-    print("=" * 72)
-    print(f"{'method':>15s}  {'accuracy':>14s}  {'N_F1':>13s}  "
-          f"{'PD_F1':>13s}  {'ET_F1':>13s}")
-    summary_lines = ["method,n_folds,accuracy_mean,accuracy_sd,"
+    print("=" * 80)
+    print(f"{'method':>15s}  {'macro_F1':>13s}  {'accuracy':>13s}  "
+          f"{'N_F1':>12s}  {'PD_F1':>12s}  {'ET_F1':>12s}")
+    summary_lines = ["method,n_folds,macro_f1_mean,macro_f1_sd,"
+                      "accuracy_mean,accuracy_sd,"
                       "N_f1_mean,N_f1_sd,PD_f1_mean,PD_f1_sd,ET_f1_mean,ET_f1_sd"]
     for method in args.tfd_methods:
         ok = [r for r in all_results[method] if "accuracy" in r]
@@ -412,13 +414,18 @@ def main():
             print(f"{method:>15s}  (no successful folds)")
             continue
         acc = np.array([r["accuracy"] for r in ok])
+        mf1 = np.array([r.get("macro_f1",
+                              float(np.mean([r["per_class"][c]["f1"] for c in CLASS_NAMES])))
+                        for r in ok])
         f1 = {c: np.array([r["per_class"][c]["f1"] for r in ok]) for c in CLASS_NAMES}
-        print(f"{method:>15s}  {acc.mean():.3f} ± {acc.std():.3f}  "
-              f"{f1['N'].mean():.2f} ± {f1['N'].std():.2f}   "
-              f"{f1['PD'].mean():.2f} ± {f1['PD'].std():.2f}   "
+        print(f"{method:>15s}  {mf1.mean():.3f} ± {mf1.std():.3f}  "
+              f"{acc.mean():.3f} ± {acc.std():.3f}  "
+              f"{f1['N'].mean():.2f} ± {f1['N'].std():.2f}  "
+              f"{f1['PD'].mean():.2f} ± {f1['PD'].std():.2f}  "
               f"{f1['ET'].mean():.2f} ± {f1['ET'].std():.2f}")
         summary_lines.append(
-            f"{method},{len(ok)},{acc.mean():.4f},{acc.std():.4f},"
+            f"{method},{len(ok)},{mf1.mean():.4f},{mf1.std():.4f},"
+            f"{acc.mean():.4f},{acc.std():.4f},"
             f"{f1['N'].mean():.4f},{f1['N'].std():.4f},"
             f"{f1['PD'].mean():.4f},{f1['PD'].std():.4f},"
             f"{f1['ET'].mean():.4f},{f1['ET'].std():.4f}"
@@ -429,11 +436,12 @@ def main():
     # This is the headline number for a small minority class (ET), where
     # per-fold F1 swings wildly on 1-2 test samples but the pooled AUC is stable.
     if any(pooled_logits[m] for m in args.tfd_methods):
-        print("\n" + "=" * 72)
+        print("\n" + "=" * 84)
         print("POOLED  (concatenate per-fold test predictions, then score once)")
-        print("=" * 72)
-        print(f"{'method':>15s}  {'acc':>6s}  {'N_F1':>6s}  {'PD_F1':>6s}  "
-              f"{'ET_F1':>6s}  {'N_AUC':>6s}  {'PD_AUC':>6s}  {'ET_AUC':>6s}")
+        print("=" * 84)
+        print(f"{'method':>15s}  {'macroF1':>7s}  {'acc':>6s}  "
+              f"{'N_F1':>6s}  {'PD_F1':>6s}  {'ET_F1':>6s}  "
+              f"{'N_AUC':>6s}  {'PD_AUC':>6s}  {'ET_AUC':>6s}")
         for method in args.tfd_methods:
             if not pooled_logits[method]:
                 continue
@@ -441,7 +449,8 @@ def main():
             y_cat = np.concatenate(pooled_y[method], axis=0)
             rep = classification_report(logits_cat, y_cat, CLASS_NAMES)
             pc = rep["per_class"]
-            print(f"{method:>15s}  {rep['accuracy']:>6.3f}  "
+            print(f"{method:>15s}  {rep['macro_f1']:>7.3f}  "
+                  f"{rep['accuracy']:>6.3f}  "
                   f"{pc['N']['f1']:>6.2f}  {pc['PD']['f1']:>6.2f}  "
                   f"{pc['ET']['f1']:>6.2f}  {pc['N']['auc']:>6.2f}  "
                   f"{pc['PD']['auc']:>6.2f}  {pc['ET']['auc']:>6.2f}")

@@ -46,8 +46,14 @@ def classification_report(
         else:
             auc[name] = float(roc_auc_score(y_bin, probs[:, i]))
 
+    # Macro-F1 is the per-skill primary metric for this dataset: it equally
+    # weights N / PD / ET so a collapsed ET row can't hide behind majority
+    # accuracy. Accuracy is reported alongside as a sanity check, not headline.
+    macro_f1 = float(np.mean(f1))
+
     return {
         "accuracy": float((y_pred == y_true).mean()),
+        "macro_f1": macro_f1,
         "per_class": {
             name: {
                 "f1": f1[i],
