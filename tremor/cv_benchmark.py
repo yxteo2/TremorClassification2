@@ -33,11 +33,12 @@ from sklearn.model_selection import GroupKFold
 from torch.utils.data import DataLoader
 
 from tremor.data import CLASS_NAMES
-from tremor.evaluate import classification_report
+from tremor.evaluate import classification_report, softmax
 from tremor.losses import build_loss_fn, compute_class_weights
 from tremor.models import build_model
 from tremor.quaternion import select_sensor_channels
 from tremor.quaternion_data import load_quaternion_recordings
+from tremor.stats import bootstrap_subject_ci, permutation_test
 from tremor.stft_data import load_stft_recordings
 from tremor.train import TremorDataset, STFTDataset, _seed_everything
 
@@ -285,6 +286,10 @@ def main():
     p.add_argument("--no-freeze-backbone", dest="freeze_backbone",
                    action="store_false",
                    help="(ast/resnet18) Fine-tune the whole backbone.")
+    p.add_argument("--n-boot", type=int, default=2000,
+                   help="Subject-level bootstrap resamples for the pooled CI.")
+    p.add_argument("--n-perm", type=int, default=2000,
+                   help="Subject-level label permutations for the pooled p-value.")
     p.add_argument("--output", type=Path, default=Path("cv_results"))
     args = p.parse_args()
 
@@ -337,6 +342,7 @@ def main():
     all_results: dict[str, list[dict]] = defaultdict(list)
     pooled_logits: dict[str, list[np.ndarray]] = defaultdict(list)
     pooled_y: dict[str, list[np.ndarray]] = defaultdict(list)
+    pooled_subjects: dict[str, list[np.ndarray]] = defaultdict(list)
 
     for fold_idx, (trainval_idx, test_idx) in enumerate(split_iter, start=1):
         # Carve val out of trainval
@@ -385,6 +391,12 @@ def main():
                 })
                 pooled_logits[method].append(logits)
                 pooled_y[method].append(y_true)
+                # Eval loader runs shuffle=False, so subjects line up with the
+                # returned logits row-for-row — needed for the subject-level
+                # bootstrap CI on the pooled predictions.
+                pooled_subjects[method].append(
+                    np.array([r.subject for r in test_recs])
+                )
                 print(f"    -> macroF1={report['macro_f1']:.3f}  "
                       f"acc={report['accuracy']:.3f}  "
                       f"N_f1={report['per_class']['N']['f1']:.2f}  "
@@ -447,6 +459,7 @@ def main():
                 continue
             logits_cat = np.concatenate(pooled_logits[method], axis=0)
             y_cat = np.concatenate(pooled_y[method], axis=0)
+            subj_cat = np.concatenate(pooled_subjects[method], axis=0)
             rep = classification_report(logits_cat, y_cat, CLASS_NAMES)
             pc = rep["per_class"]
             print(f"{method:>15s}  {rep['macro_f1']:>7.3f}  "
@@ -454,6 +467,33 @@ def main():
                   f"{pc['N']['f1']:>6.2f}  {pc['PD']['f1']:>6.2f}  "
                   f"{pc['ET']['f1']:>6.2f}  {pc['N']['auc']:>6.2f}  "
                   f"{pc['PD']['auc']:>6.2f}  {pc['ET']['auc']:>6.2f}")
+
+            # Subject-clustered bootstrap CI + permutation p-value on the
+            # pooled predictions. This is the honest headline: with a small ET
+            # cohort a single point estimate is noise, so every number carries
+            # a 95% CI resampled at the subject level (not the recording level).
+            y_pred = softmax(logits_cat).argmax(axis=-1)
+            ci = bootstrap_subject_ci(
+                y_cat, y_pred, subj_cat, CLASS_NAMES,
+                n_boot=args.n_boot, seed=args.seed,
+            )
+            perm = permutation_test(
+                y_cat, y_pred, subj_cat, CLASS_NAMES,
+                n_perm=args.n_perm, seed=args.seed,
+            )
+            print(f"{'':>15s}  95% CI  macroF1={ci['macro_f1']!r}")
+            for c in CLASS_NAMES:
+                print(f"{'':>15s}          {c}_F1={ci[c]!r}")
+            print(f"{'':>15s}  permutation p(macroF1) = "
+                  f"{perm['p_value']:.4f}  (n_perm={perm['n_perm']})")
+
+            rep["bootstrap_ci"] = {
+                k: {"point": e.point, "lo": e.lo, "hi": e.hi, "ci": e.ci}
+                for k, e in ci.items()
+            }
+            rep["permutation_test"] = perm
+            rep["n_pooled_recordings"] = int(len(y_cat))
+            rep["n_pooled_subjects"] = int(len(set(subj_cat.tolist())))
             (args.output / method / "pooled_report.json").write_text(
                 json.dumps(rep, indent=2)
             )

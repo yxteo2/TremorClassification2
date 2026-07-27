@@ -44,7 +44,7 @@ def load_quaternion_recordings(
     # processed-data convention). Use the first one that exists.
     candidates = [
         Path(root) / feature / action,
-        Path(root) / feature / action,
+        Path(root) / "ProcessedData" / feature / action,
     ]
     data_dir = next((p for p in candidates if p.is_dir()), None)
     if data_dir is None:
@@ -64,6 +64,13 @@ def load_quaternion_recordings(
             Q12 = df.to_numpy(dtype=np.float32)
             if Q12.size == 0:
                 continue
+            expected_cols = n_sensors * 4
+            if Q12.ndim != 2 or Q12.shape[1] != expected_cols:
+                raise ValueError(
+                    f"{path}: expected (T, {expected_cols}) = "
+                    f"{n_sensors} sensors x 4 quaternion components, "
+                    f"got shape {Q12.shape}"
+                )
             try:
                 x = process_quaternion_data(
                     Q12, fs=fs, mode=mode, convention=convention,
