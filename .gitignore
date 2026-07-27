@@ -10,3 +10,8 @@ ProcessedData/
 artifacts/
 *.pt
 *.ckpt
+
+# Moveo Explorer subject exports — contain patient names and DOBs, never commit
+Moveo_Explorer_Subject_Export_*/
+*_Analysis.h5
+SubjectMetadata.xml

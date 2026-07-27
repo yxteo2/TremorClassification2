@@ -61,6 +61,20 @@ Loaders return `tremor.data.Recording(x:(channels,time), y, subject, path)`:
 `load_stft_recordings` (precomputed STFT, `STFTRecording`). Feature/quaternion/TFD/normalization
 detail is in **`references/data-and-preprocessing.md`** — read it before touching feature code.
 
+### Moveo Explorer exports — a THIRD, incompatible source (`tremor/moveo_data.py`)
+
+The newer recruitment batches (Drive: `Tremor Classification IMU/{ET,PD,HC}/`, 116 subjects not in
+`Data/`) ship as APDM/Mobility Lab subject exports, and they are **not** `raw_quaternion`:
+**fs=128 Hz** (not 100 — the fs trap again, 1.28× error), quaternions **scalar-first `(w,x,y,z)`**,
+and the payload is **4 joint-angle streams** (elbow/wrist × L/R) rather than 3 per-sensor
+orientations. Every trial is labelled `Free Form` — there are **no OUT/REST/WING labels** — and the
+h5 *filename* carries the acquisition-station ID, not the study ID (`PD 88`'s files say `PD_1`, and
+`PD 1` already exists), so subject IDs come from the export **directory**. Use
+`load_moveo_recordings` / `moveo_inventory`, and `joint_quaternions_from_sensors` to convert the old
+3-sensor files into the same elbow/wrist representation. The exports also contain **patient names
+and DOBs** (`SubjectMetadata.xml`, `*_Trial.csv`) — never commit any of the tree; it is gitignored.
+Full assessment, blockers and open questions: **`reports/track4_moveo_export.md`**.
+
 ## Feature (TFD) methods
 
 `--tfd-method {stft, cwt, hht, wavelet_packet, multitaper, sst}` (default `stft`), all producing a
