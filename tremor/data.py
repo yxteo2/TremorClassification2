@@ -43,6 +43,7 @@ class Recording:
     y: int
     subject: str
     path: Path
+    condition: str | None = None  # e.g. OUT / REST / WING (set for multi-action loads)
 
 
 def _parse_subject_and_class(filename: str) -> tuple[str, int]:

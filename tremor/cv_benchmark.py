@@ -37,7 +37,10 @@ from tremor.evaluate import classification_report, softmax
 from tremor.losses import build_loss_fn, compute_class_weights
 from tremor.models import build_model
 from tremor.quaternion import select_sensor_channels
-from tremor.quaternion_data import load_quaternion_recordings
+from tremor.quaternion_data import (
+    load_quaternion_recordings,
+    load_quaternion_recordings_multi,
+)
 from tremor.stats import bootstrap_subject_ci, permutation_test
 from tremor.stft_data import load_stft_recordings
 from tremor.train import TremorDataset, STFTDataset, _seed_everything
@@ -46,10 +49,19 @@ from tremor.train import TremorDataset, STFTDataset, _seed_everything
 def _load_recs(args):
     if args.data_mode == "quaternion":
         feature = "raw_quaternion" if args.feature == "stft" else args.feature
-        recs = load_quaternion_recordings(
-            args.data_root, action=args.action, fs=args.fs,
-            mode="angular_velocity", feature=feature,
-        )
+        actions = [a.strip() for a in args.action.split(",") if a.strip()]
+        if len(actions) > 1:
+            # Cross-condition: patient-level subject keys (leakage-safe pooling)
+            recs = load_quaternion_recordings_multi(
+                args.data_root, actions=actions, fs=args.fs,
+                mode="angular_velocity", feature=feature,
+            )
+            print(f"[cv] multi-action pooled: {actions} (patient-level subjects)")
+        else:
+            recs = load_quaternion_recordings(
+                args.data_root, action=actions[0], fs=args.fs,
+                mode="angular_velocity", feature=feature,
+            )
         sensors = [s.strip() for s in (args.quaternion_sensors or "").split(",") if s.strip()]
         if sensors and len(sensors) < 3:
             for r in recs:
