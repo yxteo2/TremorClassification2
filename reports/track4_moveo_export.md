@@ -99,6 +99,61 @@ else. There is no accelerometer, no gyroscope, and no per-sensor orientation.
    break subject-level splitting while every disjointness assertion still
    passes. IDs must come from the directory name or `SubjectMetadata.xml`.
 
+## Measured profile of the signal (4 trials — and why it stops there)
+
+`tremor/moveo_profile.py` computes, per joint per trial, angular-velocity RMS,
+the spectral peak in 3–12 Hz, how far that peak stands above the rest of the band
+(`peak_prominence`, 1.0 = flat), and the share of 0.5–30 Hz power in the tremor
+band. Aggregation is subject-median first, then across subjects — trial counts
+vary 9–14, so trial-level pooling would silently weight the busiest subjects.
+
+Bulk download through the Drive API is one file per request, and pulling a real
+sample that way did not survive; **what follows is 4 trials from 3 subjects.** It
+is not a class comparison and must not be read as one. It is still decisive about
+one thing.
+
+| subj | trial | joint | s | RMS rad/s | peak Hz | prom. | 3–12 Hz frac |
+|---|---|---|---|---|---|---|---|
+| ET 21 | 03 | Elbow/L | 30.7 | **0.784** | 3.00 | 2.8 | 0.065 |
+| ET 21 | 03 | Wrist/R | 30.7 | 0.222 | 8.75 | 2.8 | 0.119 |
+| ET 21 | **08** | Elbow/L | 42.7 | **0.190** | 3.00 | **8.6** | 0.110 |
+| ET 21 | **08** | Elbow/R | 42.7 | 0.119 | 3.25 | **28.8** | 0.159 |
+| ET 21 | **08** | Wrist/R | 42.7 | 0.073 | 3.25 | 5.1 | 0.354 |
+| PD 88 | 09 | Elbow/L | 32.6 | 0.196 | **5.00** | 3.8 | 0.221 |
+| PD 88 | 09 | Elbow/R | 32.6 | 0.184 | **5.00** | 3.7 | 0.217 |
+| PD 88 | 09 | Wrist/R | 32.6 | 0.076 | 4.75 | 2.3 | **0.539** |
+| HC 100 | 09 | Elbow/L | 35.9 | 0.197 | 5.50 | 4.2 | 0.120 |
+| HC 100 | 09 | Wrist/R | 35.9 | 0.060 | 3.00 | 9.2 | 0.229 |
+
+Two readings, and the second one matters far more than the first.
+
+**The plausible part.** PD 88 shows a 5.00 Hz peak on *both* elbows with ~22% of
+power in band — squarely the PD rest-tremor frequency, bilaterally consistent.
+ET 21 trial 08 shows a very sharp 3.25 Hz peak (prominence 28.8 on the right
+elbow, 8.6 on the left) — a narrowband oscillation, i.e. a real tremor rather than
+broadband motion. So the exports do contain recoverable tremor structure, and the
+adapter's 128 Hz / scalar-first handling produces physiologically sensible output.
+
+**The part that blocks everything.** ET 21's two trials, same subject, same
+session, minutes apart, disagree more than the three classes do:
+
+| | RMS Elbow/L | peak prominence Elbow/R | 3–12 Hz frac Wrist/R |
+|---|---|---|---|
+| trial 03 | 0.784 rad/s | 2.5 | 0.119 |
+| trial 08 | 0.190 rad/s | 28.8 | 0.354 |
+
+**4× in amplitude, 11× in peak sharpness, 3× in band fraction — within one
+subject.** Trial 03 looks like gross voluntary movement burying the tremor;
+trial 08 looks like a held posture with the tremor exposed. That is the signature
+of two *different tasks* recorded under the same `Free Form` label.
+
+So the missing condition labels are not a bookkeeping inconvenience to work
+around later. **The unlabelled task is the dominant source of variance in this
+data** — larger than the between-group contrasts anyone would want to measure. Any
+class comparison, any pooled training run, and any ET-vs-PD frequency claim built
+on these trials before they are mapped to tasks would be measuring task, not
+pathology.
+
 ## Two blockers
 
 ### 1. No condition labels — the one that needs an answer from you
@@ -109,12 +164,12 @@ that says which trial was outstretched, at rest, or wing-beating. The repo's
 entire structure is per-condition (`OUT/`, `REST/`, `WING/`), and Track 1's
 results are per-condition.
 
-The gap is not cosmetic. Spot-check: ET 21's Free Form trial 03 has per-joint
-angular-velocity RMS of 0.19–1.05 rad/s, while ET 10's `REST` recording sits at
-0.03–0.10 rad/s. Different subjects, so not a controlled comparison — but an
-order of magnitude apart is consistent with the Free Form trials containing
-gross voluntary movement rather than a held posture. They are not REST by
-another name.
+The gap is not cosmetic, and the section above quantifies it: two trials from the
+same ET subject differ 4× in RMS and 11× in peak sharpness. Separately, ET 21's
+trial 03 runs 0.22–0.78 rad/s per joint against ET 10's `REST` recording at
+0.03–0.10 rad/s — different subjects, so not controlled, but an order of magnitude
+apart. These trials are not REST under another name, and they are not all the same
+thing as each other either.
 
 **What we need:** the session log or protocol that says what the 9–14 trials per
 subject were. Three plausible shapes, each with a different cost:
@@ -222,7 +277,14 @@ recs[0].subject, recs[0].condition                  # 'MV-ET21', 'FREEFORM'
 recs[0].x.shape                                     # (12, T) = 4 joints x 3 rad/s
 ```
 
-It defaults to `fs` read from the file (128 Hz), reorders scalar-first →
+and `tremor/moveo_profile.py` for the descriptive sweep:
+
+```bash
+python -m tremor.moveo_profile --root ... --per-subject          # full profile
+python -m tremor.moveo_profile --root ... --groups ET --out et.csv
+```
+
+The loader defaults to `fs` read from the file (128 Hz), reorders scalar-first →
 scalar-last, trims the 3 s calibration pose, drops trials under 5 s, derives the
 subject ID from the directory, and labels every trial `condition='FREEFORM'`
 because that is the only honest label available. `moveo_inventory()` reports
