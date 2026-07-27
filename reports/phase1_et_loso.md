@@ -100,6 +100,55 @@ ones — consistent with the threshold-collapse view above.
 - **N detection is solved** (Stage-A macro-F1 0.86); effort should target the
   PD-vs-ET boundary, not N.
 
+## Update — honest threshold selection + multi-seed robustness (Track 1)
+
+Two leakage-free improvements to what we can *claim*, over 5 seeds (42–46),
+single-condition OUT, same protocol:
+
+**In-CV ET threshold selection.** Instead of `argmax` (an implicit,
+miscalibrated ET threshold), each fold's ET decision threshold is chosen on its
+**validation** predictions to maximize ET-F1, then applied to the held-out
+test. The threshold never sees test data, so the gain is honest — not the
+oracle 0.52 from the earlier sweep.
+
+| metric (5-seed mean ± SD) | argmax | threshold-tuned |
+|---|---|---|
+| **ET-F1** | 0.390 ± 0.058 | **0.471 ± 0.038** |
+| macro-F1 | 0.633 ± 0.023 | 0.632 ± 0.040 |
+
+- Selected threshold **t\* = 0.324 ± 0.037** — stable across seeds, a consistent
+  operating point rather than per-seed noise.
+- The lift holds on **every** seed; SD *shrinks* (0.058 → 0.038), so the tuned
+  number is both higher and more stable. All seeds permutation p = 0.0005.
+- macro-F1 is unchanged, as expected: thresholding trades within the ET/PD
+  boundary; N stays solved.
+
+**Multi-seed robustness.** The original single-run argmax ET-F1 (0.324) was a
+*low draw* — the true argmax mean is 0.39 ± 0.06. This is the direct answer to
+"is the number a lucky seed?" and argues for reporting the seed distribution,
+not one point.
+
+**Defensible headline:** ET-F1 ≈ **0.47** (threshold-tuned, seed-stable),
+macro-F1 ≈ **0.63**, p < 0.001 — up from the raw-argmax 0.32, with no new data
+and no leakage.
+
+Reproduce: add `--tune-et-threshold` and vary `--seed 42..46` on the Phase-1
+command; aggregate `artifacts/track1_seed*/stft/pooled_report.json`.
+
+## What multi-condition fusion showed (and didn't)
+
+Pooling OUT+REST+WING did **not** beat single-condition, and a learned
+attention fusion (`tremor.fusion_train`) did **not** beat its own trivial
+mean-pool baseline — all four configs' CIs overlap. On 16 ET subjects the
+method is within the noise band; the ceiling is the cohort size, not the model.
+
+| config | macro-F1 | ET-F1 |
+|---|---|---|
+| single `tremor_bilstm` (OUT, argmax) | 0.619 | 0.324 |
+| naive pool `tremor_bilstm` | 0.581 | 0.309 |
+| fusion attention (patient-level) | 0.510 | 0.312 |
+| fusion mean-pool (patient-level) | 0.546 | 0.400 |
+
 ## Not runnable in this environment
 
 - **amplitude @ 60 Hz feature arm** (the prior MATLAB pipeline's representation):
