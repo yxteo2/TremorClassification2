@@ -497,6 +497,22 @@ def main():
             (args.output / method / "pooled_report.json").write_text(
                 json.dumps(rep, indent=2)
             )
+
+            # Persist the pooled per-recording predictions so downstream
+            # diagnostics (per-subject error tables, threshold sweeps) can run
+            # without retraining. One row per test recording, with the softmax
+            # probability of each class.
+            probs_cat = softmax(logits_cat)
+            header = ["subject", "y_true", "y_pred"] + [f"p_{c}" for c in CLASS_NAMES]
+            lines = [",".join(header)]
+            for si, yt, yp, pr in zip(subj_cat, y_cat, y_pred, probs_cat):
+                lines.append(",".join([
+                    str(si), CLASS_NAMES[int(yt)], CLASS_NAMES[int(yp)],
+                    *[f"{v:.6f}" for v in pr],
+                ]))
+            (args.output / method / "pooled_predictions.csv").write_text(
+                "\n".join(lines) + "\n"
+            )
     print(f"\nResults saved to {args.output}/")
 
 
