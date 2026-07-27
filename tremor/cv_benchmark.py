@@ -227,6 +227,38 @@ def _eval_on_recs(model, recs, target_T, args, method, device):
     return np.concatenate(logits_list), np.concatenate(y_list)
 
 
+def _select_et_threshold(val_probs: np.ndarray, val_y: np.ndarray,
+                         grid: np.ndarray) -> float:
+    """Pick the ET one-vs-rest probability threshold maximizing ET-F1 on val.
+
+    Decision rule under threshold t: predict ET if p_ET >= t, else argmax over
+    the non-ET classes. The threshold is chosen on validation predictions only.
+    """
+    from sklearn.metrics import f1_score
+    et = CLASS_NAMES.index("ET")
+    is_et = (val_y == et).astype(int)
+    best_t, best_f1 = 1.0 / len(CLASS_NAMES), -1.0
+    for t in grid:
+        pred_et = (val_probs[:, et] >= t).astype(int)
+        f1 = f1_score(is_et, pred_et, zero_division=0)
+        if f1 > best_f1:
+            best_f1, best_t = f1, float(t)
+    return best_t
+
+
+def _apply_et_threshold(probs: np.ndarray, t: float) -> np.ndarray:
+    """y_pred with the tuned ET rule: ET if p_ET>=t else argmax over non-ET."""
+    et = CLASS_NAMES.index("ET")
+    non_et = [i for i in range(len(CLASS_NAMES)) if i != et]
+    y_pred = np.empty(len(probs), dtype=int)
+    take_et = probs[:, et] >= t
+    y_pred[take_et] = et
+    if (~take_et).any():
+        sub = probs[~take_et][:, non_et]
+        y_pred[~take_et] = np.array(non_et)[sub.argmax(axis=1)]
+    return y_pred
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -298,6 +330,10 @@ def main():
     p.add_argument("--no-freeze-backbone", dest="freeze_backbone",
                    action="store_false",
                    help="(ast/resnet18) Fine-tune the whole backbone.")
+    p.add_argument("--tune-et-threshold", action="store_true",
+                   help="Select the ET decision threshold on pooled validation "
+                        "predictions (leakage-free) and apply it to the pooled "
+                        "test predictions. Reports argmax vs thresholded ET-F1.")
     p.add_argument("--n-boot", type=int, default=2000,
                    help="Subject-level bootstrap resamples for the pooled CI.")
     p.add_argument("--n-perm", type=int, default=2000,
@@ -355,6 +391,10 @@ def main():
     pooled_logits: dict[str, list[np.ndarray]] = defaultdict(list)
     pooled_y: dict[str, list[np.ndarray]] = defaultdict(list)
     pooled_subjects: dict[str, list[np.ndarray]] = defaultdict(list)
+    # Validation predictions, pooled across folds, used ONLY to pick the ET
+    # decision threshold (never touches test) when --tune-et-threshold is set.
+    pooled_val_logits: dict[str, list[np.ndarray]] = defaultdict(list)
+    pooled_val_y: dict[str, list[np.ndarray]] = defaultdict(list)
 
     for fold_idx, (trainval_idx, test_idx) in enumerate(split_iter, start=1):
         # Carve val out of trainval
@@ -409,6 +449,12 @@ def main():
                 pooled_subjects[method].append(
                     np.array([r.subject for r in test_recs])
                 )
+                if args.tune_et_threshold and val_recs:
+                    v_logits, v_y = _eval_on_recs(
+                        model, val_recs, target_T, args, method, device,
+                    )
+                    pooled_val_logits[method].append(v_logits)
+                    pooled_val_y[method].append(v_y)
                 print(f"    -> macroF1={report['macro_f1']:.3f}  "
                       f"acc={report['accuracy']:.3f}  "
                       f"N_f1={report['per_class']['N']['f1']:.2f}  "
@@ -525,6 +571,44 @@ def main():
             (args.output / method / "pooled_predictions.csv").write_text(
                 "\n".join(lines) + "\n"
             )
+
+            # --- In-CV ET threshold selection (leakage-free) ---------------
+            if args.tune_et_threshold and pooled_val_logits[method]:
+                val_probs = softmax(np.concatenate(pooled_val_logits[method]))
+                val_y = np.concatenate(pooled_val_y[method])
+                grid = np.linspace(0.05, 0.95, 91)
+                t_star = _select_et_threshold(val_probs, val_y, grid)
+                y_pred_thr = _apply_et_threshold(probs_cat, t_star)
+                ci_thr = bootstrap_subject_ci(
+                    y_cat, y_pred_thr, subj_cat, CLASS_NAMES,
+                    n_boot=args.n_boot, seed=args.seed,
+                )
+                perm_thr = permutation_test(
+                    y_cat, y_pred_thr, subj_cat, CLASS_NAMES,
+                    n_perm=args.n_perm, seed=args.seed,
+                )
+                print(f"\n{'':>15s}  IN-CV ET THRESHOLD t*={t_star:.3f} "
+                      f"(picked on pooled val, applied to test)")
+                print(f"{'':>15s}  argmax   ET_F1={ci['ET']!r}")
+                print(f"{'':>15s}  thresh   ET_F1={ci_thr['ET']!r}")
+                print(f"{'':>15s}  thresh   macroF1={ci_thr['macro_f1']!r}  "
+                      f"p={perm_thr['p_value']:.4f}")
+                rep["et_threshold"] = {
+                    "t_star": t_star,
+                    "argmax_ET_f1": ci["ET"].point,
+                    "thresholded": {
+                        "macro_f1": {"point": ci_thr["macro_f1"].point,
+                                     "lo": ci_thr["macro_f1"].lo,
+                                     "hi": ci_thr["macro_f1"].hi},
+                        "per_class_f1": {
+                            c: {"point": ci_thr[c].point, "lo": ci_thr[c].lo,
+                                "hi": ci_thr[c].hi} for c in CLASS_NAMES},
+                        "permutation_p": perm_thr["p_value"],
+                    },
+                }
+                (args.output / method / "pooled_report.json").write_text(
+                    json.dumps(rep, indent=2)
+                )
     print(f"\nResults saved to {args.output}/")
 
 
