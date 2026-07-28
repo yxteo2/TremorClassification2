@@ -99,7 +99,7 @@ else. There is no accelerometer, no gyroscope, and no per-sensor orientation.
    break subject-level splitting while every disjointness assertion still
    passes. IDs must come from the directory name or `SubjectMetadata.xml`.
 
-## Measured profile of the signal (4 trials — and why it stops there)
+## Measured profile of the signal (6 trials — and why it stops there)
 
 `tremor/moveo_profile.py` computes, per joint per trial, angular-velocity RMS,
 the spectral peak in 3–12 Hz, how far that peak stands above the rest of the band
@@ -107,13 +107,18 @@ the spectral peak in 3–12 Hz, how far that peak stands above the rest of the b
 band. Aggregation is subject-median first, then across subjects — trial counts
 vary 9–14, so trial-level pooling would silently weight the busiest subjects.
 
-Bulk download through the Drive API is one file per request, and pulling a real
-sample that way did not survive; **what follows is 4 trials from 3 subjects.** It
-is not a class comparison and must not be read as one. It is still decisive about
-one thing.
+Bulk download through the Drive API is one file per request, so the sample is
+**6 trials from 4 subjects** — ET 19, ET 21, PD 88, HC 100. It is not a class
+comparison and must not be read as one. It is still decisive about two things.
 
 | subj | trial | joint | s | RMS rad/s | peak Hz | prom. | 3–12 Hz frac |
 |---|---|---|---|---|---|---|---|
+| ET 19 | **08** | Elbow/L | 40.6 | 0.359 | **5.75** | 5.6 | 0.306 |
+| ET 19 | **08** | Elbow/R | 40.6 | 0.215 | **5.75** | 5.4 | 0.194 |
+| ET 19 | **08** | Wrist/L | 40.6 | 0.353 | **5.75** | 5.9 | 0.337 |
+| ET 19 | **08** | Wrist/R | 40.6 | 0.213 | **5.75** | 5.3 | 0.250 |
+| ET 19 | 09 | Elbow/R | 36.0 | 0.143 | 4.50 | **17.9** | 0.173 |
+| ET 19 | 09 | Wrist/R | 36.0 | 0.064 | 6.75 | 7.4 | **0.511** |
 | ET 21 | 03 | Elbow/L | 30.7 | **0.784** | 3.00 | 2.8 | 0.065 |
 | ET 21 | 03 | Wrist/R | 30.7 | 0.222 | 8.75 | 2.8 | 0.119 |
 | ET 21 | **08** | Elbow/L | 42.7 | **0.190** | 3.00 | **8.6** | 0.110 |
@@ -125,27 +130,41 @@ one thing.
 | HC 100 | 09 | Elbow/L | 35.9 | 0.197 | 5.50 | 4.2 | 0.120 |
 | HC 100 | 09 | Wrist/R | 35.9 | 0.060 | 3.00 | 9.2 | 0.229 |
 
-Two readings, and the second one matters far more than the first.
+Three readings, and the last one matters far more than the first two.
 
-**The plausible part.** PD 88 shows a 5.00 Hz peak on *both* elbows with ~22% of
-power in band — squarely the PD rest-tremor frequency, bilaterally consistent.
-ET 21 trial 08 shows a very sharp 3.25 Hz peak (prominence 28.8 on the right
-elbow, 8.6 on the left) — a narrowband oscillation, i.e. a real tremor rather than
-broadband motion. So the exports do contain recoverable tremor structure, and the
-adapter's 128 Hz / scalar-first handling produces physiologically sensible output.
+**The signal is real and the adapter reads it correctly.** ET 19 trial 08 is the
+cleanest example: **all four joints peak at exactly 5.75 Hz**, prominence 5.3–5.9,
+with 19–34% of power in band. A single frequency shared across both elbows and
+both wrists is a whole-limb oscillation — that is what postural ET looks like, and
+it is not something a mis-parsed quaternion or a wrong sample rate would produce.
+PD 88 likewise shows 5.00 Hz on *both* elbows at ~22% band power, and ET 21 trial
+08 a very sharp 3.25 Hz peak (prominence 28.8 right elbow). The 128 Hz /
+scalar-first handling is sound.
 
-**The part that blocks everything.** ET 21's two trials, same subject, same
-session, minutes apart, disagree more than the three classes do:
+**Frequency alone will not separate the classes.** In this sample ET 19 peaks at
+5.75–6.75 Hz, PD 88 at 5.00 Hz, and ET 21 at 3.00–3.25 Hz — so the two ET subjects
+sit on opposite sides of the PD subject. Four subjects proves nothing, but it is
+consistent with the clinical overlap and with why the repo's existing ET-vs-PD
+separation has been hard: a peak-frequency feature is not going to carry it.
 
-| | RMS Elbow/L | peak prominence Elbow/R | 3–12 Hz frac Wrist/R |
-|---|---|---|---|
-| trial 03 | 0.784 rad/s | 2.5 | 0.119 |
-| trial 08 | 0.190 rad/s | 28.8 | 0.354 |
+**The part that blocks everything.** Both subjects with two trials disagree with
+*themselves* more than the groups disagree with each other. Right wrist, same
+subject, same session, minutes apart:
 
-**4× in amplitude, 11× in peak sharpness, 3× in band fraction — within one
-subject.** Trial 03 looks like gross voluntary movement burying the tremor;
-trial 08 looks like a held posture with the tremor exposed. That is the signature
-of two *different tasks* recorded under the same `Free Form` label.
+| subject | trial | RMS rad/s | peak Hz | 3–12 Hz frac |
+|---|---|---|---|---|
+| ET 21 | 03 | 0.222 | 8.75 | 0.119 |
+| ET 21 | 08 | **0.073** | **3.25** | **0.354** |
+| ET 19 | 08 | 0.213 | 5.75 | 0.250 |
+| ET 19 | 09 | **0.064** | 6.75 | **0.511** |
+
+Both drop ~3× in amplitude and roughly double or triple their band fraction from
+one trial to the next, and ET 21's peak moves 8.75 → 3.25 Hz. On the left elbow ET
+21 goes 0.784 → 0.190 rad/s with peak prominence 2.5 → 28.8, an 11× change in how
+sharp the oscillation is. The low-amplitude/high-band-fraction trials look like a
+held posture with the tremor exposed; the high-amplitude ones look like gross
+voluntary movement burying it. That is the signature of two *different tasks*
+recorded under the same `Free Form` label.
 
 So the missing condition labels are not a bookkeeping inconvenience to work
 around later. **The unlabelled task is the dominant source of variance in this
