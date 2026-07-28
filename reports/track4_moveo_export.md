@@ -99,79 +99,110 @@ else. There is no accelerometer, no gyroscope, and no per-sensor orientation.
    break subject-level splitting while every disjointness assertion still
    passes. IDs must come from the directory name or `SubjectMetadata.xml`.
 
-## Measured profile of the signal (6 trials — and why it stops there)
+## Measured profile of the signal (13 trials, all 6 Drive ET subjects)
 
-`tremor/moveo_profile.py` computes, per joint per trial, angular-velocity RMS,
-the spectral peak in 3–12 Hz, how far that peak stands above the rest of the band
-(`peak_prominence`, 1.0 = flat), and the share of 0.5–30 Hz power in the tremor
-band. Aggregation is subject-median first, then across subjects — trial counts
-vary 9–14, so trial-level pooling would silently weight the busiest subjects.
+`tremor/moveo_profile.py` computes, per joint per trial: angular-velocity RMS,
+where the **whole** spectrum peaks (`global_peak_hz`, 0.5–20 Hz), the strongest
+narrowband peak inside 3–12 Hz, and how far that peak rises above a fitted
+**1/f^a background** (`peak_excess`; 1.0 = nothing there). Aggregation is
+subject-median first, then across subjects.
 
-Bulk download through the Drive API is one file per request, so the sample is
-**6 trials from 4 subjects** — ET 19, ET 21, PD 88, HC 100. It is not a class
-comparison and must not be read as one. It is still decisive about two things.
+**A correction to an earlier version of this report.** The first pass took the
+raw-power `argmax` inside 3–12 Hz and scored it against the band median. Movement
+spectra here fall off monotonically from ~0.5 Hz, so that `argmax` lands on the
+**window's lower edge** whenever no real peak exists, and the peak-to-median ratio
+*rewards* a steep low-frequency tail. It reported confident "tremor" peaks at
+exactly 3.00 Hz — including a 3.25 Hz peak with prominence 28.8 for ET 21 — that
+were pure boundary artefacts. `_background()` now divides the spectrum by the
+fitted 1/f^a trend before peak-finding, and `peak_at_edge` flags any peak still
+sitting on a boundary. The numbers below are the corrected ones. Two conclusions
+in the earlier version were wrong and are retracted explicitly further down.
 
-| subj | trial | joint | s | RMS rad/s | peak Hz | prom. | 3–12 Hz frac |
-|---|---|---|---|---|---|---|---|
-| ET 19 | **08** | Elbow/L | 40.6 | 0.359 | **5.75** | 5.6 | 0.306 |
-| ET 19 | **08** | Elbow/R | 40.6 | 0.215 | **5.75** | 5.4 | 0.194 |
-| ET 19 | **08** | Wrist/L | 40.6 | 0.353 | **5.75** | 5.9 | 0.337 |
-| ET 19 | **08** | Wrist/R | 40.6 | 0.213 | **5.75** | 5.3 | 0.250 |
-| ET 19 | 09 | Elbow/R | 36.0 | 0.143 | 4.50 | **17.9** | 0.173 |
-| ET 19 | 09 | Wrist/R | 36.0 | 0.064 | 6.75 | 7.4 | **0.511** |
-| ET 21 | 03 | Elbow/L | 30.7 | **0.784** | 3.00 | 2.8 | 0.065 |
-| ET 21 | 03 | Wrist/R | 30.7 | 0.222 | 8.75 | 2.8 | 0.119 |
-| ET 21 | **08** | Elbow/L | 42.7 | **0.190** | 3.00 | **8.6** | 0.110 |
-| ET 21 | **08** | Elbow/R | 42.7 | 0.119 | 3.25 | **28.8** | 0.159 |
-| ET 21 | **08** | Wrist/R | 42.7 | 0.073 | 3.25 | 5.1 | 0.354 |
-| PD 88 | 09 | Elbow/L | 32.6 | 0.196 | **5.00** | 3.8 | 0.221 |
-| PD 88 | 09 | Elbow/R | 32.6 | 0.184 | **5.00** | 3.7 | 0.217 |
-| PD 88 | 09 | Wrist/R | 32.6 | 0.076 | 4.75 | 2.3 | **0.539** |
-| HC 100 | 09 | Elbow/L | 35.9 | 0.197 | 5.50 | 4.2 | 0.120 |
-| HC 100 | 09 | Wrist/R | 35.9 | 0.060 | 3.00 | 9.2 | 0.229 |
+Sample: **13 trials from 8 subjects — all 6 ET subjects in Drive** (ET 19, 20, 21,
+22, 23, 26; 2 trials each except ET 20), plus PD 88 and HC 100 with 1 trial each.
+Pulled one file per API request, which is why PD and HC are thin. This is not a
+class comparison.
 
-Three readings, and the last one matters far more than the first two.
+### Where the power actually is
 
-**The signal is real and the adapter reads it correctly.** ET 19 trial 08 is the
-cleanest example: **all four joints peak at exactly 5.75 Hz**, prominence 5.3–5.9,
-with 19–34% of power in band. A single frequency shared across both elbows and
-both wrists is a whole-limb oscillation — that is what postural ET looks like, and
-it is not something a mis-parsed quaternion or a wrong sample rate would produce.
-PD 88 likewise shows 5.00 Hz on *both* elbows at ~22% band power, and ET 21 trial
-08 a very sharp 3.25 Hz peak (prominence 28.8 right elbow). The 128 Hz /
-scalar-first handling is sound.
+**In 12 of 13 trials the global spectral peak is below 1.5 Hz** (0.50–1.12 Hz).
+The single exception is ET 22 trial 02, whose global peak is 9.62 Hz. So in almost
+every recording the dominant content is voluntary movement, and any tremor is a
+*secondary* narrowband feature riding on it. That is the central fact about this
+data, and it is why background correction is not optional here.
 
-**Frequency alone will not separate the classes.** In this sample ET 19 peaks at
-5.75–6.75 Hz, PD 88 at 5.00 Hz, and ET 21 at 3.00–3.25 Hz — so the two ET subjects
-sit on opposite sides of the PD subject. Four subjects proves nothing, but it is
-consistent with the clinical overlap and with why the repo's existing ET-vs-PD
-separation has been hard: a peak-frequency feature is not going to carry it.
+### Strongest 3–12 Hz peak, right elbow (frequency × excess over background)
 
-**The part that blocks everything.** Both subjects with two trials disagree with
+| subject | trial A | trial B | within-subject spread |
+|---|---|---|---|
+| ET 19 | 5.75 Hz ×9.0 | 6.38 Hz ×10.5 | 0.62 Hz |
+| ET 20 | 8.00 Hz ×8.3 | — | — |
+| ET 21 | 8.62 Hz ×5.6 | 5.75 Hz ×7.5 | 2.88 Hz |
+| ET 22 | **9.75 Hz ×63.6** | 8.00 Hz ×4.9 | 1.75 Hz |
+| ET 23 | 4.88 Hz ×4.9 | 4.00 Hz ×2.9 | 0.88 Hz |
+| ET 26 | 6.88 Hz ×4.8 | 11.88 Hz ×4.2 | 5.00 Hz |
+| HC 100 | 8.38 Hz ×8.5 | — | — |
+| PD 88 | **10.88 Hz ×18.3** | — | — |
+
+### What holds up
+
+**The adapter reads the data correctly.** ET 19 trial 08 peaks at **5.75 Hz on all
+four joints** (spread 0.00 Hz, excess 6.8–9.9), and ET 22 trial 02 at **9.62–9.75
+Hz on all four** with excess up to 63.6 — the one trial where the tremor is also
+the global maximum. A single frequency shared across both elbows and both wrists is
+a whole-limb oscillation; a mis-parsed quaternion or a wrong sample rate does not
+produce that. The 128 Hz / scalar-first handling is sound.
+
+**Retracted: "PD 88 shows 5.00 Hz on both elbows, squarely PD rest-tremor
+frequency."** That was the boundary artefact. Background-corrected, PD 88's
+strongest narrowband excess is at **10.88 Hz (×18.3, all four joints, spread
+0.00)**, with a secondary at 9.50 Hz and nothing prominent near 5 Hz. 10.88 Hz is
+not rest-tremor frequency — it is in the physiological-tremor range, which is what
+you would expect if this particular trial was not a rest task. One trial, so this
+says nothing about PD 88's diagnosis; it does mean the earlier reading was an
+artefact of the metric, not a finding.
+
+**Retracted: "the two ET subjects straddle the PD subject in frequency."** That
+rested on ET 21's bogus 3.25 Hz. Corrected, the ET subjects span **4.0–9.75 Hz**
+and PD 88 sits at 10.88 Hz — above all of them. With one PD trial this is not
+evidence of anything either way; the earlier ordering was simply wrong.
+
+**Tremor frequency is only partly a stable subject trait here.** Across their two
+trials, ET 19 (0.62 Hz) and ET 23 (0.88 Hz) hold their peak frequency; ET 22
+(1.75 Hz), ET 21 (2.88 Hz) and ET 26 (5.00 Hz) do not. So peak frequency is not
+reliably reproducible trial-to-trial in this cohort — which is itself a consequence
+of the next point.
+
+### The part that blocks everything
+
+RMS and band-fraction do not depend on the peak-finding, so this conclusion is
+unaffected by the correction above. Both subjects with two trials disagree with
 *themselves* more than the groups disagree with each other. Right wrist, same
 subject, same session, minutes apart:
 
-| subject | trial | RMS rad/s | peak Hz | 3–12 Hz frac |
-|---|---|---|---|---|
-| ET 21 | 03 | 0.222 | 8.75 | 0.119 |
-| ET 21 | 08 | **0.073** | **3.25** | **0.354** |
-| ET 19 | 08 | 0.213 | 5.75 | 0.250 |
-| ET 19 | 09 | **0.064** | 6.75 | **0.511** |
+| subject | trial | RMS rad/s | 3–12 Hz frac |
+|---|---|---|---|
+| ET 21 | 03 | 0.222 | 0.119 |
+| ET 21 | 08 | **0.073** | **0.354** |
+| ET 19 | 08 | 0.213 | 0.250 |
+| ET 19 | 09 | **0.064** | **0.511** |
 
-Both drop ~3× in amplitude and roughly double or triple their band fraction from
-one trial to the next, and ET 21's peak moves 8.75 → 3.25 Hz. On the left elbow ET
-21 goes 0.784 → 0.190 rad/s with peak prominence 2.5 → 28.8, an 11× change in how
-sharp the oscillation is. The low-amplitude/high-band-fraction trials look like a
-held posture with the tremor exposed; the high-amplitude ones look like gross
-voluntary movement burying it. That is the signature of two *different tasks*
-recorded under the same `Free Form` label.
+Both drop ~3× in amplitude and double or triple their tremor-band fraction from
+one trial to the next. On the left elbow ET 21 goes 0.784 → 0.190 rad/s. Across the
+ET cohort peak RMS per trial ranges 0.17–1.15 rad/s — a 7× span *within one
+diagnosis*. The low-amplitude/high-band-fraction trials look like a held posture
+with the tremor exposed; the high-amplitude ones look like gross voluntary movement
+burying it. That is the signature of two *different tasks* under one `Free Form`
+label, and it also explains why peak frequency fails to reproduce across trials
+for four of five subjects.
 
-So the missing condition labels are not a bookkeeping inconvenience to work
-around later. **The unlabelled task is the dominant source of variance in this
-data** — larger than the between-group contrasts anyone would want to measure. Any
-class comparison, any pooled training run, and any ET-vs-PD frequency claim built
-on these trials before they are mapped to tasks would be measuring task, not
-pathology.
+So the missing condition labels are not a bookkeeping inconvenience to work around
+later. **The unlabelled task is the dominant source of variance in this data** —
+larger than the between-group contrasts anyone would want to measure. Any class
+comparison, any pooled training run, and any ET-vs-PD frequency claim built on
+these trials before they are mapped to tasks would be measuring task, not
+pathology. The retractions above are a live demonstration: two plausible-looking
+class findings, both artefacts.
 
 ## Two blockers
 

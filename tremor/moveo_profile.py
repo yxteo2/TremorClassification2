@@ -45,13 +45,40 @@ TOTAL_BAND = (0.5, 30.0)
 SUB_BANDS = {"pd_band_3_7": (3.0, 7.0), "et_band_5_12": (5.0, 12.0)}
 
 
+#: Where the *global* spectral maximum is looked for, to expose the fact that
+#: voluntary movement below ~1.5 Hz normally dominates these recordings.
+GLOBAL_BAND = (0.5, 20.0)
+
+#: Range the 1/f^a background is fitted over before looking for a tremor peak.
+BACKGROUND_BAND = (1.0, 20.0)
+
+
 def _welch(w: np.ndarray, fs: float) -> tuple[np.ndarray, np.ndarray]:
     """Power spectrum of a (3, T) angular-velocity block, summed over axes."""
     from scipy.signal import welch  # noqa: PLC0415
 
-    nperseg = int(min(4 * fs, w.shape[1]))
+    nperseg = int(min(8 * fs, w.shape[1]))
     f, P = welch(w, fs=fs, nperseg=nperseg, axis=1)
     return f, P.sum(0)
+
+
+def _background(f: np.ndarray, P: np.ndarray) -> np.ndarray:
+    """A 1/f^a background fitted in log-log space over :data:`BACKGROUND_BAND`.
+
+    Raw movement spectra fall off steeply from ~0.5 Hz, so ``argmax`` inside a
+    3-12 Hz window lands on the window's lower edge whenever no real peak exists,
+    and a peak-to-band-median ratio rewards exactly that decay. Dividing the
+    spectrum by a fitted background removes the slope, so what is left is genuine
+    narrowband excess. Without this step a monotonically decaying spectrum reports
+    a confident 3.00 Hz "tremor" that is nothing but the band boundary.
+    """
+    sel = (f >= BACKGROUND_BAND[0]) & (f <= BACKGROUND_BAND[1]) & (P > 0) & (f > 0)
+    if sel.sum() < 4:
+        return np.full_like(P, np.nan)
+    coef = np.polyfit(np.log10(f[sel]), np.log10(P[sel]), 1)
+    with np.errstate(divide="ignore"):
+        base = 10.0 ** np.polyval(coef, np.log10(np.where(f > 0, f, np.nan)))
+    return base
 
 
 def trial_profile(
@@ -66,20 +93,33 @@ def trial_profile(
     for i, joint in enumerate(joints):
         w = x[3 * i : 3 * i + 3]
         f, P = _welch(w, fs)
+        df_hz = float(f[1] - f[0])
         band = (f >= TREMOR_BAND[0]) & (f <= TREMOR_BAND[1])
         total = (f >= TOTAL_BAND[0]) & (f <= TOTAL_BAND[1])
+        glob = (f >= GLOBAL_BAND[0]) & (f <= GLOBAL_BAND[1])
         tot = float(P[total].sum())
-        peak_i = int(P[band].argmax())
+
+        # Excess over the fitted 1/f^a background — this, not raw power, is what
+        # a narrowband tremor shows up in.
+        base = _background(f, P)
+        R = np.where(np.isfinite(base) & (base > 0), P / base, np.nan)
+        k = int(np.nanargmax(R[band])) if np.isfinite(R[band]).any() else 0
+        peak_hz = float(f[band][k])
+
         row = {
             "joint": joint,
             "fs": fs,
             "seconds": round(Q.shape[0] / fs, 2),
             "rms_rad_s": float(np.sqrt((w**2).mean())),
-            "peak_hz": float(f[band][peak_i]),
-            # how far the peak stands above the rest of the band: 1.0 = flat
-            "peak_prominence": float(P[band][peak_i] / np.median(P[band]))
-            if np.median(P[band]) > 0
-            else np.nan,
+            # where the whole spectrum peaks: normally <1.5 Hz voluntary movement
+            "global_peak_hz": float(f[glob][int(P[glob].argmax())]),
+            "peak_hz": peak_hz,
+            # >1 means the peak stands above the 1/f background; ~1 means nothing
+            "peak_excess": float(R[band][k]),
+            # a peak sitting on the window boundary is a search artefact, not a peak
+            "peak_at_edge": bool(
+                peak_hz <= TREMOR_BAND[0] + df_hz or peak_hz >= TREMOR_BAND[1] - df_hz
+            ),
             "tremor_frac": float(P[band].sum() / tot) if tot > 0 else np.nan,
         }
         for name, (lo, hi) in SUB_BANDS.items():
@@ -140,7 +180,7 @@ def _main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--metrics",
         nargs="*",
-        default=["tremor_frac", "peak_hz", "rms_rad_s", "peak_prominence"],
+        default=["tremor_frac", "peak_hz", "peak_excess", "rms_rad_s"],
     )
     args = ap.parse_args(argv)
 
