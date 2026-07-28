@@ -27,8 +27,11 @@ PD 88 and HC 100 exports)::
 Three facts that make this different from ``raw_quaternion`` and that every
 caller has to respect:
 
-1. **fs = 128 Hz**, not the 100 Hz the rest of the package defaults to. Passing
-   ``fs=100`` mislabels every frequency by 1.28x (the fs trap, again).
+1. **fs is 128 Hz, not the 100 Hz the rest of the package defaults to — and it is
+   not even constant** (one spot-checked trial is 256 Hz). Passing ``fs=100``
+   mislabels every frequency by 1.28x, and assuming 128 mislabels the 256 Hz
+   trials by 2x. Always take ``fs`` from the file, as :func:`read_analysis_h5`
+   does (the fs trap, again).
 2. Quaternions are **scalar-first ``(w, x, y, z)``**; the package convention is
    scalar-last. :func:`read_analysis_h5` reorders by default.
 3. These are **joint angles** (relative orientation across a joint), not the
@@ -40,6 +43,16 @@ The first ``startDelay`` seconds of every trial are the standing calibration
 pose, not the task: ``nSamples / sampleRate - Duration == 3.0 s`` held on all
 three spot-checked exports, so :data:`CALIBRATION_S` is trimmed by default.
 
+**The task is in the filename, not the metadata.** Every trial says
+``conditionName="Free Form"``, but the two-digit prefix encodes the action:
+``01-07`` are seven actions on the right upper limb and ``08-14`` the same seven on
+the left (:data:`MOVEO_ACTIONS`). :func:`parse_trial_code` decodes it and
+:func:`load_moveo_recordings` puts the action in ``Recording.condition``, which is
+what makes these trials joinable with the repo's per-condition ``OUT``/``REST``
+data. The action half of the mapping is confirmed against the signal; the
+left/right half is contradicted by it — read :func:`parse_trial_code` before using
+either.
+
 CLI::
 
     python -m tremor.moveo_data --root /path/to/Tremor\\ Classification\\ IMU --inventory
@@ -50,6 +63,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -57,7 +71,11 @@ import numpy as np
 from tremor.data import CLASS_MAP, Recording
 from tremor.quaternion import process_quaternion_data, quat_conjugate, quat_multiply
 
-#: Sampling rate declared by the exporter (``Processed/Joint Angles`` attrs).
+#: Fallback sampling rate only. **The rate is not uniform across this cohort** —
+#: 18 of 19 spot-checked trials declare 128 Hz but PD 101 trial 13 declares
+#: **256 Hz**, so a hard-coded 128 would misplace every frequency in that trial by
+#: 2x. :func:`read_analysis_h5` always reads ``sampleRate`` from the file and only
+#: falls back to this value if the attribute is missing; keep it that way.
 MOVEO_FS = 128.0
 
 #: Standing-calibration pose at the head of every trial (``startDelay``).
@@ -74,6 +92,61 @@ MOVEO_JOINTS: tuple[str, ...] = (
 #: Export group folder -> the class letter used by :data:`tremor.data.CLASS_MAP`.
 #: The exports label controls ``HC``; the rest of the package calls them ``N``.
 GROUP_TO_LETTER = {"HC": "N", "N": "N", "PD": "P", "ET": "E"}
+
+#: Trial-prefix -> action, per the recording site (Adrian Yee, 2025-05-08).
+#: Prefixes **01-07 are the right upper limb, 08-14 the left**, with the same
+#: seven actions in the same order; the digits after the underscore are the
+#: attempt number. ``REST``/``OUT`` reuse the repo's existing condition names so
+#: these recordings drop straight into the per-condition machinery; the other five
+#: actions have no counterpart in ``Data/raw_quaternion``.
+#:
+#: The **action** half of this mapping is corroborated by the data: over the 19
+#: trials checked, angular-velocity RMS separates the codes into exactly the three
+#: groups the actions predict — quiet postures (1/2, 8/9) at 0.33-0.62 rad/s,
+#: object manipulation (3/5, 10/12) at 1.36-1.99, and finger tapping (13) at 8.10,
+#: with no overlap. The **side** half is not corroborated; see
+#: :func:`parse_trial_code`.
+MOVEO_ACTIONS: dict[int, str] = {
+    1: "REST",  # arm resting posture
+    2: "OUT",  # arm outstretched posture
+    3: "DRINK",  # drinking water
+    4: "FNF",  # finger-to-nose manoeuvre
+    5: "POUR",  # pouring water
+    6: "TAP",  # finger tapping
+    7: "PRONOSUP",  # pronation-supination of the arm
+}
+
+#: Actions that exist in both cohorts, so cross-cohort work should start here.
+SHARED_ACTIONS = ("REST", "OUT")
+
+_TRIAL_NAME = re.compile(r"^(?P<code>\d{2})_(?P<attempt>\d+)_")
+
+
+def parse_trial_code(name: str) -> tuple[int, int, str, str]:
+    """``'09_1_20250108-110654_Free_Form_ET_19_Analysis.h5'`` -> ``(9, 1, 'OUT', 'left')``.
+
+    Returns ``(code, attempt, action, stated_side)``.
+
+    ``action`` is safe to use — the RMS grouping in :data:`MOVEO_ACTIONS` confirms it.
+
+    ``stated_side`` is **not**. It is only what the site's convention says, and the
+    exports contradict it: in **19 of 19** trials checked the ``Left`` joint streams
+    carry more angular-velocity RMS than the ``Right`` ones, including all three
+    trials with codes <= 7 that the convention calls right-limb. Activity asymmetry
+    does not track the code at all, so either the export's ``Left``/``Right`` labels
+    do not mean the physical limb, or the 01-07/08-14 split is reversed. Do not use
+    ``stated_side`` to choose a joint stream — pick the side empirically (e.g. the
+    higher tremor-band power) and document the choice.
+    """
+    m = _TRIAL_NAME.match(name)
+    if m is None:
+        raise ValueError(f"cannot parse a trial code from {name!r}")
+    code = int(m.group("code"))
+    if not 1 <= code <= 14:
+        raise ValueError(f"trial code {code} outside the documented range 01-14")
+    side = "right" if code <= 7 else "left"
+    return code, int(m.group("attempt")), MOVEO_ACTIONS[code if code <= 7 else code - 7], side
+
 
 _JOINT_ANGLES = "Processed/Joint Angles"
 
@@ -194,7 +267,7 @@ def load_moveo_recordings(
     mode: str = "angular_velocity",
     trim_calibration_s: float = CALIBRATION_S,
     min_duration_s: float = 5.0,
-    condition: str = "FREEFORM",
+    actions: tuple[str, ...] | list[str] | None = None,
 ) -> list[Recording]:
     """Load a locally-synced export tree into :class:`Recording` objects.
 
@@ -202,13 +275,25 @@ def load_moveo_recordings(
     (``ET/``, ``PD/``, ``HC/``), or any directory above them — export
     directories are found recursively.
 
-    Every trial is labelled ``condition='FREEFORM'``, because that is all the
-    export says: ``conditionName="Free Form"`` on every trial, with empty trial
-    notes. These recordings therefore **cannot** be mapped onto OUT/REST/WING
-    without an external session log — see the report.
+    ``Recording.condition`` is the **action decoded from the trial prefix** via
+    :data:`MOVEO_ACTIONS` (``REST``, ``OUT``, ``DRINK``, ``FNF``, ``POUR``, ``TAP``,
+    ``PRONOSUP``). The h5 metadata itself says only ``Free Form`` for every trial —
+    the mapping comes from the recording site, and the RMS ordering it implies
+    (postures ~0.4 rad/s < DRINK/POUR ~1.4-2.0 < TAP ~8.1) is borne out by the data.
+
+    Caveat on ``REST`` vs ``OUT`` specifically: RMS puts them in the same group
+    (0.39 vs 0.42 median) and cannot order them, and the export carries **no
+    shoulder stream**, so arm elevation — the thing that actually distinguishes a
+    resting arm from an outstretched one — is not measured. If the site swapped
+    those two codes, nothing in the export would reveal it.
+
+    Pass ``actions=("OUT",)`` to restrict to one condition, which is what any
+    comparison with ``Data/raw_quaternion`` needs; ``SHARED_ACTIONS`` lists the two
+    that exist in both cohorts.
     """
     root = Path(root)
     wanted = {g.upper() for g in groups} if groups else None
+    want_act = {a.upper() for a in actions} if actions else None
     recordings: list[Recording] = []
 
     for export_dir in sorted(_iter_export_dirs(root)):
@@ -217,6 +302,15 @@ def load_moveo_recordings(
             continue
         label = CLASS_MAP[letter]
         for h5_path in sorted(export_dir.glob("*_Analysis.h5")):
+            try:
+                _, _, action, _ = parse_trial_code(h5_path.name)
+            except ValueError as exc:
+                # Loud on purpose: a silent skip here would quietly shrink the
+                # cohort if any part of the tree names trials differently.
+                warnings.warn(f"skipping {h5_path.name}: {exc}", stacklevel=2)
+                continue
+            if want_act is not None and action not in want_act:
+                continue
             Q, fs = read_analysis_h5(
                 h5_path,
                 joints=joints,
@@ -234,7 +328,7 @@ def load_moveo_recordings(
                     y=label,
                     subject=subject,
                     path=h5_path,
-                    condition=condition,
+                    condition=action,
                 )
             )
     return recordings
@@ -322,6 +416,106 @@ def joint_quaternions_from_sensors(
     elbow = quat_multiply(quat_conjugate(upper_arm, convention), lower_arm, convention)
     wrist = quat_multiply(quat_conjugate(lower_arm, convention), hand, convention)
     return np.concatenate([elbow, wrist], axis=1).astype(np.float32, copy=False)
+
+
+#: The site's correction quaternion for the 2015 cohort, scalar-first
+#: ``(w, x, y, z)`` = a 180 degree rotation about x.
+FRAME_CORRECTION_WXYZ = (0.0, 1.0, 0.0, 0.0)
+
+
+def resample_quaternions(
+    Q: np.ndarray, fs_in: float = MOVEO_FS, fs_out: float = 100.0,
+    convention: str = "xyzw", n_sensors: int | None = None,
+) -> np.ndarray:
+    """Resample stacked unit quaternions, e.g. the site's 128 Hz -> 100 Hz step.
+
+    Sign continuity is enforced **before** interpolating: ``q`` and ``-q`` are the
+    same rotation, so a raw stream may flip sign between samples, and interpolating
+    across a flip produces a swing through the whole sphere. Components are then
+    resampled with a polyphase anti-aliasing filter and renormalised to unit length.
+
+    Args:
+        Q: ``(T, n_sensors * 4)`` quaternion block.
+        fs_in / fs_out: rates; 128 -> 100 becomes the exact ratio 25/32.
+        convention: component order of input and output.
+        n_sensors: inferred from ``Q.shape[1] / 4`` when omitted.
+    """
+    from fractions import Fraction  # noqa: PLC0415
+
+    from scipy.signal import resample_poly  # noqa: PLC0415
+
+    from tremor.quaternion import _enforce_sign_continuity  # noqa: PLC0415
+
+    Q = np.asarray(Q, dtype=np.float64)
+    if Q.ndim != 2 or Q.shape[1] % 4:
+        raise ValueError(f"expected (T, n_sensors*4) quaternions, got {Q.shape}")
+    n = n_sensors if n_sensors is not None else Q.shape[1] // 4
+    if fs_in == fs_out:
+        return Q.astype(np.float32, copy=False)
+
+    ratio = Fraction(fs_out).limit_denominator(1000) / Fraction(fs_in).limit_denominator(1000)
+    up, down = ratio.numerator, ratio.denominator
+
+    blocks = []
+    for s in range(n):
+        q = _enforce_sign_continuity(Q[:, 4 * s : 4 * s + 4])
+        r = resample_poly(q, up, down, axis=0)
+        norm = np.linalg.norm(r, axis=1, keepdims=True)
+        blocks.append(r / np.where(norm > 0, norm, 1.0))
+    return np.concatenate(blocks, axis=1).astype(np.float32, copy=False)
+
+
+def align_frame(
+    Q: np.ndarray,
+    convention: str = "xyzw",
+    n_sensors: int | None = None,
+    mode: str = "conjugate",
+    correction_wxyz: tuple[float, float, float, float] = FRAME_CORRECTION_WXYZ,
+) -> np.ndarray:
+    """Rotate a quaternion stream into the other cohort's reference frame.
+
+    The site's instruction for the 2015 cohort is "rotate by 180 degrees about the
+    x-axis twice", multiplying by ``[0, 1, 0, 0]`` twice. "Twice" is ambiguous, but
+    **the ambiguity turns out not to matter** — measured on all four joints of a
+    real trial, neither reading changes any feature this package trains on:
+
+    - ``mode='conjugate'`` (default): ``q -> c * q * conj(c)``, one multiplication on
+      each side. This is the similarity transform that re-expresses an orientation in
+      a rotated reference frame, i.e. what a frame correction has to be. For a 180
+      degree rotation about x it works out to **exactly a sign flip on the y and z
+      angular-velocity components** (verified: ``w -> w * [1, -1, -1]`` to 1e-6 on
+      all four joints). Per-component RMS, ``|w|`` and every power spectrum are
+      therefore **unchanged** — the pipeline cannot see it.
+    - ``mode='premultiply_twice'``: ``q -> c * c * q``. Since ``c`` is a 180 degree
+      rotation, ``c * c = -1``, so this returns ``-q`` — the *same orientation*, and a
+      no-op for anything downstream.
+
+    So the correction is worth applying for correctness of the stored quaternions,
+    but it will not move a single metric, and a pooled result that looks different
+    with and without it has a bug somewhere else. The one case where the sign flip
+    *would* matter is a model reading signed angular-velocity components directly
+    rather than their magnitude spectra.
+    """
+    Q = np.asarray(Q, dtype=np.float64)
+    if Q.ndim != 2 or Q.shape[1] % 4:
+        raise ValueError(f"expected (T, n_sensors*4) quaternions, got {Q.shape}")
+    n = n_sensors if n_sensors is not None else Q.shape[1] // 4
+
+    w, x, y, z = correction_wxyz
+    c = np.array([x, y, z, w] if convention == "xyzw" else [w, x, y, z], dtype=np.float64)
+    c = np.broadcast_to(c, (Q.shape[0], 4))
+
+    blocks = []
+    for s in range(n):
+        q = Q[:, 4 * s : 4 * s + 4]
+        if mode == "conjugate":
+            out = quat_multiply(quat_multiply(c, q, convention), quat_conjugate(c, convention), convention)
+        elif mode == "premultiply_twice":
+            out = quat_multiply(c, quat_multiply(c, q, convention), convention)
+        else:
+            raise ValueError(f"unknown mode {mode!r}")
+        blocks.append(out)
+    return np.concatenate(blocks, axis=1).astype(np.float32, copy=False)
 
 
 def _main(argv: list[str] | None = None) -> int:

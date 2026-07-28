@@ -7,13 +7,18 @@ the unit**, which is the only aggregation that means anything when trial counts
 differ from 9 to 14 per subject.
 
 This is exploratory description, not a classifier and not evidence of class
-separation. Every trial in these exports is labelled `Free Form` with no task
-recorded (see ``reports/track4_moveo_export.md``), so a group difference here can
-just as easily be a difference in what the subjects were asked to do.
+separation. The exports label every trial `Free Form`, but the trial prefix decodes
+to the action (``tremor.moveo_data.MOVEO_ACTIONS``), so the task confound is now
+controllable — **and it has to be controlled.** Angular-velocity RMS runs ~0.4 rad/s
+for the held postures and 8.1 for finger tapping, and tapping puts a sharp
+*voluntary* 4-5 Hz peak right where PD rest tremor is looked for. Always pass
+``--actions`` before reading anything into a group difference; see
+``reports/track4_moveo_export.md``.
 
 Usage::
 
     python -m tremor.moveo_profile --root "/path/to/Tremor Classification IMU"
+    python -m tremor.moveo_profile --root ... --actions REST OUT   # comparable subset
     python -m tremor.moveo_profile --root ... --groups ET --out et_profile.csv
     python -m tremor.moveo_profile --root ... --per-subject
 """
@@ -30,6 +35,7 @@ from tremor.moveo_data import (
     MOVEO_JOINTS,
     _iter_export_dirs,
     parse_export_dir,
+    parse_trial_code,
     read_analysis_h5,
 )
 from tremor.quaternion import process_quaternion_data
@@ -134,17 +140,31 @@ def trial_profile(
     return rows
 
 
-def profile_tree(root: Path | str, groups=None):
-    """Profile every trial under ``root``; returns a tidy DataFrame."""
+def profile_tree(root: Path | str, groups=None, actions=None):
+    """Profile every trial under ``root``; returns a tidy DataFrame.
+
+    Rows carry an ``action`` column decoded from the trial prefix, so a class
+    comparison can be restricted to one task. Do that: the unlabelled task is the
+    largest source of variance in this cohort, and a TAP trial contributes a sharp
+    4-5 Hz *voluntary* peak that looks exactly like a tremor finding.
+    """
     import pandas as pd  # noqa: PLC0415
 
     wanted = {g.upper() for g in groups} if groups else None
+    want_act = {a.upper() for a in actions} if actions else None
     rows: list[dict] = []
     for export_dir in sorted(_iter_export_dirs(Path(root))):
         group, subject, letter = parse_export_dir(export_dir)
         if wanted is not None and group not in wanted:
             continue
         for h5_path in sorted(export_dir.glob("*_Analysis.h5")):
+            try:
+                code, attempt, action, _ = parse_trial_code(h5_path.name)
+            except ValueError as exc:
+                print(f"  ! skipped {h5_path.name}: {exc}")
+                continue
+            if want_act is not None and action not in want_act:
+                continue
             try:
                 trial_rows = trial_profile(h5_path)
             except Exception as exc:  # a bad trial must not kill the sweep
@@ -153,7 +173,8 @@ def profile_tree(root: Path | str, groups=None):
             for r in trial_rows:
                 rows.append(
                     {"group": group, "class": letter, "subject": subject,
-                     "trial": h5_path.name.split("_")[0], **r}
+                     "trial": f"{code:02d}", "attempt": attempt,
+                     "action": action, **r}
                 )
     return pd.DataFrame(rows)
 
@@ -198,7 +219,6 @@ def profile_local_tree(
     """
     import pandas as pd  # noqa: PLC0415
 
-    from tremor.data import CLASS_MAP  # noqa: PLC0415
     from tremor.moveo_data import joint_quaternions_from_sensors  # noqa: PLC0415
 
     root = Path(root)
@@ -269,6 +289,12 @@ def _main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--fs", type=float, default=100.0, help="fs for --local-root")
     ap.add_argument("--groups", nargs="*", help="restrict to ET / PD / HC")
+    ap.add_argument(
+        "--actions",
+        nargs="*",
+        help="restrict --root to decoded actions (REST OUT DRINK FNF POUR TAP "
+        "PRONOSUP); use this for any class comparison",
+    )
     ap.add_argument("--out", help="write the per-trial table to this CSV")
     ap.add_argument("--per-subject", action="store_true", help="also print subjects")
     ap.add_argument(
@@ -284,20 +310,37 @@ def _main(argv: list[str] | None = None) -> int:
         df = profile_local_tree(args.local_root, args.action, fs=args.fs)
         label = f"{args.local_root} [{args.action}] @ {args.fs:g} Hz"
     else:
-        df = profile_tree(args.root, groups=args.groups)
+        df = profile_tree(args.root, groups=args.groups, actions=args.actions)
         label = str(args.root)
+        if args.actions:
+            label += f" [{' '.join(a.upper() for a in args.actions)}]"
     if df.empty:
         print(f"no trials profiled under {label}")
         return 1
     print(f"source: {label}")
 
     n_sub = df["subject"].nunique()
-    n_trials = df.groupby(["subject", "trial"]).ngroups
+    trial_keys = [k for k in ("subject", "trial", "attempt") if k in df.columns]
+    n_trials = df.groupby(trial_keys).ngroups
     print(
         f"{n_trials} trials / {n_sub} subjects / "
         f"{sorted(df['fs'].unique())} Hz / "
         f"{df['seconds'].sum() / len(MOVEO_JOINTS) / 60:.1f} min of signal\n"
     )
+
+    if "action" in df.columns and not args.actions:
+        # Task composition is the first thing to look at: pooling actions mixes a
+        # held posture with finger tapping, and the aggregate means nothing.
+        comp = (
+            df.groupby(trial_keys + ["action"]).size().reset_index()
+            .groupby("action").agg(trials=("action", "count"),
+                                   subjects=("subject", "nunique"))
+        )
+        print("--- task composition (pass --actions to restrict) ---")
+        for action, r in comp.iterrows():
+            print(f"{action:<10} {int(r['trials']):3d} trials / "
+                  f"{int(r['subjects']):3d} subjects")
+        print()
 
     if args.per_subject:
         per = (

@@ -3,11 +3,13 @@
 **Bottom line.** The Drive folder holds **116 subject exports that are not in the
 repo** — 6 ET, 51 PD, 59 HC — and their study IDs continue exactly where
 `Data/raw_quaternion/` stops. Pooled, that takes **ET from 16 to 22 subjects**
-(+38%) with no external dataset and no license constraint. But the exports are
-**not** the representation the pipeline trains on, and they carry **no
-OUT/REST/WING labels**, so the cohort is not usable as a drop-in. One answer
-from the user (how trials map to conditions) decides whether this is a week of
-work or a dead end.
+(+38%) with no external dataset and no license constraint. The exports are still
+**not** the representation the pipeline trains on, but the blocker this report was
+gated on is **resolved**: the recording site confirmed that the two-digit trial
+prefix encodes the task, so `REST` and `OUT` can be recovered and these trials can
+join the per-condition results after all. The signal corroborates the action half of
+that mapping and **contradicts its left/right half** — details below, along with two
+corrections to the previous version of this report that the labels force.
 
 ## Inventory
 
@@ -76,11 +78,13 @@ else. There is no accelerometer, no gyroscope, and no per-sensor orientation.
    These are different quantities; feeding them to the same model as if the
    channels were interchangeable would train on a dataset-identity artefact, not
    on tremor.
-2. **fs = 128 Hz, not 100 Hz.** The exporter declares `sampleRate=128.0`. The
-   package defaults `fs=100.0` for quaternion data. Running the export at 100 Hz
-   misplaces every frequency by 1.28x — a 5 Hz ET peak reads as 3.9 Hz — and it
-   fails silently, exactly the fs trap the skill warns about for the 60 Hz
-   amplitude files.
+2. **fs is 128 Hz, not 100 Hz — and not even constant.** The exporter declares
+   `sampleRate=128.0` on 18 of the 19 trials checked and **256.0** on the
+   nineteenth. The package defaults `fs=100.0` for quaternion data. Running the
+   export at 100 Hz misplaces every frequency by 1.28x — a 5 Hz ET peak reads as
+   3.9 Hz — and assuming 128 Hz misplaces the 256 Hz trials by 2x. Both fail
+   silently, exactly the fs trap the skill warns about for the 60 Hz amplitude
+   files. Read `fs` per file, always.
 3. **Quaternions are scalar-first `(w, x, y, z)`.** The package convention is
    scalar-last. Confirmed, not assumed: reconstructing intrinsic-YZX Euler
    angles from ET 21's `Wrist/Right` quaternion under the scalar-first reading
@@ -121,7 +125,14 @@ in the earlier version were wrong and are retracted explicitly further down.
 Sample: **19 trials from 14 subjects** — all 6 ET subjects in Drive (ET 19, 20,
 21, 22, 23, 26), 5 PD (88, 101, 103, 104, 106) and 3 HC (100, 101, 102). Pulled one
 file per API request, so most PD/HC subjects have a single trial. Not a class
-comparison; the task confound below is unresolved.
+comparison.
+
+> **Read this section with the task labels in hand.** Everything below pools all
+> seven actions, because it was written before the site supplied the trial-code
+> mapping. Two of its conclusions do not survive that mapping — see
+> [The site answered](#the-site-answered-the-task-is-in-the-filename), which
+> supersedes the class-level numbers here. The per-trial measurements themselves
+> stand; it is the aggregation across tasks that was wrong.
 
 ### Where the power actually is
 
@@ -131,31 +142,42 @@ The exceptions are ET 22 t02 (9.75 Hz), PD 101 (4.25), PD 104 (3.62), PD 106
 movement and any tremor is a *secondary* narrowband feature riding on it. Notably
 **3 of 5 PD subjects are among the exceptions** — their tremor is a larger share of
 total movement — which is what you would expect if those trials were closer to a
-rest condition, but with no task labels that stays a guess.
+rest condition. With the task labels in hand: those three are PD 101 (`TAP`), 104
+(`OUT`) and 106 (`OUT`), so at least one of the three is a voluntary rhythm rather
+than a tremor.
 
 ### Per trial, right elbow
 
-| class | subject | trial | global Hz | peak Hz | excess | RMS rad/s | 3–12 Hz frac |
-|---|---|---|---|---|---|---|---|
-| ET | 19 | 08 | 0.62 | 5.75 | 9.0 | 0.215 | 0.218 |
-| ET | 19 | 09 | 0.62 | 6.38 | 10.5 | 0.143 | 0.185 |
-| ET | 20 | 09 | 0.88 | 8.00 | 8.3 | 0.071 | 0.289 |
-| ET | 21 | 03 | 0.50 | 8.62 | 5.6 | 0.670 | 0.065 |
-| ET | 21 | 08 | 0.75 | 5.75 | 7.5 | 0.119 | 0.237 |
-| ET | 22 | 02 | **9.75** | 9.75 | **63.6** | 0.064 | **0.758** |
-| ET | 22 | 08 | 0.50 | 8.00 | 4.9 | 0.151 | 0.085 |
-| ET | 23 | 09 | 0.62 | 4.88 | 4.9 | 0.111 | 0.345 |
-| ET | 23 | 10 | 0.50 | 4.00 | 2.9 | 0.541 | 0.092 |
-| ET | 26 | 05 | 0.88 | 6.88 | 4.8 | 0.699 | 0.109 |
-| ET | 26 | 08 | 0.50 | 11.88 (edge) | 4.2 | 0.155 | 0.221 |
-| PD | 88 | 09 | 0.50 | 10.88 | 18.3 | 0.184 | 0.478 |
-| PD | 101 | 13 | **4.25** | 8.50 | **22.6** | 0.391 | 0.746 |
-| PD | 103 | 12 | 0.62 | 4.50 | 3.0 | 0.371 | 0.190 |
-| PD | 104 | 09 | **3.62** | 7.88 | 13.7 | 0.100 | 0.811 |
-| PD | 106 | 09 | **2.38** | 5.88 | 15.1 | 0.136 | 0.366 |
-| HC | 100 | 09 | 0.50 | 8.38 | 8.5 | 0.113 | 0.244 |
-| HC | 101 | 09 | 1.75 | 10.88 | 3.8 | 0.089 | 0.570 |
-| HC | 102 | 09 | 0.50 | 7.62 | 5.4 | 0.157 | 0.564 |
+The `action` column was added after the fact, from the trial code. It is the column
+that explains most of the spread — and the reason the class medians below needed
+correcting.
+
+| class | subject | trial | action | global Hz | peak Hz | excess | RMS rad/s | 3–12 Hz frac |
+|---|---|---|---|---|---|---|---|---|
+| ET | 19 | 08 | REST | 0.62 | 5.75 | 9.0 | 0.215 | 0.218 |
+| ET | 19 | 09 | OUT | 0.62 | 6.38 | 10.5 | 0.143 | 0.185 |
+| ET | 20 | 09 | OUT | 0.88 | 8.00 | 8.3 | 0.071 | 0.289 |
+| ET | 21 | 03 | *DRINK* | 0.50 | 8.62 | 5.6 | 0.670 | 0.065 |
+| ET | 21 | 08 | REST | 0.75 | 5.75 | 7.5 | 0.119 | 0.237 |
+| ET | 22 | 02 | OUT | **9.75** | 9.75 | **63.6** | 0.064 | **0.758** |
+| ET | 22 | 08 | REST | 0.50 | 8.00 | 4.9 | 0.151 | 0.085 |
+| ET | 23 | 09 | OUT | 0.62 | 4.88 | 4.9 | 0.111 | 0.345 |
+| ET | 23 | 10 | *DRINK* | 0.50 | 4.00 | 2.9 | 0.541 | 0.092 |
+| ET | 26 | 05 | *POUR* | 0.88 | 6.88 | 4.8 | 0.699 | 0.109 |
+| ET | 26 | 08 | REST | 0.50 | 11.88 (edge) | 4.2 | 0.155 | 0.221 |
+| PD | 88 | 09 | OUT | 0.50 | 10.88 | 18.3 | 0.184 | 0.478 |
+| PD | 101 | 13 | ***TAP*** | **4.25** | 8.50 | **22.6** | 0.391 | 0.746 |
+| PD | 103 | 12 | *POUR* | 0.62 | 4.50 | 3.0 | 0.371 | 0.190 |
+| PD | 104 | 09 | OUT | **3.62** | 7.88 | 13.7 | 0.100 | 0.811 |
+| PD | 106 | 09 | OUT | **2.38** | 5.88 | 15.1 | 0.136 | 0.366 |
+| HC | 100 | 09 | OUT | 0.50 | 8.38 | 8.5 | 0.113 | 0.244 |
+| HC | 101 | 09 | OUT | 1.75 | 10.88 | 3.8 | 0.089 | 0.570 |
+| HC | 102 | 09 | OUT | 0.50 | 7.62 | 5.4 | 0.157 | 0.564 |
+
+*Italics mark the five trials that are neither `REST` nor `OUT`, i.e. not comparable
+with anything in `Data/raw_quaternion`. Note that **PD 101/13 is `TAP`** — its
+"sharp 4.25 Hz peak" is voluntary finger tapping, and it was inflating the PD
+column. It is also the one 256 Hz recording.*
 
 ### Class level, subject as the unit — median [IQR]
 
@@ -198,6 +220,12 @@ this as a lead worth testing, **not a result**: n=14, most PD/HC subjects contri
 one trial, and the task confound is completely unresolved — 3 of 5 PD subjects also
 have their global peak above 2 Hz, so "PD has sharper peaks" and "these particular
 PD trials happened to be closer to rest" are indistinguishable in this sample.
+
+> **Partly corrected by the task labels.** The suspicion in that last sentence was
+> justified: one of those 5 PD subjects (101) was a **`TAP`** trial and another (103)
+> a `POUR`. Restricted to `REST`/`OUT` the PD > ET > N ordering does survive
+> (15.11 vs 7.93 vs 5.35), but on **n=3** PD subjects. See
+> [the correction below](#correction-the-peak_excess-lead-was-partly-a-tapping-artefact).
 
 **Retracted: "PD 88 shows 5.00 Hz on both elbows, squarely PD rest-tremor
 frequency."** That was the boundary artefact. Background-corrected, PD 88's
@@ -242,6 +270,14 @@ comparison, any pooled training run, and any ET-vs-PD frequency claim built on
 these trials before they are mapped to tasks would be measuring task, not
 pathology. The retractions above are a live demonstration: two plausible-looking
 class findings, both artefacts.
+
+> **Confirmed, then resolved.** The guess in the paragraph above — that these are
+> two different tasks under one label — was right, and the trial codes name them:
+> ET 21's two trials are `DRINK` (0.222) and `REST` (0.073); ET 19's are `REST`
+> (0.213) and `OUT` (0.064). With the task held fixed the within-subject RMS ratio
+> drops to **~1.35×**, against **~4×** across task groups. This section stops being
+> a blocker and becomes the reason to always pass `--actions`; the measurement is
+> [below](#correction-the-unlabelled-task-is-the-dominant-source-of-variance--measured-and-mostly-resolved).
 
 ## The same profile on the repo's own data — n = 15/75/61, and tasks are labelled
 
@@ -293,6 +329,12 @@ Drive Free Form trials, and band-edge peaks are 2–4% against 5%. Held postures
 rest put the tremor where it can be measured; unlabelled free movement buries it.
 That is the cost of the missing condition labels, in one number.
 
+That 74% is across all seven Drive actions, so it is partly a comparison of
+`REST`/`OUT` against `DRINK`/`TAP` rather than of two cohorts. The like-for-like
+version — Drive `REST`/`OUT` against repo `REST`/`OUT` — is worth recomputing once
+the full tree is synced; on the 14 trials available here the subset is too small for
+the percentage to mean much.
+
 Two caveats on these figures. Frequencies scale linearly with the assumed
 **fs=100 Hz**, which is still unverified (see below) — if the true rate is 128 Hz
 every frequency here is 1.28× low, though the ET-vs-PD null and the patient-vs-N
@@ -311,49 +353,189 @@ rad/s here against 0.06–0.70 in the exports, a ~10× gap that is partly task
 
 PD and N clear 20 in either source alone. **ET does not exist in 20-subject
 quantity in either source** — 16 locally, 6 in Drive. Reaching 20+ ET means
-pooling both, which needs the elbow/wrist harmonisation above *and* an answer on
-the Free Form task labels, or it means external data (Track 3's PADS route, which
-adds 28 ET). Those are the only two paths to n≥20 ET; more downloading is not one
-of them.
+pooling both, which needs the elbow/wrist harmonisation above *and* the task
+labels, or it means external data (Track 3's PADS route, which adds 28 ET). Those
+are the only two paths to n≥20 ET; more downloading is not one of them.
 
-## Two blockers
+The task-label half of that condition is now **met** (next section), which makes
+pooling the cheaper of the two paths: what is left is the elbow/wrist
+harmonisation, the dataset-identity probe, and a choice of arm. Note the pooled ET
+count is 22 only if both cohorts' `REST` and `OUT` can be joined — 6 Drive ET
+subjects contribute to `REST`/`OUT` but none to `WING`, which was not recorded in
+this batch.
 
-### 1. No condition labels — the one that needs an answer from you
+## The site answered: the task is in the filename
 
-Every trial in every export is `conditionName="Free Form"`, `testName="Free
-Form"`, with `<notes/>` and `Trial Notes` empty. There is nothing in the export
-that says which trial was outstretched, at rest, or wing-beating. The repo's
-entire structure is per-condition (`OUT/`, `REST/`, `WING/`), and Track 1's
-results are per-condition.
+The recording site (Adrian Yee, 2025-05-08) supplied the missing protocol. The
+`NN_` prefix is **not** a bare trial counter — it is the task index:
 
-The gap is not cosmetic, and the section above quantifies it: two trials from the
-same ET subject differ 4× in RMS and 11× in peak sharpness. Separately, ET 21's
-trial 03 runs 0.22–0.78 rad/s per joint against ET 10's `REST` recording at
-0.03–0.10 rad/s — different subjects, so not controlled, but an order of magnitude
-apart. These trials are not REST under another name, and they are not all the same
-thing as each other either.
+| code | action | code | action | in `raw_quaternion`? |
+|---|---|---|---|---|
+| 01 / 08 | **REST** — arm resting posture | | | **yes** (`REST/`) |
+| 02 / 09 | **OUT** — arm outstretched posture | | | **yes** (`OUT/`) |
+| 03 / 10 | DRINK — drinking water | 05 / 12 | POUR — pouring water | no |
+| 04 / 11 | FNF — finger-to-nose | 06 / 13 | TAP — finger tapping | no |
+| 07 / 14 | PRONOSUP — pronation/supination | | | no |
 
-**What we need:** the session log or protocol that says what the 9–14 trials per
-subject were. Three plausible shapes, each with a different cost:
+`01–07` are the right upper limb and `08–14` the same seven actions on the left.
+The digits after the underscore are the attempt number. Two of the seven actions
+are exactly the repo's `REST` and `OUT`; `WING` was not recorded in this batch,
+and the other five actions have no counterpart in the older data.
 
-- *A fixed protocol order* (e.g. trials 1–4 = OUT, 5–8 = REST, …) → the numeric
-  prefix `NN_1_` gives the mapping directly, and the cohort becomes usable
-  immediately.
-- *An external log* (spreadsheet, notebook, the Moveo web app's session notes)
-  → same outcome, one join away.
-- *No record* → the trials can still be used for condition-agnostic work
-  (self-supervised pretraining, or a "any-task" classifier), but they cannot
-  join the per-condition results, and they cannot be pooled into the
-  cross-condition runs without inventing labels.
+This is decoded by `tremor.moveo_data.parse_trial_code`, and
+`load_moveo_recordings` now puts the action in `Recording.condition` instead of the
+placeholder `FREEFORM`.
 
-### 2. The raw per-sensor h5 is not in the export
+### The action mapping checks out against the signal
+
+A mapping handed over in an email is worth exactly as much as its agreement with
+the data, so it was tested rather than trusted. Angular-velocity RMS over the 19
+downloaded trials sorts the codes into **exactly** the three groups the actions
+predict, with no overlap:
+
+| action group | codes | trials | RMS rad/s, median [range] |
+|---|---|---|---|
+| quiet postures | 01/02, 08/09 | 14 | **0.41** [0.29, 0.62] |
+| object manipulation | 03/05, 10/12 | 4 | **1.53** [1.36, 1.99] |
+| finger tapping | 13 | 1 | **8.10** |
+
+A held posture, lifting a cup, and tapping a finger as fast as possible *should*
+sit at 0.4, 1.5 and 8 rad/s in that order, and they do. Nothing in the filename
+told the exporter what the RMS would be, so this is independent confirmation.
+
+**One gap, and it lands on the two actions that matter most.** RMS puts `REST` and
+`OUT` in the same group and cannot order them (0.39 vs 0.42 median), so the
+evidence above confirms the *grouping* of codes, not the assignment within the
+quiet pair. Nor can the export settle it: the streams are elbow and wrist only,
+**there is no shoulder**, so arm elevation — the one thing that physically
+distinguishes a resting arm from an outstretched one — is not measured. Mean elbow
+angle does not separate them either (`REST` −27°±24 vs `OUT` −59°±42 on the left
+elbow, and the two subjects with both trials disagree on the sign of the change).
+If the site swapped codes 01/02, nothing in the data would reveal it. Since `REST`
+and `OUT` are precisely the two actions any cross-cohort work joins on, **this is
+worth one confirming question to the site** — it is the last thing standing between
+this cohort and the per-condition results.
+
+### The left/right half of the convention is contradicted
+
+The convention says codes ≤ 07 are the right limb. The exports disagree: in
+**19 of 19** trials the `Left` joint streams carry more angular-velocity RMS than
+the `Right` ones — including all three trials with codes ≤ 07 — and the asymmetry
+does not track the code at all. `Wrist/Right` is the quietest of the four streams
+in almost every trial. ET 22's supposedly right-limb `OUT` trial (L/R ratio 2.64)
+sits inside the distribution of the ten left-limb `OUT` trials (1.06–2.84).
+
+So either the export's `Left`/`Right` labels do not mean the physical limb, or the
+01–07 / 08–14 split is reversed. `parse_trial_code` returns the side as
+`stated_side` and the docstring says not to trust it; **pick the side empirically**
+(highest tremor-band power, or the clinically more-affected arm from the case notes)
+and document the choice once. Three right-limb trials is a thin sample for the
+per-code test, but "left is louder in 19/19" does not depend on sample size to be
+awkward.
+
+### Correction: the `peak_excess` lead was partly a tapping artefact
+
+The previous version reported PD `peak_excess` at 15.11 [13.70, 18.32] against ET
+7.45 and HC 5.35, flagged as "a lead worth testing". With the labels decoded, **one
+of the five PD subjects in that median was a finger-tapping trial**: PD 101 trial
+13 is `TAP`, and its "sharp 4.25 Hz peak, excess 22.6" is the *voluntary tapping
+rhythm* sitting exactly where PD rest tremor is looked for. A second PD subject
+(103, trial 12) was `POUR`. The ET group was similarly mixed — 21/03 `DRINK`, 26/05
+`POUR`, 23/10 `DRINK`.
+
+Re-run on the comparable subset only (`--actions REST OUT`, 14 trials / 12
+subjects, and the 256 Hz trial drops out with it), right elbow:
+
+| metric | ET (n=6) | PD (n=3) | N/HC (n=3) |
+|---|---|---|---|
+| peak excess | 7.93 [5.54, 9.39] | **15.11 [14.41, 16.72]** | 5.35 [4.58, 6.93] |
+| peak Hz | 7.03 [5.83, 8.66] | 7.88 [6.88, 9.38] | **8.38 [8.00, 9.62]** |
+
+**The ordering survives** — PD > ET > N on peak sharpness — so the lead is not
+purely an artefact. But PD is now **n=3**, which is too few to call anything, and
+the honest summary is that the task confound has been removed from this comparison
+rather than that the comparison now proves something.
+
+What *is* worth noting: restricted to the shared postures, the Drive cohort
+reproduces the one contrast the repo's own labelled data shows at n=15/75/61 —
+controls peak **higher** than patients (8.38 vs 7.03/7.88 Hz here; 9.50 vs
+7.38/7.81 in `raw_quaternion` `OUT`), the textbook physiological-versus-pathological
+split. Two independently processed cohorts agreeing on that is a decent sign the
+decoding and the 128 Hz / scalar-first handling are all correct.
+
+### Correction: "the unlabelled task is the dominant source of variance" — measured, and mostly resolved
+
+That claim was right, and the labels now let it be quantified instead of inferred.
+Within-subject RMS ratios between two trials of the same subject (left elbow, the
+consistently louder side):
+
+| pairing | pairs | median ratio |
+|---|---|---|
+| both trials the same task group | 2 | **1.34** [1.33, 1.35] |
+| trials from different task groups | 3 | **3.97** [2.96, 4.14] |
+
+The 3–4× within-subject swings that this report called "the part that blocks
+everything" were **task changes**, and they shrink to ~1.35× once the task is held
+fixed. Five pairs is a small sample, but the split is clean and it is what the
+mechanism predicts. The practical consequence: filtering by action is not optional
+housekeeping, it is what makes any group comparison on this cohort meaningful.
+`tremor.moveo_profile` therefore prints the task composition by default and takes
+`--actions`.
+
+### Also found: the sample rate is not constant
+
+While checking the above, **PD 101 trial 13 declares `sampleRate=256.0`**, not 128.
+The other 18 trials are 128 Hz. The adapter always reads `sampleRate` from the file
+so nothing here was mis-analysed, but this retires the phrase "fs = 128 Hz" as a
+cohort-wide fact: anything that hard-codes 128 misplaces every frequency in that
+trial by **2×**. `MOVEO_FS` is now documented as a fallback for a missing attribute
+only, and `--inventory` reports fs per subject so outliers surface before analysis.
+The 3 s calibration offset, by contrast, *is* uniform — `nSamples/fs − Duration =
+3.01` on all 19 trials, the 256 Hz one included.
+
+### The 128 → 100 Hz and frame-correction steps the site described
+
+Two more instructions came with the mapping, both implemented in `moveo_data`:
+
+- **`resample_quaternions(Q, 128, 100)`** — the exact ratio 25/32 via
+  `resample_poly`. Sign continuity is enforced *before* interpolating, because `q`
+  and `−q` are the same rotation and interpolating across a sign flip swings the
+  quaternion through the whole sphere; components are then renormalised to unit
+  length (verified: max `|‖q‖−1|` = 6e-8, duration 40.6172 s → 40.6200 s, and the
+  3–12 Hz peak holds at 3.128 Hz across the conversion).
+- **`align_frame(Q)`** — the site's "rotate 180° about x, twice". "Twice" is
+  ambiguous, but **the ambiguity does not matter, and neither does the correction**:
+  - `mode='premultiply_twice'` (`c·c·q`) returns exactly `−q`, the same rotation.
+  - `mode='conjugate'` (`c·q·conj(c)`, the true frame change) works out to
+    **exactly a sign flip on the y and z angular-velocity components** — verified as
+    `ω → ω·[1, −1, −1]` to 1e-6 on all four joints. Per-component RMS, `|ω|` and
+    every power spectrum are unchanged.
+
+  So this step is worth applying for correctness of the stored quaternions but
+  **cannot move a single metric this pipeline computes**. If a pooled result changes
+  when you toggle it, the cause is a bug elsewhere. The only consumer that would see
+  it is a model reading signed angular-velocity components rather than magnitude
+  spectra.
+
+## The remaining blocker
+
+### ~~1. No condition labels~~ — resolved
+
+The exports still say `conditionName="Free Form"` on every trial with empty notes,
+but the task no longer has to come from the metadata: the trial prefix carries it,
+and the RMS grouping confirms it. What remains of this blocker is the narrow
+`REST`-versus-`OUT` question above — a confirming question, not a research problem.
+
+### 2. The raw per-sensor h5 is not in the export — still open, now the only one
 
 `SubjectMetadata.xml` references the raw trial file
 (`20250508-091102_Free_Form_ET_21.h5`) for every trial, but the export only ships
 `*_Analysis.h5`. If those raw files can be re-exported from Moveo Explorer, they
-would contain per-sensor orientation and remove blocker 1's representation
-mismatch entirely — that is the single highest-value thing to ask the recording
-site for, and it is worth asking before building anything on joint angles.
+would contain per-sensor orientation and remove the representation mismatch
+entirely — with the condition labels recovered, **this is now the single
+highest-value thing to ask the recording site for**, and it is worth asking before
+building anything on joint angles. It would also settle the left/right question,
+since per-sensor placement is recorded with the raw file.
 
 ## Harmonisation, if the raw files cannot be recovered
 
@@ -422,7 +604,7 @@ in the three files opened for this assessment.
 
 ## The adapter
 
-`tremor/moveo_data.py`, tested end-to-end on the three downloaded trials:
+`tremor/moveo_data.py`, tested end-to-end on the 19 downloaded trials:
 
 ```bash
 # summarise a synced tree without loading signals
@@ -432,26 +614,37 @@ python -m tremor.moveo_data --root ... --groups ET      # load, report shapes
 ```
 
 ```python
-from tremor.moveo_data import load_moveo_recordings, moveo_inventory
+from tremor.moveo_data import (SHARED_ACTIONS, align_frame,
+                               load_moveo_recordings, resample_quaternions)
 
 recs = load_moveo_recordings(root, groups=["ET"])   # -> list[Recording]
-recs[0].subject, recs[0].condition                  # 'MV-ET21', 'FREEFORM'
+recs[0].subject, recs[0].condition                  # 'MV-ET19', 'REST'
 recs[0].x.shape                                     # (12, T) = 4 joints x 3 rad/s
+
+# the subset that is comparable with Data/raw_quaternion
+recs = load_moveo_recordings(root, actions=SHARED_ACTIONS)      # REST + OUT
 ```
 
 and `tremor/moveo_profile.py` for the descriptive sweep:
 
 ```bash
-python -m tremor.moveo_profile --root ... --per-subject          # full profile
+python -m tremor.moveo_profile --root ...                        # + task composition
+python -m tremor.moveo_profile --root ... --actions REST OUT     # comparable subset
 python -m tremor.moveo_profile --root ... --groups ET --out et.csv
 ```
 
-The loader defaults to `fs` read from the file (128 Hz), reorders scalar-first →
-scalar-last, trims the 3 s calibration pose, drops trials under 5 s, derives the
-subject ID from the directory, and labels every trial `condition='FREEFORM'`
-because that is the only honest label available. `moveo_inventory()` reports
-trials, total seconds, sample rates and joint streams per subject so the real
-per-subject counts can be checked once the folder is synced.
+The loader takes `fs` from each file (128 Hz, sometimes 256 — never assume),
+reorders scalar-first → scalar-last, trims the 3 s calibration pose, drops trials
+under 5 s, derives the subject ID from the directory, and sets `condition` to the
+action decoded from the trial prefix. Trials whose name does not parse are skipped
+with a `UserWarning` rather than silently, so a naming change in part of the tree
+cannot quietly shrink the cohort. `moveo_inventory()` reports trials, total seconds,
+sample rates and joint streams per subject.
+
+Two conversions for pooling with the older cohort, per the site's instructions:
+`resample_quaternions(Q, 128, 100)` (sign-continuity-safe, renormalised) and
+`align_frame(Q)` (the 180°-about-x correction — verified to be a no-op for every
+metric the pipeline computes; see above).
 
 Getting the data local: the folder is ~1.5k files of ~1.1–1.4 MB (≈2 GB), which
 is not practical to pull one file at a time through the Drive API. Sync it with
@@ -460,14 +653,21 @@ Drive for Desktop or `rclone copy`, then point `--root` at it.
 ## Next actions, in order
 
 1. **Ask the recording site for the raw per-sensor trial h5 files** (the ones
-   `SubjectMetadata.xml` names). If they exist, blockers 1 and 2 both shrink to
-   an fs conversion.
-2. **Find the condition mapping** for the Free Form trials — protocol order,
-   session log, or a definitive "there isn't one". Nothing per-condition can be
-   built until this is answered.
+   `SubjectMetadata.xml` names). Now the only real blocker: it would remove the
+   joint-angle representation mismatch and settle the left/right question at once.
+2. **Confirm two things with the site, in the same message:** (a) that codes 01/08
+   are `REST` and 02/09 are `OUT` and not the reverse — the export cannot tell us,
+   and every cross-cohort comparison joins on exactly those two; (b) which limb
+   codes 01–07 were recorded on, given that the `Left` streams are louder in 19 of
+   19 trials.
 3. **Settle the 100 vs 128 Hz question** for the existing `raw_quaternion`
-   files.
+   files. (The 256 Hz trial found in the exports makes this less of a formality:
+   this site's rates are evidently not fixed.)
 4. Sync the tree outside the repo, run `--inventory`, and confirm the real
-   per-subject trial counts against the table above.
-5. Only then: harmonise to elbow/wrist, run the dataset-identity probe, and if it
+   per-subject trial counts and **sample rates** against the tables above — the
+   256 Hz trial says the fs column deserves a look, not a skim.
+5. Re-run the profile at full cohort size with `--actions REST OUT`. The n=3 PD
+   `peak_excess` figure above needs all 51 PD subjects behind it before it is
+   anything more than a lead.
+6. Only then: harmonise to elbow/wrist, run the dataset-identity probe, and if it
    comes back clean, re-run ET-LOSO at n=22 with the subject bootstrap CI.
