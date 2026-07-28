@@ -243,6 +243,79 @@ these trials before they are mapped to tasks would be measuring task, not
 pathology. The retractions above are a live demonstration: two plausible-looking
 class findings, both artefacts.
 
+## The same profile on the repo's own data — n = 15/75/61, and tasks are labelled
+
+The Drive cohort caps at **6 ET subjects**, so no amount of downloading reaches
+20 ET from there. The repo's own `raw_quaternion` data does have the numbers, and
+it has the one thing the exports lack: **task labels**. Harmonised to elbow/wrist
+(`joint_quaternions_from_sensors`) it can be profiled with the identical
+descriptors, so the two cohorts are directly comparable:
+
+```bash
+python -m tremor.moveo_profile --local-root Data --action OUT
+```
+
+Subjects per condition: **OUT** ET 15 / PD 75 / N 61 · **REST** ET 16 / PD 75 /
+N 61 · **WING** ET 13 / PD 63 / N 61. Median [IQR] of subject medians, elbow:
+
+| condition | metric | ET | PD | N | ET-vs-PD |
+|---|---|---|---|---|---|
+| OUT | peak Hz | 7.38 [6.22, 8.47] | 7.81 [5.75, 9.22] | **9.50 [8.50, 10.62]** | p=0.90 |
+| OUT | peak excess | 19.82 [10.2, 46.6] | 17.68 [9.7, 46.3] | **6.51 [4.8, 10.2]** | p=0.85 |
+| OUT | 3–12 Hz frac | 0.73 [0.60, 0.79] | 0.74 [0.61, 0.87] | **0.50 [0.44, 0.59]** | p=0.61 |
+| REST | peak Hz | 6.84 [6.38, 8.30] | 6.62 [5.25, 7.47] | 7.50 [6.75, 9.19] | p=0.15 |
+| REST | peak excess | 15.97 [10.9, 22.0] | 17.04 [8.4, 33.8] | **8.68 [5.6, 13.0]** | p=0.82 |
+| WING | peak excess | 15.43 [8.0, 54.2] | 9.73 [6.1, 36.5] | **5.25 [4.2, 6.5]** | p=0.33 |
+
+Mann–Whitney U on subject-level values, ET vs PD, two-sided.
+
+**Patients separate cleanly from controls.** In every condition and at both
+joints, ET and PD sit at 2–3× the controls' `peak_excess` and ~0.65–0.75 vs ~0.50
+tremor-band fraction. And controls' peak frequency is *higher* — 9.50 Hz in OUT
+against 7.4–7.8 for patients — which is exactly the textbook split between normal
+physiological tremor (8–12 Hz) and pathological tremor (4–8 Hz). The descriptors
+are measuring something real.
+
+**ET vs PD does not separate on any of them, in any condition.** Every ET-vs-PD
+p-value is ≥0.09 across 24 comparisons (2 joints × 3 conditions × 4 metrics), and
+the medians are nearly identical — OUT elbow 7.38 vs 7.81 Hz, excess 19.8 vs 17.7,
+frac 0.73 vs 0.74. The one nominal hit (REST wrist RMS, p=0.026) does not survive
+any correction for 24 tests. With **15–16 ET and 63–75 PD subjects** this is no
+longer a small-sample excuse: these spectral summaries carry the N-vs-patient
+distinction and essentially none of the ET-vs-PD distinction. That is a direct,
+quantified explanation of why the repo's ET F1 has been the hard number, and it
+says the discriminative information — if it is there — is not in peak frequency,
+peak sharpness, or band-power ratio.
+
+**The labelled data is also much cleaner than Free Form.** Only **14–18%** of these
+recordings have their global spectral peak below 1.5 Hz, against **74%** of the
+Drive Free Form trials, and band-edge peaks are 2–4% against 5%. Held postures and
+rest put the tremor where it can be measured; unlabelled free movement buries it.
+That is the cost of the missing condition labels, in one number.
+
+Two caveats on these figures. Frequencies scale linearly with the assumed
+**fs=100 Hz**, which is still unverified (see below) — if the true rate is 128 Hz
+every frequency here is 1.28× low, though the ET-vs-PD null and the patient-vs-N
+contrast are unaffected because both would shift together. And RMS is 0.01–0.04
+rad/s here against 0.06–0.70 in the exports, a ~10× gap that is partly task
+(held posture vs free movement) and partly whatever undocumented processing the
+`.txt` files went through.
+
+### What this means for "20 subjects per class"
+
+| class | repo `raw_quaternion` | Drive exports | pooled ceiling |
+|---|---|---|---|
+| ET | **16** (15 OUT, 16 REST, 13 WING) | 6 | **22** |
+| PD | 76 | 51 | 127 |
+| N / HC | 61 | 59 | 120 |
+
+PD and N clear 20 in either source alone. **ET does not exist in 20-subject
+quantity in either source** — 16 locally, 6 in Drive. Reaching 20+ ET means
+pooling both, which needs the elbow/wrist harmonisation above *and* an answer on
+the Free Form task labels, or it means external data (Track 3's PADS route, which
+adds 28 ET). Those are the only two paths to n≥20 ET; more downloading is not one
+of them.
+
 ## Two blockers
 
 ### 1. No condition labels — the one that needs an answer from you
