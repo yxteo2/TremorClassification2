@@ -99,7 +99,7 @@ else. There is no accelerometer, no gyroscope, and no per-sensor orientation.
    break subject-level splitting while every disjointness assertion still
    passes. IDs must come from the directory name or `SubjectMetadata.xml`.
 
-## Measured profile of the signal (13 trials, all 6 Drive ET subjects)
+## Measured profile of the signal (19 trials, 14 subjects)
 
 `tremor/moveo_profile.py` computes, per joint per trial: angular-velocity RMS,
 where the **whole** spectrum peaks (`global_peak_hz`, 0.5–20 Hz), the strongest
@@ -118,60 +118,99 @@ fitted 1/f^a trend before peak-finding, and `peak_at_edge` flags any peak still
 sitting on a boundary. The numbers below are the corrected ones. Two conclusions
 in the earlier version were wrong and are retracted explicitly further down.
 
-Sample: **13 trials from 8 subjects — all 6 ET subjects in Drive** (ET 19, 20, 21,
-22, 23, 26; 2 trials each except ET 20), plus PD 88 and HC 100 with 1 trial each.
-Pulled one file per API request, which is why PD and HC are thin. This is not a
-class comparison.
+Sample: **19 trials from 14 subjects** — all 6 ET subjects in Drive (ET 19, 20,
+21, 22, 23, 26), 5 PD (88, 101, 103, 104, 106) and 3 HC (100, 101, 102). Pulled one
+file per API request, so most PD/HC subjects have a single trial. Not a class
+comparison; the task confound below is unresolved.
 
 ### Where the power actually is
 
-**In 12 of 13 trials the global spectral peak is below 1.5 Hz** (0.50–1.12 Hz).
-The single exception is ET 22 trial 02, whose global peak is 9.62 Hz. So in almost
-every recording the dominant content is voluntary movement, and any tremor is a
-*secondary* narrowband feature riding on it. That is the central fact about this
-data, and it is why background correction is not optional here.
+**In 14 of 19 trials the global spectral peak is below 1.5 Hz** (0.50–0.88 Hz).
+The exceptions are ET 22 t02 (9.75 Hz), PD 101 (4.25), PD 104 (3.62), PD 106
+(2.38) and HC 101 (1.75). So in most recordings the dominant content is voluntary
+movement and any tremor is a *secondary* narrowband feature riding on it. Notably
+**3 of 5 PD subjects are among the exceptions** — their tremor is a larger share of
+total movement — which is what you would expect if those trials were closer to a
+rest condition, but with no task labels that stays a guess.
 
-### Strongest 3–12 Hz peak, right elbow (frequency × excess over background)
+### Per trial, right elbow
 
-| subject | trial A | trial B | within-subject spread |
+| class | subject | trial | global Hz | peak Hz | excess | RMS rad/s | 3–12 Hz frac |
+|---|---|---|---|---|---|---|---|
+| ET | 19 | 08 | 0.62 | 5.75 | 9.0 | 0.215 | 0.218 |
+| ET | 19 | 09 | 0.62 | 6.38 | 10.5 | 0.143 | 0.185 |
+| ET | 20 | 09 | 0.88 | 8.00 | 8.3 | 0.071 | 0.289 |
+| ET | 21 | 03 | 0.50 | 8.62 | 5.6 | 0.670 | 0.065 |
+| ET | 21 | 08 | 0.75 | 5.75 | 7.5 | 0.119 | 0.237 |
+| ET | 22 | 02 | **9.75** | 9.75 | **63.6** | 0.064 | **0.758** |
+| ET | 22 | 08 | 0.50 | 8.00 | 4.9 | 0.151 | 0.085 |
+| ET | 23 | 09 | 0.62 | 4.88 | 4.9 | 0.111 | 0.345 |
+| ET | 23 | 10 | 0.50 | 4.00 | 2.9 | 0.541 | 0.092 |
+| ET | 26 | 05 | 0.88 | 6.88 | 4.8 | 0.699 | 0.109 |
+| ET | 26 | 08 | 0.50 | 11.88 (edge) | 4.2 | 0.155 | 0.221 |
+| PD | 88 | 09 | 0.50 | 10.88 | 18.3 | 0.184 | 0.478 |
+| PD | 101 | 13 | **4.25** | 8.50 | **22.6** | 0.391 | 0.746 |
+| PD | 103 | 12 | 0.62 | 4.50 | 3.0 | 0.371 | 0.190 |
+| PD | 104 | 09 | **3.62** | 7.88 | 13.7 | 0.100 | 0.811 |
+| PD | 106 | 09 | **2.38** | 5.88 | 15.1 | 0.136 | 0.366 |
+| HC | 100 | 09 | 0.50 | 8.38 | 8.5 | 0.113 | 0.244 |
+| HC | 101 | 09 | 1.75 | 10.88 | 3.8 | 0.089 | 0.570 |
+| HC | 102 | 09 | 0.50 | 7.62 | 5.4 | 0.157 | 0.564 |
+
+### Class level, subject as the unit — median [IQR]
+
+| metric | ET (n=6) | PD (n=5) | N/HC (n=3) |
 |---|---|---|---|
-| ET 19 | 5.75 Hz ×9.0 | 6.38 Hz ×10.5 | 0.62 Hz |
-| ET 20 | 8.00 Hz ×8.3 | — | — |
-| ET 21 | 8.62 Hz ×5.6 | 5.75 Hz ×7.5 | 2.88 Hz |
-| ET 22 | **9.75 Hz ×63.6** | 8.00 Hz ×4.9 | 1.75 Hz |
-| ET 23 | 4.88 Hz ×4.9 | 4.00 Hz ×2.9 | 0.88 Hz |
-| ET 26 | 6.88 Hz ×4.8 | 11.88 Hz ×4.2 | 5.00 Hz |
-| HC 100 | 8.38 Hz ×8.5 | — | — |
-| PD 88 | **10.88 Hz ×18.3** | — | — |
+| peak Hz | 7.59 [6.34, 8.66] | 7.88 [5.88, 8.50] | 8.38 [8.00, 9.62] |
+| **peak excess** | 7.45 [5.02, 9.39] | **15.11 [13.70, 18.32]** | 5.35 [4.58, 6.93] |
+| RMS rad/s | 0.25 [0.13, 0.38] | 0.18 [0.14, 0.37] | 0.11 [0.10, 0.14] |
+| 3–12 Hz frac | 0.21 [0.17, 0.27] | 0.48 [0.37, 0.75] | 0.56 [0.40, 0.57] |
 
 ### What holds up
 
 **The adapter reads the data correctly.** ET 19 trial 08 peaks at **5.75 Hz on all
-four joints** (spread 0.00 Hz, excess 6.8–9.9), and ET 22 trial 02 at **9.62–9.75
-Hz on all four** with excess up to 63.6 — the one trial where the tremor is also
-the global maximum. A single frequency shared across both elbows and both wrists is
-a whole-limb oscillation; a mis-parsed quaternion or a wrong sample rate does not
-produce that. The 128 Hz / scalar-first handling is sound.
+four joints** (spread 0.00 Hz, excess 6.8–9.9); ET 22 trial 02 at **9.62–9.75 Hz on
+all four** with excess up to 63.6, the one trial where tremor is also the global
+maximum; PD 88 at **10.88 Hz on all four** (spread 0.00). A single frequency shared
+across both elbows and both wrists is a whole-limb oscillation, which a mis-parsed
+quaternion or a wrong sample rate does not produce. The 128 Hz / scalar-first
+handling is sound.
+
+**Peak frequency does not separate the classes — at all.** ET 7.59, PD 7.88, HC
+8.38 Hz, with IQRs almost entirely overlapping. This is now on 14 subjects rather
+than 4. Consistent with the clinical overlap and with why the repo's ET-vs-PD
+separation has been hard: no peak-frequency feature is going to carry it.
+
+**`tremor_frac` is confounded by how much the subject moved, and must not be read
+as tremor severity.** HC scores *highest* on it (0.56) and ET lowest (0.21) — not
+because controls tremor more, but because they move least overall (RMS 0.11 vs ET
+0.25), so the low-frequency voluntary component that sits in the denominator is
+smaller. Any severity or screening score built on a band-power *ratio* over these
+recordings would rank healthy controls as the most tremulous group. Use
+`peak_excess`, which is normalised against the recording's own 1/f background, not
+`tremor_frac`.
+
+**The one descriptor that does show group structure is `peak_excess`** — how far
+the narrowband peak rises above each recording's own background. PD sits at 15.11
+[13.70, 18.32] against ET 7.45 [5.02, 9.39] and HC 5.35 [4.58, 6.93], and 4 of the
+5 PD subjects fall in 13.7–22.6 while 5 of 6 ET subjects fall in 3.9–9.8. Treat
+this as a lead worth testing, **not a result**: n=14, most PD/HC subjects contribute
+one trial, and the task confound is completely unresolved — 3 of 5 PD subjects also
+have their global peak above 2 Hz, so "PD has sharper peaks" and "these particular
+PD trials happened to be closer to rest" are indistinguishable in this sample.
 
 **Retracted: "PD 88 shows 5.00 Hz on both elbows, squarely PD rest-tremor
 frequency."** That was the boundary artefact. Background-corrected, PD 88's
-strongest narrowband excess is at **10.88 Hz (×18.3, all four joints, spread
-0.00)**, with a secondary at 9.50 Hz and nothing prominent near 5 Hz. 10.88 Hz is
-not rest-tremor frequency — it is in the physiological-tremor range, which is what
-you would expect if this particular trial was not a rest task. One trial, so this
-says nothing about PD 88's diagnosis; it does mean the earlier reading was an
-artefact of the metric, not a finding.
+strongest narrowband excess is at **10.88 Hz (×18.3, all four joints)**, with a
+secondary at 9.50 Hz and nothing prominent near 5 Hz.
 
 **Retracted: "the two ET subjects straddle the PD subject in frequency."** That
-rested on ET 21's bogus 3.25 Hz. Corrected, the ET subjects span **4.0–9.75 Hz**
-and PD 88 sits at 10.88 Hz — above all of them. With one PD trial this is not
-evidence of anything either way; the earlier ordering was simply wrong.
+rested on ET 21's bogus 3.25 Hz. With 14 subjects there is no frequency ordering
+between the groups to speak of — see the class table.
 
 **Tremor frequency is only partly a stable subject trait here.** Across their two
 trials, ET 19 (0.62 Hz) and ET 23 (0.88 Hz) hold their peak frequency; ET 22
-(1.75 Hz), ET 21 (2.88 Hz) and ET 26 (5.00 Hz) do not. So peak frequency is not
-reliably reproducible trial-to-trial in this cohort — which is itself a consequence
-of the next point.
+(1.75 Hz), ET 21 (2.88 Hz) and ET 26 (5.00 Hz) do not.
 
 ### The part that blocks everything
 
