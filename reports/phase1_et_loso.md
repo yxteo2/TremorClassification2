@@ -149,6 +149,29 @@ method is within the noise band; the ceiling is the cohort size, not the model.
 | fusion attention (patient-level) | 0.510 | 0.312 |
 | fusion mean-pool (patient-level) | 0.546 | 0.400 |
 
+## Preprocessing sweep — wavelet / CWT / multitaper vs STFT
+
+Compared time-frequency representations under the identical ET-LOSO +
+threshold + CI harness (seed 42, single-condition OUT):
+
+| representation | macro-F1 | ET-F1 argmax | ET-F1 thresh | ET-AUC |
+|---|---|---|---|---|
+| **STFT** (default) | **0.658** | 0.476 | **0.571** [0.36, 0.72] | **0.78** |
+| CWT (continuous wavelet) | 0.652 | 0.368 | 0.545 [0.28, 0.75] | 0.77 |
+| wavelet_packet (decomposition) | 0.618 | 0.417 | 0.372 [0.10, 0.60] | 0.76 |
+| multitaper | 0.611 | 0.324 | 0.468 [0.21, 0.66] | 0.75 |
+
+**STFT wins or ties on every metric; no wavelet/multitaper method beats it, and
+all ET-F1 CIs overlap.** The preprocessing axis is within the noise band too —
+consistent with architecture and fusion. STFT is the right default; effort spent
+on alternative representations does not move ET on this cohort.
+
+Pretrained backbones (AST via `timm`, ResNet18 via torchvision) could not be run
+in the dev sandbox — both weight hosts (download.pytorch.org, huggingface.co) are
+network-blocked. They are available where torchvision/timm + internet exist, via
+`cv_benchmark --model ast|resnet18`; report ET-F1 + CI (not accuracy) and expect
+results inside the CIs above.
+
 ## Not runnable in this environment
 
 - **amplitude @ 60 Hz feature arm** (the prior MATLAB pipeline's representation):
