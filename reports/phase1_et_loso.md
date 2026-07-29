@@ -166,6 +166,24 @@ all ET-F1 CIs overlap.** The preprocessing axis is within the noise band too —
 consistent with architecture and fusion. STFT is the right default; effort spent
 on alternative representations does not move ET on this cohort.
 
+Wavelet decomposition depth/type sweep (wavelet_packet, seed 42, threshold-tuned)
+— the decomposition *number* matters within wavelets but none catch STFT:
+
+| wavelet_packet config | macro-F1 | ET-F1 thresh | ET-AUC |
+|---|---|---|---|
+| level-3, db4 | 0.583 | 0.364 | 0.61 |
+| level-4, db4 | 0.574 | 0.458 | 0.75 |
+| level-5, db4 | 0.618 | 0.372 | 0.76 |
+| level-6, db4 | 0.599 | 0.538 | 0.75 |
+| level-5, db6 | 0.619 | 0.538 | 0.76 |
+| **STFT (ref)** | **0.658** | **0.571** | **0.78** |
+
+Level-3 is too coarse (AUC 0.61); levels 5–6 plateau at AUC ~0.76, still below
+STFT. HHT EMD variants (`--hht-emd-method emd|eemd|ceemdan`) are wired and
+validated, but EEMD/CEEMDAN are ~50x/200x slower per channel (measured 37 ms vs
+1.8 s vs 7.6 s per channel) and, with the per-epoch transform, are only feasible
+on GPU / precomputed features — not runnable in the CPU sandbox.
+
 Pretrained backbones (AST via `timm`, ResNet18 via torchvision) could not be run
 in the dev sandbox — both weight hosts (download.pytorch.org, huggingface.co) are
 network-blocked. They are available where torchvision/timm + internet exist, via
