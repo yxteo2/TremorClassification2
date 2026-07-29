@@ -67,12 +67,21 @@ def subject_cv_lda_f1(X, y, subjects, n_splits: int = 5) -> float:
     return float(f1_score(y, preds, average="macro"))
 
 
+def pd_vs_et_lda_f1(X, y, subjects, n_splits: int = 5) -> float:
+    """Subject-CV LDA macro-F1 on the hard PD-vs-ET axis only."""
+    m = y != 0
+    if m.sum() < 4 or len(np.unique(y[m])) < 2:
+        return float("nan")
+    return subject_cv_lda_f1(X[m], y[m], subjects[m], n_splits=n_splits)
+
+
 def separability(X, y, subjects) -> dict:
     Xs = StandardScaler().fit_transform(X)
     return {
         "fisher": fisher_trace_ratio(X, y),
         "silhouette": float(silhouette_score(Xs, y)),
         "subjcv_lda_f1": subject_cv_lda_f1(X, y, subjects),
+        "pdet_lda_f1": pd_vs_et_lda_f1(X, y, subjects),
         "n_features": int(X.shape[1]),
     }
 
