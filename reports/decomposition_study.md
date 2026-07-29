@@ -60,6 +60,25 @@ model-free class separability (subject-CV LDA macro-F1) on the OUT condition,
 Converged conclusion: STFT-256 for 3-class / N-vs-tremor, HHT-7/8 for PD-vs-ET,
 CWT as all-rounder; fusion and SST do not beat them.
 
+### VMD and S-transform (added for completeness)
+
+| method | sep 3-class | sep PD-vs-ET | 2-stage macro-F1 | 2-stage ET-F1 |
+|---|---|---|---|---|
+| STFT-256 (incumbent) | 0.640 | 0.623 | **0.651** | 0.378 |
+| HHT-7/8 (incumbent) | 0.45 | **0.647** | 0.584 | 0.250 |
+| S-transform (Stockwell) | 0.484 | 0.539 | 0.621 | 0.383 |
+| VMD | 0.547 | 0.438 | 0.588 | 0.235 |
+
+- **VMD underperformed** — despite the "VMD beats EMD" literature prior, its
+  PD-vs-ET separability (0.438) is below even STFT/CWT and far below HHT. Its
+  mode-centre features separate 3-class acceptably but not the hard axis.
+- **S-transform** is middling on separability but its two-stage ET-F1 (0.383)
+  ties the best; macro-F1 (0.621) still trails STFT-256.
+- **Neither beats the incumbents.** With 8 TF methods now compared
+  (STFT, CWT, HHT, wavelet_packet, multitaper, SST, VMD, S-transform) plus
+  parameter tuning and fusion, the TF-method lever is exhausted: STFT-256 (3-class)
+  and HHT-7/8 (PD-vs-ET) are the winners, and the ceiling is the ~16 ET cohort.
+
 ## Two-stage model test on the tuned decompositions
 Per-patient leave-one-patient-out, logreg two-stage, tuned ET threshold (OUT):
 
