@@ -152,6 +152,7 @@ class TremorDataset(Dataset):
         cwt_decim: int = 8,
         cwt_freq_step: float = 0.5,
         hht_max_imfs: int = 8,
+        hht_emd_method: str = "emd",
         wp_level: int = 5,
         wp_wavelet: str = "db4",
         log_compress_on: bool = True,
@@ -172,6 +173,7 @@ class TremorDataset(Dataset):
         self.cwt_decim = cwt_decim
         self.cwt_freq_step = cwt_freq_step
         self.hht_max_imfs = hht_max_imfs
+        self.hht_emd_method = hht_emd_method
         self.wp_level = wp_level
         self.wp_wavelet = wp_wavelet
         self.log_compress_on = log_compress_on
@@ -209,6 +211,7 @@ class TremorDataset(Dataset):
             x = apply_hht(
                 x, fs=self.fs, freqs=freqs, max_imfs=self.hht_max_imfs,
                 decim=self.cwt_decim, f_max=self.f_max,
+                emd_method=self.hht_emd_method,
             )
         elif self.tfd_method == "wavelet_packet":
             _bc, x = apply_wavelet_packet(

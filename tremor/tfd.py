@@ -264,22 +264,33 @@ def apply_welch(
     return last_freqs, np.concatenate(parts, axis=0)
 
 
-def _emd_imfs(signal: np.ndarray, max_imfs: int = 8) -> np.ndarray:
+def _emd_imfs(signal: np.ndarray, max_imfs: int = 8,
+              emd_method: str = "emd") -> np.ndarray:
     """Empirical Mode Decomposition of a 1-D signal.
 
     Returns up to ``max_imfs`` IMFs as rows of shape ``(n_imfs, time)``.
     Pads with zero rows if fewer IMFs are produced so the output shape
     is deterministic.
+
+    ``emd_method`` selects the decomposition:
+      * ``emd``     — plain EMD (fast; ~37 ms/channel).
+      * ``eemd``    — Ensemble EMD (noise-assisted; ~50x slower).
+      * ``ceemdan`` — Complete EEMD with adaptive noise (~200x slower).
+    EEMD/CEEMDAN are far more robust to mode-mixing but are only practical
+    with GPU/precomputed features, not the per-epoch transform on CPU.
     """
     try:
-        from PyEMD import EMD
+        from PyEMD import EMD, EEMD, CEEMDAN
     except ImportError as e:
         raise ImportError(
             "EMD / HHT require the 'EMD-signal' package. "
             "Install with: pip install EMD-signal"
         ) from e
 
-    emd = EMD()
+    ctor = {"emd": EMD, "eemd": EEMD, "ceemdan": CEEMDAN}.get(emd_method.lower())
+    if ctor is None:
+        raise ValueError(f"emd_method must be emd|eemd|ceemdan, got {emd_method!r}")
+    emd = ctor()
     emd.MAX_ITERATION = 500
     imfs = emd(signal.astype(np.float64), max_imf=max_imfs)
     if imfs.shape[0] >= max_imfs:
@@ -319,6 +330,7 @@ def apply_hht(
     max_imfs: int = 8,
     f_max: float | None = None,
     decim: int = 1,
+    emd_method: str = "emd",
 ) -> np.ndarray:
     """Hilbert-Huang spectrogram.
 
@@ -363,7 +375,7 @@ def apply_hht(
     ])
 
     for c in range(n_ch):
-        imfs = _emd_imfs(x[c], max_imfs=max_imfs)
+        imfs = _emd_imfs(x[c], max_imfs=max_imfs, emd_method=emd_method)
         grid = np.zeros((n_f, T), dtype=np.float32)
         for imf in imfs:
             if np.allclose(imf, 0):

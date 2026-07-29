@@ -115,6 +115,7 @@ def _make_dataset(recs, target_T, args, tfd_method, *, augment, rng_seed,
             f_max=args.f_max, rng_seed=rng_seed, augment=augment,
             tfd_method=tfd_method, cwt_w0=args.cwt_w0, cwt_decim=args.cwt_decim,
             cwt_freq_step=args.cwt_freq_step, hht_max_imfs=args.hht_max_imfs,
+            hht_emd_method=args.hht_emd_method,
             wp_level=args.wp_level, wp_wavelet=args.wp_wavelet,
             log_compress_on=not args.no_log_compress, normalize=args.normalize,
             length_mode=args.length_mode, pad_mode=args.pad_mode,
@@ -296,6 +297,11 @@ def main():
     p.add_argument("--cwt-decim", type=int, default=8)
     p.add_argument("--cwt-freq-step", type=float, default=0.5)
     p.add_argument("--hht-max-imfs", type=int, default=8)
+    p.add_argument("--hht-emd-method", choices=("emd", "eemd", "ceemdan"),
+                   default="emd",
+                   help="EMD variant for HHT. eemd/ceemdan are far more robust "
+                        "to mode-mixing but ~50x/200x slower per channel — "
+                        "practical only with GPU or precomputed features.")
     p.add_argument("--wp-level", type=int, default=5)
     p.add_argument("--wp-wavelet", default="db4")
     p.add_argument("--stft-n-sensors", type=int, default=3)
