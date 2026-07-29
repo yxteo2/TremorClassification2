@@ -39,6 +39,44 @@ model-free class separability (subject-CV LDA macro-F1) on the OUT condition,
 - **Stage 2 — PD vs ET: HHT with 8 IMFs** (best hard-axis separator, 0.651 —
   beats CWT 0.627 and STFT 0.623).
 
+## Deeper dig — SST, finer HHT, feature fusion
+
+| method | 3-class | PD-vs-ET |
+|---|---|---|
+| HHT 7 IMFs | 0.449 | **0.647** |
+| HHT 8 IMFs | 0.454 | 0.651 |
+| HHT 9 / 12 IMFs | 0.442 | 0.629 |
+| CWT w0=6 | 0.544 | 0.627 |
+| STFT-256 | 0.640 | 0.623 |
+| fuse STFT+CWT+HHT | **0.653** | 0.508 |
+| fuse STFT+HHT | 0.648 | 0.528 |
+| SST (synchrosqueezed) | 0.486 | 0.568 |
+
+- **HHT's PD-vs-ET optimum is 7–8 IMFs**; more plateau.
+- **Feature fusion helps 3-class only marginally (0.653) but dilutes PD-vs-ET**
+  (0.508) — extra STFT/CWT dims are noise for the hard binary axis on few ET.
+- **SST is not competitive.**
+
+Converged conclusion: STFT-256 for 3-class / N-vs-tremor, HHT-7/8 for PD-vs-ET,
+CWT as all-rounder; fusion and SST do not beat them.
+
+## Two-stage model test on the tuned decompositions
+Per-patient leave-one-patient-out, logreg two-stage, tuned ET threshold (OUT):
+
+| two-stage config | macro-F1 | ET-F1 | PD-vs-ET acc | N-vs-tremor acc |
+|---|---|---|---|---|
+| **STFT-256** | **0.651** | **0.378** | 0.76 | 0.86 |
+| HYBRID STFT-256→HHT-8 | 0.618 | 0.250 | **0.79** | 0.86 |
+| HHT-8 | 0.584 | 0.250 | 0.78 | 0.81 |
+| CWT | 0.595 | 0.300 | 0.70 | 0.83 |
+| biomarker (ref) | 0.582 | 0.324 | — | — |
+
+- **STFT-256 tuning lifts the two-stage from 0.582 to 0.651 macro-F1** (ET-F1
+  0.324→0.378) vs the biomarker feature set — a real gain from the study.
+- HHT-8 / hybrid win **PD-vs-ET accuracy** (0.78–0.79), consistent with the
+  separability ranking, but their ET-F1 is lower — ET-F1 also depends on
+  stage-1 routing and the minority threshold, not just PD-vs-ET separability.
+
 ## Caveat for model testing
 HHT's transform is ~200× slower than STFT and the training pipeline recomputes
 it per epoch, so an HHT deep stage is impractical on CPU **unless features are
