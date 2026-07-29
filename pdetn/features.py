@@ -19,6 +19,7 @@ import numpy as np
 
 from tremor.biomarker import FEATURE_NAMES, recording_features
 from tremor.data import CLASS_NAMES
+from pdetn.signal_features import ADVANCED_FEATURE_NAMES, advanced_features
 
 CONDITIONS = ("OUT", "REST", "WING")
 
@@ -31,25 +32,32 @@ def _contrast_names() -> list[str]:
     return names
 
 
-def feature_names(conditions=CONDITIONS) -> list[str]:
-    names = [f"{c}__{f}" for c in conditions for f in FEATURE_NAMES]
+def feature_names(conditions=CONDITIONS, advanced: bool = False) -> list[str]:
+    per_feat = list(FEATURE_NAMES) + (list(ADVANCED_FEATURE_NAMES) if advanced else [])
+    names = [f"{c}__{f}" for c in conditions for f in per_feat]
     return names + _contrast_names()
 
 
-def build_patient_table(recs, conditions=CONDITIONS, fs: float = 100.0):
+def build_patient_table(recs, conditions=CONDITIONS, fs: float = 100.0,
+                        advanced: bool = False):
     """Return (X, y, subjects, names).
 
     X : (n_patients, n_features) with NaN for absent conditions.
     y : int label per patient (N/PD/ET). subjects: patient ids.
+    ``advanced`` adds the physiology-informed signal features (regularity,
+    peak sharpness, frequency stability, ...) from ``pdetn.signal_features``.
     """
     # patient -> condition -> list of per-recording feature dicts
     per: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
     label: dict[str, int] = {}
     for r in recs:
-        per[r.subject][r.condition].append(recording_features(r.x, fs=fs))
+        feats = recording_features(r.x, fs=fs)
+        if advanced:
+            feats = {**feats, **advanced_features(r.x, fs=fs)}
+        per[r.subject][r.condition].append(feats)
         label[r.subject] = r.y
 
-    names = feature_names(conditions)
+    names = feature_names(conditions, advanced=advanced)
     patients = sorted(per)
     X = np.full((len(patients), len(names)), np.nan, dtype=float)
 
@@ -59,10 +67,11 @@ def build_patient_table(recs, conditions=CONDITIONS, fs: float = 100.0):
             return np.nan
         return float(np.mean([rf[feat] for rf in recs_f]))
 
+    per_feat = list(FEATURE_NAMES) + (list(ADVANCED_FEATURE_NAMES) if advanced else [])
     col = {n: i for i, n in enumerate(names)}
     for pi, pid in enumerate(patients):
         for c in conditions:
-            for f in FEATURE_NAMES:
+            for f in per_feat:
                 X[pi, col[f"{c}__{f}"]] = cond_mean(pid, c, f)
         # contrasts
         for a, b in (("REST", "WING"), ("REST", "OUT"), ("OUT", "WING")):

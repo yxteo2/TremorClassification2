@@ -24,19 +24,26 @@ from tremor.data import CLASS_NAMES
 N, PD, ET = 0, 1, 2
 
 
-def make_estimator(name: str = "rf"):
-    """A CPU pipeline that tolerates NaN (absent conditions)."""
+def make_estimator(name: str = "rf", k_best: int | None = None):
+    """A CPU pipeline that tolerates NaN (absent conditions).
+
+    ``k_best`` (if set) selects the top-k univariately-discriminative features
+    on the training fold before the classifier — essential when many processed
+    features are available but the cohort is small (avoids overfitting).
+    """
     clf = {
         "rf": RandomForestClassifier(n_estimators=400, class_weight="balanced",
                                      random_state=0),
         "logreg": LogisticRegression(class_weight="balanced", max_iter=2000),
         "lda": LinearDiscriminantAnalysis(),
     }[name]
-    return Pipeline([
-        ("impute", SimpleImputer(strategy="median")),
-        ("scale", StandardScaler()),
-        ("clf", clf),
-    ])
+    steps = [("impute", SimpleImputer(strategy="median")),
+             ("scale", StandardScaler())]
+    if k_best is not None:
+        from sklearn.feature_selection import SelectKBest, f_classif
+        steps.append(("select", SelectKBest(f_classif, k=k_best)))
+    steps.append(("clf", clf))
+    return Pipeline(steps)
 
 
 class TwoStageClassifier:
@@ -49,9 +56,10 @@ class TwoStageClassifier:
     """
 
     def __init__(self, stage1: str = "rf", stage2: str = "rf",
-                 tune_et_threshold: bool = True, cv: int = 4):
-        self.s1 = make_estimator(stage1)
-        self.s2 = make_estimator(stage2)
+                 tune_et_threshold: bool = True, cv: int = 4,
+                 k_best: int | None = None):
+        self.s1 = make_estimator(stage1, k_best=k_best)
+        self.s2 = make_estimator(stage2, k_best=k_best)
         self.tune = tune_et_threshold
         self.cv = cv
         self.et_threshold_ = 0.5
