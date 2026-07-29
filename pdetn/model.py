@@ -102,6 +102,64 @@ class TwoStageClassifier:
         return out
 
 
+class HybridTwoStage:
+    """Two-stage with a DIFFERENT feature representation per stage.
+
+    Stage 1 (N vs tremor) uses ``X1``; stage 2 (PD vs ET) uses ``X2`` — e.g.
+    the decomposition study's STFT-256 for stage 1 and HHT-8IMF for stage 2.
+    Rows of X1 and X2 must be aligned (same patient order). ET threshold in
+    stage 2 is tuned by internal CV on the training fold (leakage-free).
+    """
+
+    def __init__(self, stage1: str = "logreg", stage2: str = "logreg",
+                 tune_et_threshold: bool = True, cv: int = 4,
+                 k_best: int | None = None):
+        self.s1 = make_estimator(stage1, k_best=k_best)
+        self.s2 = make_estimator(stage2, k_best=k_best)
+        self.tune = tune_et_threshold
+        self.cv = cv
+        self.et_threshold_ = 0.5
+
+    def fit(self, X1, X2, y):
+        from sklearn.metrics import f1_score
+        from sklearn.model_selection import StratifiedKFold, cross_val_predict
+        import numpy as np
+        y = np.asarray(y)
+        self.s1.fit(X1, (y != N).astype(int))
+        tremor = y != N
+        self._has_s2 = tremor.sum() >= 2 and len(np.unique(y[tremor])) == 2
+        if self._has_s2:
+            X2t, yt = X2[tremor], (y[tremor] == ET).astype(int)
+            self.et_threshold_ = 0.5
+            n_et = int(yt.sum())
+            if self.tune and n_et >= 3 and (len(yt) - n_et) >= 3:
+                k = int(min(self.cv, n_et, len(yt) - n_et))
+                if k >= 2:
+                    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=0)
+                    proba = cross_val_predict(self.s2, X2t, yt, cv=skf,
+                                              method="predict_proba")[:, 1]
+                    best_t, best_f1 = 0.5, -1.0
+                    for t in np.linspace(0.1, 0.9, 33):
+                        f1 = f1_score(yt, (proba >= t).astype(int), zero_division=0)
+                        if f1 > best_f1:
+                            best_f1, best_t = f1, float(t)
+                    self.et_threshold_ = best_t
+            self.s2.fit(X2t, yt)
+        return self
+
+    def predict(self, X1, X2):
+        import numpy as np
+        is_tremor = self.s1.predict(X1).astype(bool)
+        out = np.full(len(X1), N, dtype=int)
+        idx = np.flatnonzero(is_tremor)
+        if len(idx) and self._has_s2:
+            p_et = self.s2.predict_proba(X2[idx])[:, 1]
+            out[idx] = np.where(p_et >= self.et_threshold_, ET, PD)
+        elif len(idx):
+            out[is_tremor] = PD
+        return out
+
+
 class FlatClassifier:
     """Single 3-class estimator, for comparison against the two-stage model."""
 

@@ -57,6 +57,37 @@ def evaluate(model_factory, X, y, subjects, n_boot: int = 2000,
     }
 
 
+def evaluate_hybrid(model_factory, X1, X2, y, subjects, n_boot: int = 2000,
+                    n_perm: int = 2000, seed: int = 0) -> dict:
+    """Leave-one-patient-out for a HybridTwoStage using two feature matrices
+    (X1 for stage 1, X2 for stage 2), aligned row-for-row."""
+    y = np.asarray(y)
+    preds = np.empty(len(y), dtype=int)
+    for i in range(len(y)):
+        tr = np.ones(len(y), bool); tr[i] = False
+        model = model_factory().fit(X1[tr], X2[tr], y[tr])
+        preds[i] = int(model.predict(X1[i:i + 1], X2[i:i + 1])[0])
+
+    onehot = np.eye(len(CLASS_NAMES))[preds]
+    rep = classification_report(np.log(onehot + 1e-6), y, CLASS_NAMES)
+    ci = bootstrap_subject_ci(y, preds, np.asarray(subjects), CLASS_NAMES,
+                              n_boot=n_boot, seed=seed)
+    perm = permutation_test(y, preds, np.asarray(subjects), CLASS_NAMES,
+                            n_perm=n_perm, seed=seed)
+    tremor_true = y != 0
+    pdet_mask = (y != 0) & (preds != 0)
+    return {
+        "macro_f1": rep["macro_f1"], "accuracy": rep["accuracy"],
+        "per_class_f1": {c: rep["per_class"][c]["f1"] for c in CLASS_NAMES},
+        "confusion_matrix": rep["confusion_matrix"],
+        "ci": {k: {"point": e.point, "lo": e.lo, "hi": e.hi} for k, e in ci.items()},
+        "permutation_p": perm["p_value"],
+        "n_vs_tremor_acc": float(((preds != 0) == tremor_true).mean()),
+        "pd_vs_et_acc": (float((preds[pdet_mask] == y[pdet_mask]).mean())
+                         if pdet_mask.any() else float("nan")),
+    }
+
+
 def print_result(tag: str, res: dict) -> None:
     c = res["ci"]
     print(f"\n=== {tag} ===")

@@ -44,6 +44,21 @@ def method_features(recs, method: str, fs: float = 100.0, f_max: float = 15.0,
     return X, y, subjects
 
 
+def patient_decomp_features(recs, method: str, fs: float = 100.0,
+                            f_max: float = 15.0, **tfd_kwargs):
+    """Per-PATIENT reduced TF features (mean over the patient's recordings).
+
+    Returns (X, y, patients) aligned by sorted patient id, so two calls with
+    different methods can be column-stacked / used per stage of a hybrid model.
+    """
+    Xr, yr, subj = method_features(recs, method, fs=fs, f_max=f_max, **tfd_kwargs)
+    patients = sorted(set(subj.tolist()))
+    X = np.stack([Xr[subj == p].mean(axis=0) for p in patients])
+    label = {s: int(l) for s, l in zip(subj, yr)}
+    y = np.array([label[p] for p in patients])
+    return X, y, np.array(patients)
+
+
 def fisher_trace_ratio(X: np.ndarray, y: np.ndarray) -> float:
     Xs = StandardScaler().fit_transform(X)
     overall = Xs.mean(axis=0)
