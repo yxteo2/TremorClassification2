@@ -26,17 +26,25 @@ from tremor.quaternion_data import load_quaternion_recordings
 from pdetn.separability import method_features
 from pdetn.signal_features import ADVANCED_FEATURE_NAMES, advanced_features
 
-HAND = slice(0, 3)   # local: first 3 channels are the hand sensor
+# Single-sensor slices (3 angular-velocity channels each). A wrist smartwatch
+# (PADS) sits closest to lower_arm; hand is the most distal.
+SENSOR_SLICES = {"hand": slice(0, 3), "lower_arm": slice(3, 6), "upper_arm": slice(6, 9)}
 
 
-def load_local_hand(data_root, action="OUT"):
-    """Local recordings restricted to the hand sensor (3 ch) to match PADS wrist."""
+def load_local_sensor(data_root, action="OUT", sensor="lower_arm"):
+    """Local recordings restricted to ONE sensor (3 ch) to match PADS wrist."""
+    sl = SENSOR_SLICES[sensor]
     recs = load_quaternion_recordings(data_root, action=action, mode="angular_velocity")
     out = []
     for r in recs:
-        out.append(Recording(x=r.x[HAND], y=r.y, subject=f"LOCAL_{r.subject}",
+        out.append(Recording(x=r.x[sl], y=r.y, subject=f"LOCAL_{r.subject}",
                              path=r.path, condition=action))
     return out
+
+
+def load_local_hand(data_root, action="OUT"):
+    """Backwards-compatible: hand sensor."""
+    return load_local_sensor(data_root, action=action, sensor="hand")
 
 
 def _hand_feats(x, fs=100.0):
