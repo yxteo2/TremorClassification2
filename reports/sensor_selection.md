@@ -21,6 +21,14 @@ tremor band, and the upper arm barely moves; the **forearm is the sweet spot**
 where tremor is expressed cleanly. Using all 9 channels *diluted* the signal
 with noisier channels — restricting to the right single sensor beat using more.
 
+**Physical placement (per data collection):** the `lower_arm` sensor was placed
+**near the wrist**, and the `hand` sensor **on the hand**. So `lower_arm` is not
+merely "closest" to a wrist smartwatch — it is essentially the **same location
+as PADS's wrist watch**. The best-performing sensor is therefore the correct
+cross-dataset match with **no anatomical compromise**: same signal quality AND
+same placement, which should minimise sensor-location domain shift (watch the
+dataset-identity probe to confirm).
+
 ## Consequences
 - **Best interpretable model: lower_arm single-sensor, ET-F1 0.516** (features:
   STFT-256 profile + biomarker + regularity, no spatial).
