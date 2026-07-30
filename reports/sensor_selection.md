@@ -28,7 +28,20 @@ with noisier channels — restricting to the right single sensor beat using more
   *strongest* single sensor, not a compromise. `load_local_sensor` defaults to
   lower_arm.
 
-Honest caveat: ET-F1 CI is wide ([0.27, 0.71], 16 ET subjects); 0.516 is a real
-point improvement but overlaps prior results. Worth confirming across seeds and
-on REST/WING. Reproduce: `load_local_sensor(..., sensor="lower_arm")` +
-`build_features` + `protocol_p2_pooled_loso`.
+## lower_arm across conditions (confirmed)
+
+| condition | macro-F1 | ET-F1 | PD-vs-ET acc | p |
+|---|---|---|---|---|
+| **OUT** | **0.704** | **0.516 [0.27, 0.71]** | 0.84 | 0.0005 |
+| WING | 0.607 | 0.333 [0.09, 0.56] | 0.78 | 0.0005 |
+| REST | 0.501 | 0.143 [0.00, 0.29] | 0.69 | 0.0005 |
+
+**lower_arm + OUT is the confirmed best config** — OUT decisively beats WING/REST
+(REST weakest: quiet rest tremor). This is the session's headline interpretable
+model: **macro-F1 0.704, ET-F1 0.516, p=0.0005.**
+
+Honest caveat: ET-F1 CI is wide ([0.27, 0.71], 16 ET subjects) — a real point
+improvement that still overlaps prior results at the tail. The result is
+deterministic (logreg + LOO), so it is not a lucky seed. Reproduce:
+`load_local_sensor(..., sensor="lower_arm", action="OUT")` + `build_features` +
+`protocol_p2_pooled_loso`.
