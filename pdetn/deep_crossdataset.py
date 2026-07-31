@@ -109,7 +109,10 @@ def predict_3class(model, recs, target_length):
 # Variant 5a: two-stage deep (N-vs-tremor, then dedicated PD-vs-ET)
 # --------------------------------------------------------------------------- #
 class DeepTwoStage:
-    def __init__(self, target_length, tune_et=True, **kw):
+    def __init__(self, target_length, tune_et=False, **kw):
+        # tune_et defaults OFF: on tiny val ET sets (~2-3 subjects) the tuned
+        # threshold destabilises the deep PD-vs-ET model (over-calls ET). The
+        # local test showed 3-class beats two-stage for the deep model anyway.
         self.tl = target_length; self.tune = tune_et; self.kw = kw; self.thr = 0.5
 
     def fit(self, train_recs, val_recs):

@@ -34,6 +34,23 @@ python -m pdetn.pads_deep_experiment --data-root Data --pads-root PADS \
 PD-vs-ET accuracy (the headline), macro-F1, per-class F1, confusion matrix.
 Saved to `artifacts/pads_deep/results.json`.
 
+## Local test result (before you have PADS)
+
+Ran on LOCAL data (lower_arm, OUT, 5-fold GroupKFold, 60 epochs) to compare the
+variants — **3-class clearly wins for the deep model:**
+
+| deep variant | PD-vs-ET acc | macro-F1 |
+|---|---|---|
+| **3-class (5b)** | **0.802** | **0.614** |
+| two-stage, tuning off | 0.549 | 0.516 |
+| two-stage, tuning on | 0.177 (broken) | 0.363 |
+
+The deep two-stage's dedicated PD-vs-ET model has too little ET data and the
+val-set threshold tuning destabilises it. **Use the 3-class variant** as the
+deep headline; two-stage tuning is now OFF by default. (This is the opposite of
+the interpretable model, where two-stage helped — logistic regression is
+low-variance, a deep net is data-hungry.)
+
 ## Notes
 - **Single sensor** (local `lower_arm` ~ PADS wrist) — spatial features excluded
   (PADS is wrist-only). Both are 100 Hz gyroscope, STFT-256 spectrograms.
