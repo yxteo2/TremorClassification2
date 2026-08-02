@@ -153,8 +153,9 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool):
                 raise SystemExit(f"{f}: has {arr.shape[1]} cols; GYRO_COLS={GYRO_COLS} invalid — check --inspect")
             arr = arr[:, GYRO_COLS]
         wr = "RightWrist" if "right" in f.stem.lower() else ("LeftWrist" if "left" in f.stem.lower() else "NA")
-        outfile = out / f"{cls}_{pid}_{wr}.npy"
-        np.save(outfile, arr.astype(np.float32))
+        outfile = out / f"{cls}_{pid}_{wr}.txt"
+        # comma-separated text (same format as the local raw_quaternion data)
+        np.savetxt(outfile, arr.astype(np.float32), delimiter=",", fmt="%.6f")
         manifest.append({"file": outfile.name, "patient": pid, "class": cls,
                          "wrist": wr, "n_samples": arr.shape[0], "n_channels": arr.shape[1],
                          "raw_label": lab[1]})
@@ -167,7 +168,7 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool):
     n_pat = len({m["patient"] for m in manifest})
     print(f"extracted {len(manifest)} StretchHold recordings, {n_pat} patients")
     print(f"  per class: {counts}   (skipped {skipped} non-N/PD/ET or unlabeled)")
-    print(f"  saved -> {out}/ (one .npy per recording + manifest.csv)")
+    print(f"  saved -> {out}/ (one .txt per recording + manifest.csv)")
 
 
 def main():
