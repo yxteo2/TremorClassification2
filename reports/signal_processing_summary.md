@@ -35,6 +35,67 @@ honest (subject/patient-level LOSO, tuned ET threshold, subject bootstrap CIs).
 | cross-sensor phase (lower–upper) | REST | −0.34, p=0.004 | tremor propagation differs |
 | sample entropy | OUT | −0.33, p=0.006 | PD more regular |
 
+## Rectification: the magnitude reduction, and why we keep it
+
+Checking the frequency **distributions** exposed that the vector-magnitude
+reduction `sqrt(gx²+gy²+gz²)` **rectifies** the signal — squaring a 6 Hz
+oscillation puts energy at 12 Hz. Measured on the local data:
+
+| class | peak via magnitude | peak via per-channel PSD | ratio |
+|---|---|---|---|
+| PD | 7.81 Hz | 6.64 Hz | 1.18 |
+| ET | 11.72 Hz | 6.64 Hz | 1.76 |
+
+We tested the principled fix (`mode='pc1'`: project onto the first principal
+component of the bandpassed axes, preserving the signed oscillation):
+
+| features | macro-F1 | ET-F1 | PD-vs-ET |
+|---|---|---|---|
+| spatial magnitude | **0.627** | **0.409** | 0.73 |
+| spatial pc1 | 0.512 | 0.254 | 0.47 |
+| signal magnitude | **0.529** | **0.294** | 0.74 |
+| signal pc1 | 0.384 | 0.200 | 0.28 |
+| TF+spatial magnitude | **0.662** | **0.421** | 0.77 |
+| TF+spatial pc1 | 0.651 | 0.378 | 0.76 |
+
+**The magnitude wins everywhere.** Two reasons: (1) it is **rotation-invariant**,
+whereas PC1 depends on the dominant oscillation axis, which varies with sensor
+placement across subjects; (2) it retains **amplitude-modulation** structure
+(tremor waxing/bursting) that PC1 discards — visible in the spatial coherence
+collapse (PD-vs-ET 0.73 → 0.47), since envelope co-fluctuation across sensors is
+a robust propagation measure while PC1 coherence needs the limb segments'
+rotation axes to align.
+
+**Consequence for the write-up (naming, not performance):** features derived
+from the magnitude in `pdetn/signal_features.py` and `spatial_features.py`
+describe the tremor **envelope**, not the raw oscillation — so "dominant
+frequency"/"Q-factor" there should be described as envelope measures. The
+biomarker frequencies reported in `reports/biomarker.md` are **unaffected**:
+`tremor/biomarker.py` computes per-channel PSDs and averages them (no
+rectification), so PD ≈ 7 Hz / ET ≈ 6 Hz are correct tremor frequencies.
+`mode='pc1'` remains available but the default stays `magnitude`.
+
+## Key distribution finding: the classes overlap in frequency
+
+Plain frequency measures (max / mean / median), PD-vs-ET **distribution overlap**
+(1.0 = identical):
+
+| measure | LOCAL | PADS |
+|---|---|---|
+| max (peak) frequency | 0.67 | 0.66 |
+| mean frequency | 0.53 | 0.73 |
+| median frequency | 0.62 | 0.73 |
+
+Two-thirds of the PD and ET distributions coincide, **in both datasets
+independently**, while N separates strongly (Kruskal-Wallis p = 1e-10 to 1e-16).
+Computed without rectification, PD and ET even share the same median dominant
+frequency on the lower_arm sensor (6.64 Hz vs 6.64 Hz).
+
+**This explains why no time-frequency method helped:** the classes are not
+separated along the frequency axis, so finer frequency *resolution* has nothing
+to resolve. It also explains why the spatial/propagation features were the only
+ones that improved ET-F1 — they carry information orthogonal to frequency.
+
 ## The binding conclusion
 Across 8 TF methods, spatial, nonlinear-dynamics, higher-order, and parametric
 features — plus parameter sweeps, fusion, selection, and curated sets — the
