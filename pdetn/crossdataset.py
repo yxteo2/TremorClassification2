@@ -47,6 +47,22 @@ def load_local_hand(data_root, action="OUT"):
     return load_local_sensor(data_root, action=action, sensor="hand")
 
 
+def load_pads_extracted(folder):
+    """Load the StretchHold data extracted by pdetn.extract_pads (<cls>_<pid>_<wrist>.txt)."""
+    import re
+    cmap = {"N": 0, "PD": 1, "ET": 2}
+    recs = []
+    for f in sorted(Path(folder).glob("*.txt")):
+        m = re.match(r"(N|PD|ET)_(\d+)_(\w+)", f.stem)
+        if not m:
+            continue
+        cls, pid, _ = m.groups()
+        x = np.loadtxt(f, delimiter=",", ndmin=2).T          # (3, T) gyro
+        recs.append(Recording(x=x.astype(np.float32), y=cmap[cls],
+                             subject=f"PADS_{pid}", path=f, condition="OUT"))
+    return recs
+
+
 def _hand_feats(x, fs=100.0):
     d = recording_features(x, fs=fs)               # biomarker (uses ch 0-2)
     d.update(advanced_features(x, fs=fs))          # regularity/sharpness
