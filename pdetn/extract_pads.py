@@ -142,7 +142,7 @@ def inspect(root: Path):
 
 
 def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
-            trim_start: float = 1.5, trim_end: float = 0.0):
+            trim_start: float = 0.0, trim_end: float = 0.0):
     ts_dir, pat_dir = find_dirs(root)
     labels = load_patient_labels(pat_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -202,9 +202,10 @@ def main():
                    help="keep only gyroscope (angular velocity) axes (default).")
     p.add_argument("--all-axes", dest="gyro_only", action="store_false",
                    help="keep all 6 axes (accel + gyro).")
-    p.add_argument("--trim-start", type=float, default=1.5,
+    p.add_argument("--trim-start", type=float, default=0.0,
                    help="seconds to drop from the start (arm-raising onset). "
-                        "Default 1.5; set 0 to keep the full recording.")
+                        "Default 0 (tested: trimming 1.5s did NOT help -- "
+                        "PADS-only ET-F1 0.26->0.20 and domain shift unchanged).")
     p.add_argument("--trim-end", type=float, default=0.0,
                    help="seconds to drop from the end (arm-lowering offset).")
     p.add_argument("--inspect", action="store_true",
