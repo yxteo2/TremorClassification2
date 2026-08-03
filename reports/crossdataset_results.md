@@ -115,3 +115,42 @@ result — more valuable than an over-claimed number on one small cohort.
 
 Reproduce: extract PADS with `pdetn.extract_pads`, then the pooled/PADS-only
 loaders in this session (to be folded into `pdetn/crossdataset.py`).
+
+## SECOND REVISION — orientation is NOT the driver of the domain shift
+
+The revision above attributed the shift to "orientation + scale". A direct test
+isolating orientation shows the **orientation half of that was wrong**.
+
+**Measured axis alignment** (bandpassed tremor power per gyro axis):
+
+| dataset | x | y | z | dominant axis |
+|---|---|---|---|---|
+| LOCAL (lower_arm) | 0.165 | 0.283 | **0.552** | z in 225/274 recordings |
+| PADS (wrist) | 0.034 | **0.624** | 0.342 | y in 618/832 recordings |
+
+The frames genuinely differ (max per-axis discrepancy 0.34), and tremor is highly
+anisotropic in both (0.59 / 0.70 vs 0.33 for isotropic) — so orientation strongly
+shapes per-channel features.
+
+**But correcting it changes nothing.** Rotating every recording into a canonical
+SVD frame (dominant tremor axis → channel 0, all 3 channels preserved):
+
+| frame | dataset-identity AUC | PD-vs-ET local-only | local + PADS |
+|---|---|---|---|
+| original | 0.993 | **AUC 0.873, ET-F1 0.480** | 0.673 / 0.316 |
+| canonical | 0.990 | AUC 0.711, ET-F1 0.091 | 0.645 / 0.308 |
+
+1. **Identity AUC is unchanged (0.993 → 0.990)** — orientation is not what makes
+   the datasets separable. The earlier drop to 0.526 came from *scale
+   normalisation* plus dropping the noise-sensitive regularity features (see the
+   invariance sweet-spot table, where adding regularity moved AUC 0.564 → 0.977).
+   The dominant factor is **amplitude/noise characteristics**, not orientation.
+2. **Canonicalisation badly hurts the local model** (AUC 0.873 → 0.711, ET-F1
+   0.480 → 0.091). The anatomical axis orientation is **informative, not
+   nuisance** — tremor has a consistent anatomical direction under a fixed
+   mounting protocol — and SVD sign/ordering ambiguity additionally scrambles the
+   minor channels between recordings.
+
+**Net:** keep the original sensor frame. Axis misalignment is real but is neither
+the cause of the domain shift nor worth correcting; correcting it costs
+substantial accuracy.
