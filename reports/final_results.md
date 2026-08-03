@@ -34,25 +34,44 @@ engineered-feature model is **not** beaten by the deep model.
 
 ## AXIS 2 — PD vs ET  (n = 90 patients: 75 PD, 15 ET)
 
-Features: STFT spectral profile + spatial, condition OUT.
+**Best configuration — `lower_arm` sensor only**, STFT spectral profile +
+biomarker/signal features, condition OUT:
 
 | metric | value |
 |---|---|
-| Accuracy | 0.833  95% CI [0.756, 0.911] — **equals the 0.833 majority baseline** |
-| Balanced accuracy | 0.607 |
-| **AUC** | **0.800** |
+| **AUC** | **0.873** |
+| Balanced accuracy | 0.673 |
 
 | class | precision | recall | F1 | support |
 |---|---|---|---|---|
-| PD | 0.866 | 0.947 | 0.904 | 75 |
-| **ET** | **0.500** | **0.267** | **0.348** (95% CI 0.095–0.588) | 15 |
-| macro avg | 0.683 | 0.607 | 0.626 | 90 |
+| PD | 0.887 | 0.947 | 0.916 | 75 |
+| **ET** | **0.600** | **0.400** | **0.480** | 15 |
 
-Sensitivity (ET) 0.267 · Specificity (PD) 0.947
-Confusion: `[[TN 71, FP 4], [FN 11, TP 4]]`
+ET detected 6/15 at only 4 false positives.
+
+**Sensor comparison** (same axis, same patients) — the forearm sensor alone beats
+using all three, mirroring the Axis-1/sensor-selection finding:
+
+| config | AUC | ET precision | ET recall | ET F1 |
+|---|---|---|---|---|
+| **lower_arm only** | **0.873** | **0.600** | **0.400** | **0.480** |
+| all 9 channels + spatial | 0.800 | 0.500 | 0.267 | 0.348 |
 
 **Reporting note:** raw accuracy is meaningless on this axis — "always PD" scores
-0.833. Report **AUC and balanced accuracy**, and the per-class table.
+0.833. Report **AUC and balanced accuracy**, plus the per-class table.
+
+### PADS augmentation on this axis — tested, does not help
+Adding PADS's 41 ET patients (training ET 15 → 56; tested on local patients only,
+with per-dataset standardisation):
+
+| training set | AUC | ET precision | ET recall | ET F1 | ET found | false-ET |
+|---|---|---|---|---|---|---|
+| **LOCAL only** | **0.873** | **0.600** | 0.400 | **0.480** | 6/15 | **4** |
+| LOCAL + PADS | 0.686 | 0.389 | 0.467 | 0.424 | 7/15 | 11 |
+
+Quadrupling the ET training examples finds one extra ET patient but nearly
+triples false positives and costs 0.19 AUC. The device domain shift outweighs the
+extra data — **PADS is a validation cohort, not training data.**
 
 ---
 
