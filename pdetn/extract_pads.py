@@ -27,10 +27,14 @@ import numpy as np
 
 TASK = "StretchHold"
 
-# ---- VERIFY 1: gyroscope columns in each timeseries file --------------------
-# PADS records 6 axes: accelerometer (x,y,z) then gyroscope (x,y,z). Gyro =
-# angular velocity, which matches your data. Adjust if --inspect shows otherwise.
+# ---- Gyroscope columns (CONFIRMED from PADS scripts/load_specific_txt_file.py):
+# channel order per file is
+#   ['Accelerometer_X','Accelerometer_Y','Accelerometer_Z',
+#    'Gyroscope_X','Gyroscope_Y','Gyroscope_Z']
+# so cols 3,4,5 are the gyroscope (angular velocity), matching the local data.
+# There is NO time/index column (6 channels, all sensor).
 GYRO_COLS = [3, 4, 5]
+FS_HZ = 100.0   # PADS documented sampling rate; written to the manifest
 
 # ---- VERIFY 2: how the diagnosis is stored in patients/patient_<id>.json -----
 # We search these keys (and nested dicts) for a diagnosis string, then normalise.
@@ -119,7 +123,15 @@ def inspect(root: Path):
         for line in sample.read_text().splitlines()[:3]:
             print("   ", line[:120])
         arr = load_timeseries(sample)
-        print(f"   shape (T, axes) = {arr.shape}  -> using gyro cols {GYRO_COLS}\n")
+        print(f"   shape (T, axes) = {arr.shape}  -> using gyro cols {GYRO_COLS}")
+        # time-column safety check: PADS has no time column (6 sensor axes). If
+        # column 0 is monotonically increasing it is a time/index column and the
+        # gyro columns would be off by one.
+        col0 = arr[:, 0]
+        mono = bool(np.all(np.diff(col0) > 0))
+        print(f"   column 0 monotonic (time/index?) = {mono}  "
+              f"{'<-- WARNING: shift GYRO_COLS by +1' if mono else '(ok, sensor data)'}")
+        print(f"   duration = {arr.shape[0]/FS_HZ:.1f}s at assumed fs={FS_HZ:g}Hz\n")
     pj = next(iter(pat_dir.glob("patient_*.json")), None) if pat_dir else None
     if pj:
         meta = json.loads(pj.read_text())
@@ -158,12 +170,14 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool):
         np.savetxt(outfile, arr.astype(np.float32), delimiter=",", fmt="%.6f")
         manifest.append({"file": outfile.name, "patient": pid, "class": cls,
                          "wrist": wr, "n_samples": arr.shape[0], "n_channels": arr.shape[1],
+                         "fs_hz": FS_HZ, "duration_s": round(arr.shape[0] / FS_HZ, 3),
                          "raw_label": lab[1]})
         counts[cls] += 1
 
     with open(out / "manifest.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=["file", "patient", "class", "wrist",
-                                           "n_samples", "n_channels", "raw_label"])
+                                           "n_samples", "n_channels", "fs_hz",
+                                           "duration_s", "raw_label"])
         w.writeheader(); w.writerows(manifest)
     n_pat = len({m["patient"] for m in manifest})
     print(f"extracted {len(manifest)} StretchHold recordings, {n_pat} patients")
