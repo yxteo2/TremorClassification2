@@ -135,3 +135,39 @@ def dataset_identity_probe(X, dataset):
     pipe = make_pipeline(SimpleImputer(strategy="median"), StandardScaler(),
                          LogisticRegression(max_iter=2000))
     return float(cross_val_score(pipe, X, d, cv=5, scoring="roc_auc").mean())
+
+
+# --------------------------------------------------------------------------- #
+# Rotation- and scale-invariant features (for cross-dataset work)
+# --------------------------------------------------------------------------- #
+def invariant_features(recs, n_bins: int = 40, lo: float = 3.0, hi: float = 15.0,
+                       fs: float = 100.0):
+    """Per-patient features invariant to sensor orientation AND amplitude scale.
+
+    Summing the PSD across the 3 axes gives the **trace of the spectral matrix**,
+    which is unchanged by any rotation of the sensor coordinate frame — so this
+    achieves what explicit coordinate correction would, without needing either
+    dataset's reference frame (which also sidesteps the fact that per-subject
+    mounting orientation is not recorded in either dataset). Normalising the
+    resulting spectrum to sum 1 additionally removes amplitude scale.
+
+    Measured effect: the dataset-identity probe drops from AUC 0.999 (full
+    features) to 0.526 (chance) — i.e. the local/PADS domain shift is largely an
+    orientation+scale effect. See reports/crossdataset_results.md.
+    """
+    from collections import defaultdict
+    from scipy.signal import welch
+    per = defaultdict(list)
+    label = {}
+    for r in recs:
+        n = int(min(256, r.x.shape[1]))
+        f, P = welch(r.x, fs=fs, nperseg=n, axis=-1)
+        P = P.sum(axis=0)                         # rotation-invariant (trace)
+        m = (f >= lo) & (f < hi)
+        p = P[m] / (P[m].sum() + 1e-18)           # scale-invariant (shape)
+        per[r.subject].append(np.interp(np.linspace(lo, hi, n_bins), f[m], p))
+        label[r.subject] = r.y
+    pats = sorted(per)
+    X = np.array([np.mean(per[k], axis=0) for k in pats])
+    y = np.array([label[k] for k in pats])
+    return X, y, np.array(pats)

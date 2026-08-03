@@ -50,6 +50,53 @@ Adding PADS training data **reduces** performance on your own patients (ET-F1
 help. **PADS is useful only as an independent validation cohort, not as extra
 training data.**
 
+## REVISION — the domain shift is orientation + scale, and it is fixable
+
+The conclusion above ("pooling is blocked by an intractable device effect") was
+**too pessimistic**. Testing the sensor-coordinate hypothesis showed the shift is
+largely an **orientation and amplitude-scale** effect, which can be removed
+*without* knowing either dataset's reference frame: summing the PSD across the
+three axes gives the **trace of the spectral matrix**, invariant to any rotation;
+normalising the spectrum to sum 1 additionally removes scale.
+(`pdetn.crossdataset.invariant_features`.)
+
+| feature space | dataset-identity AUC |
+|---|---|
+| full features | 0.999 |
+| **rotation + scale invariant (40-dim spectral shape)** | **0.526 (chance)** |
+| rich invariant (+10 signal features) | 0.978 — the signal features re-introduce device signature |
+
+With truly invariant features the two datasets become **statistically
+indistinguishable**, and operations that previously failed start working:
+
+| setting (invariant features) | macro-F1 | ET-F1 | before (full features) |
+|---|---|---|---|
+| LOCAL-only | 0.508 | 0.276 | — |
+| **TRANSFER PADS→local** | **0.540** | **0.364** | 0.220 / 0.20 (failed) |
+| **AUGMENTED (PADS in train, test local)** | 0.535 | **0.368** [0.17, 0.55] | 0.599 / 0.350 (hurt) |
+| POOLED (44 ET) | 0.472 | 0.250 | 0.525 / 0.290 |
+
+* **PADS→local transfer now generalises** (ET-F1 0.364 vs 0.276 for local-only on
+  the same features) — real cross-dataset generalisation, previously impossible.
+* **Augmentation now helps instead of hurting** (0.276 → 0.368), though the CI is
+  wide and the gain is within noise.
+* local→PADS transfer still fails — expected asymmetry: 151 patients / 16 ET
+  cannot cover PADS's 416 / 41, but the reverse direction does.
+
+**The trade-off that remains.** Invariance costs more discriminative power than
+PADS adds: the best invariant result (ET-F1 ≈ 0.37) still trails the full-feature
+local model (**0.516**), because the most informative features — absolute power,
+orientation structure, spatial propagation — are precisely those carrying the
+device signature. Amplitude/noise characteristics also differ (PADS peaks are
+~3.3× larger at equal RMS: raw gyro vs our smoother quaternion-derived rate),
+which is *not* removed by rotation correction.
+
+**Revised conclusion:** cross-dataset combination is **possible** in an
+orientation/scale-invariant feature space — it is not an intractable device
+barrier — but on this task invariance costs more than the extra ET subjects buy,
+so the best overall model remains the local full-feature one. The
+invariance-vs-discriminability tension is itself a reportable finding.
+
 ## Interpretation (a real contribution)
 PD-vs-ET differentiation from a single wrist/forearm IMU at the postural
 (arms-outstretched) task is **intrinsically hard**, confirmed across two
