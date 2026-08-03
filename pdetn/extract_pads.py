@@ -141,7 +141,8 @@ def inspect(root: Path):
         print(f"   detected label: {lab}  (from value {raw!r})")
 
 
-def extract(root: Path, out: Path, wrist: str, gyro_only: bool):
+def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
+            trim_start: float = 1.5, trim_end: float = 0.0):
     ts_dir, pat_dir = find_dirs(root)
     labels = load_patient_labels(pat_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -164,6 +165,12 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool):
             if arr.shape[1] <= max(GYRO_COLS):
                 raise SystemExit(f"{f}: has {arr.shape[1]} cols; GYRO_COLS={GYRO_COLS} invalid — check --inspect")
             arr = arr[:, GYRO_COLS]
+        # Trim the arm-raising onset (and optional offset) so only the steady
+        # outstretched hold remains — PADS StretchHold includes a ~1 s raise
+        # transient that the local OUT data does not.
+        s0 = int(round(trim_start * FS_HZ)); e0 = int(round(trim_end * FS_HZ))
+        if (s0 or e0) and arr.shape[0] - s0 - e0 > int(FS_HZ):   # keep >= 1 s
+            arr = arr[s0: arr.shape[0] - e0 if e0 else arr.shape[0]]
         wr = "RightWrist" if "right" in f.stem.lower() else ("LeftWrist" if "left" in f.stem.lower() else "NA")
         outfile = out / f"{cls}_{pid}_{wr}.txt"
         # comma-separated text (same format as the local raw_quaternion data)
@@ -195,6 +202,11 @@ def main():
                    help="keep only gyroscope (angular velocity) axes (default).")
     p.add_argument("--all-axes", dest="gyro_only", action="store_false",
                    help="keep all 6 axes (accel + gyro).")
+    p.add_argument("--trim-start", type=float, default=1.5,
+                   help="seconds to drop from the start (arm-raising onset). "
+                        "Default 1.5; set 0 to keep the full recording.")
+    p.add_argument("--trim-end", type=float, default=0.0,
+                   help="seconds to drop from the end (arm-lowering offset).")
     p.add_argument("--inspect", action="store_true",
                    help="print file-format structure and exit (run this first).")
     args = p.parse_args()
@@ -202,7 +214,8 @@ def main():
     if args.inspect:
         inspect(args.pads_root)
     else:
-        extract(args.pads_root, args.out, args.wrist, args.gyro_only)
+        extract(args.pads_root, args.out, args.wrist, args.gyro_only,
+                trim_start=args.trim_start, trim_end=args.trim_end)
 
 
 if __name__ == "__main__":
