@@ -26,14 +26,21 @@ SENSORS = {"hand": (0, 1, 2), "lower": (3, 4, 5), "upper": (6, 7, 8)}
 TREMOR_LO, TREMOR_HI = 3.0, 15.0
 
 
-def _sensor_mag(x: np.ndarray, fs: float, chans) -> np.ndarray:
+def _sensor_mag(x: np.ndarray, fs: float, chans, mode: str = "magnitude") -> np.ndarray:
+    """One 1-D tremor signal per sensor. mode='pc1' avoids rectification
+    (magnitude squares the signal, doubling apparent frequency)."""
     sos = butter(4, [TREMOR_LO, TREMOR_HI], btype="band", fs=fs, output="sos")
     filt = sosfiltfilt(sos, x[list(chans)], axis=-1)
+    if mode == "pc1":
+        X = filt.T - filt.T.mean(axis=0)
+        _, _, Vt = np.linalg.svd(X, full_matrices=False)
+        return X @ Vt[0]
     return np.sqrt(np.sum(filt ** 2, axis=0))
 
 
-def spatial_features(x: np.ndarray, fs: float = 100.0) -> dict[str, float]:
-    sig = {s: _sensor_mag(x, fs, ch) for s, ch in SENSORS.items()}
+def spatial_features(x: np.ndarray, fs: float = 100.0,
+                     mode: str = "magnitude") -> dict[str, float]:
+    sig = {s: _sensor_mag(x, fs, ch, mode=mode) for s, ch in SENSORS.items()}
     P = {s: float(np.var(v)) + 1e-12 for s, v in sig.items()}
     feats: dict[str, float] = {}
 

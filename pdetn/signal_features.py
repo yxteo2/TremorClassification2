@@ -21,12 +21,28 @@ HAND_CHANNELS = (0, 1, 2)
 TREMOR_LO, TREMOR_HI = 3.0, 15.0
 
 
-def _tremor_magnitude(x: np.ndarray, fs: float, channels=HAND_CHANNELS) -> np.ndarray:
-    """Bandpass each hand axis to 3-15 Hz, then take vector magnitude."""
+def _tremor_magnitude(x: np.ndarray, fs: float, channels=HAND_CHANNELS,
+                      mode: str = "magnitude") -> np.ndarray:
+    """Bandpass the axes to 3-15 Hz and reduce to one 1-D tremor signal.
+
+    mode:
+      * ``magnitude`` — vector magnitude sqrt(sum(ch^2)). NOTE this **rectifies**
+        the signal: squaring a 6 Hz oscillation puts energy at 12 Hz, so
+        frequency-derived features measure the envelope, not the tremor.
+      * ``pc1`` — project onto the first principal component of the bandpassed
+        axes, i.e. the dominant axis of oscillation. Keeps the *signed*
+        oscillation, so frequencies are the true tremor frequencies.
+    """
     sos = butter(4, [TREMOR_LO, TREMOR_HI], btype="band", fs=fs, output="sos")
     ax = x[list(channels)]
-    filt = sosfiltfilt(sos, ax, axis=-1)
-    return np.sqrt(np.sum(filt ** 2, axis=0))          # (time,)
+    filt = sosfiltfilt(sos, ax, axis=-1)               # (C, T)
+    if mode == "magnitude":
+        return np.sqrt(np.sum(filt ** 2, axis=0))      # (T,) rectified
+    if mode == "pc1":
+        X = filt.T - filt.T.mean(axis=0)               # (T, C)
+        _, _, Vt = np.linalg.svd(X, full_matrices=False)
+        return X @ Vt[0]                               # (T,) signed
+    raise ValueError(f"mode must be magnitude|pc1, got {mode!r}")
 
 
 def _hjorth(sig: np.ndarray) -> tuple[float, float]:
@@ -111,9 +127,13 @@ def _amplitude_modulation(sig: np.ndarray) -> float:
 
 
 def advanced_features(x: np.ndarray, fs: float = 100.0,
-                      channels=HAND_CHANNELS) -> dict[str, float]:
-    """All physiology-informed signal features for one recording."""
-    sig = _tremor_magnitude(x, fs, channels)
+                      channels=HAND_CHANNELS,
+                      mode: str = "magnitude") -> dict[str, float]:
+    """All physiology-informed signal features for one recording.
+
+    ``mode='pc1'`` avoids the rectification artifact (see _tremor_magnitude).
+    """
+    sig = _tremor_magnitude(x, fs, channels, mode=mode)
     feats: dict[str, float] = {}
     feats.update(_spectral_shape(sig, fs))
     mob, comp = _hjorth(sig)
