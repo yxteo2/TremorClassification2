@@ -27,6 +27,16 @@ import numpy as np
 
 TASK = "StretchHold"
 
+# PADS task order, from the dataset's own scripts/run_preprocessing.py:
+ALL_TASKS = ['Relaxed1', 'Relaxed2', 'RelaxedTask1', 'RelaxedTask2', 'StretchHold',
+             'LiftHold', 'HoldWeight', 'PointFinger', 'DrinkGlas', 'CrossArms',
+             'TouchIndex', 'TouchNose', 'Entrainment1', 'Entrainment2']
+# NOTE: PADS's own preprocessing drops these tasks
+#   to_remove = 'Time|LiftHold|PointFinger|TouchIndex'
+# so LiftHold is NOT used by the dataset authors. StretchHold is the
+# arms-outstretched postural task and the appropriate match for the local OUT.
+PADS_EXCLUDED_TASKS = ('LiftHold', 'PointFinger', 'TouchIndex')
+
 # ---- Gyroscope columns (CONFIRMED from PADS scripts/load_specific_txt_file.py):
 # channel order per file is
 #   ['Accelerometer_X','Accelerometer_Y','Accelerometer_Z',
@@ -141,15 +151,30 @@ def inspect(root: Path):
         print(f"   detected label: {lab}  (from value {raw!r})")
 
 
+def list_tasks(root: Path):
+    """Enumerate the task tokens actually present, with file counts."""
+    ts_dir, _ = find_dirs(root)
+    counts = {}
+    for f in ts_dir.rglob("*.txt"):
+        parts = f.stem.split("_")
+        if len(parts) >= 2:
+            counts[parts[1]] = counts.get(parts[1], 0) + 1
+    print(f"tasks found in {ts_dir}:")
+    for t, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+        flag = "  <-- excluded by PADS's own pipeline" if t in PADS_EXCLUDED_TASKS else ""
+        star = "  <-- currently extracted" if t == TASK else ""
+        print(f"  {t:<16} {n:>5} files{star}{flag}")
+
+
 def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
-            trim_start: float = 0.0, trim_end: float = 0.0):
+            trim_start: float = 0.0, trim_end: float = 0.0, task: str = TASK):
     ts_dir, pat_dir = find_dirs(root)
     labels = load_patient_labels(pat_dir)
     out.mkdir(parents=True, exist_ok=True)
     manifest = []
     counts = {"N": 0, "PD": 0, "ET": 0}
     skipped = 0
-    for f in sorted(ts_dir.rglob(f"*{TASK}*")):
+    for f in sorted(ts_dir.rglob(f"*{task}*")):
         if f.suffix.lower() not in (".txt", ".csv", ".json"):
             continue
         if wrist != "both" and wrist.lower() not in f.stem.lower():
@@ -208,15 +233,23 @@ def main():
                         "PADS-only ET-F1 0.26->0.20 and domain shift unchanged).")
     p.add_argument("--trim-end", type=float, default=0.0,
                    help="seconds to drop from the end (arm-lowering offset).")
+    p.add_argument("--task", default=TASK,
+                   help=f"PADS task token to extract (default {TASK}). Known: "
+                        + ", ".join(ALL_TASKS))
+    p.add_argument("--list-tasks", action="store_true",
+                   help="list task tokens present in the dataset and exit.")
     p.add_argument("--inspect", action="store_true",
                    help="print file-format structure and exit (run this first).")
     args = p.parse_args()
 
-    if args.inspect:
+    if args.list_tasks:
+        list_tasks(args.pads_root)
+    elif args.inspect:
         inspect(args.pads_root)
     else:
         extract(args.pads_root, args.out, args.wrist, args.gyro_only,
-                trim_start=args.trim_start, trim_end=args.trim_end)
+                trim_start=args.trim_start, trim_end=args.trim_end,
+                task=args.task)
 
 
 if __name__ == "__main__":
