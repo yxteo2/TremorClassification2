@@ -34,6 +34,22 @@ regression, subject-grouped evaluation.
    and the local point estimate was optimistic within a wide interval. The tight
    PADS number is the more honest characterization.
 
+## Can PADS be combined with the local data to improve it? No.
+
+Every combination strategy, tested on the local (your) patients:
+
+| strategy | macro-F1 | ET-F1 | vs baseline |
+|---|---|---|---|
+| your Data only (baseline, same folds) | 0.663 | 0.432 [0.21, 0.62] | — |
+| your Data **+ PADS** (augmented training) | 0.599 | 0.350 [0.15, 0.54] | **worse** |
+| pooled, mixed test | 0.525 | 0.290 | worse |
+| transfer (train PADS → test yours) | 0.220 | 0.20 | far worse |
+
+Adding PADS training data **reduces** performance on your own patients (ET-F1
+0.43 → 0.35). The device domain shift means PADS examples confuse rather than
+help. **PADS is useful only as an independent validation cohort, not as extra
+training data.**
+
 ## Interpretation (a real contribution)
 PD-vs-ET differentiation from a single wrist/forearm IMU at the postural
 (arms-outstretched) task is **intrinsically hard**, confirmed across two
