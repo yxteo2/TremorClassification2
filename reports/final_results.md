@@ -134,3 +134,60 @@ the realistic ceiling; the ET F1 CI [0.10, 0.59] is correspondingly wide.
 A single deep run reached 0.903 on Axis 1, but 4-seed verification gave
 0.866 ± 0.010 with 0/4 seeds ≥ 0.90 — that run was a favourable draw, not a
 reproducible result.
+
+## Resolving the PD/ET frequency overlap — what carries the signal
+
+Peak/mean frequency cannot separate PD from ET (identical 6.64 Hz medians). Where
+does the AUC 0.87 come from? Feature-block ablation (lower_arm, OUT, PD-vs-ET):
+
+| feature block | AUC |
+|---|---|
+| biomarker summaries (13) | 0.594 |
+| regularity / advanced (10) | 0.605 |
+| biomarker + advanced (23) | 0.612 |
+| **STFT spectral profile (234)** | **0.882** |
+| all combined (257) | 0.873 |
+
+**The signal is entirely in the spectral profile**; summary statistics dilute it.
+
+### Which frequencies differ (per-bin Mann-Whitney, relative power)
+
+| Hz | effect | p |
+|---|---|---|
+| **6.64** | −0.49 | **0.003** |
+| **6.25** | −0.43 | **0.009** |
+| 7.03 | −0.32 | 0.050 |
+| 3.91 | +0.30 | 0.072 |
+| 4.30 | +0.29 | 0.079 |
+
+(negative = ET has more relative power; positive = PD does)
+
+PD and ET **peak at the same 6.64 Hz**, but ET concentrates power there while PD
+retains an additional **~4 Hz component** — the classical parkinsonian band
+sitting alongside the shared peak. This is why peak-based measures are blind to
+the difference, and why wide bands (`rel_b_3_5`, `rel_b_5_7`) miss it: they
+average the discriminative 6.25–6.64 Hz region together with neutral neighbours.
+
+### A narrow-band ratio captures it locally but does NOT replicate
+
+Single feature `log(P[3.7–4.6 Hz] / P[6.0–6.9 Hz])`:
+
+| | LOCAL | PADS (independent) |
+|---|---|---|
+| PD median | −0.382 | −0.402 |
+| ET median | −0.968 | −0.784 |
+| effect | +0.47 | +0.13 |
+| p | **0.0046** | 0.165 (ns) |
+| AUC | 0.724 | ~0.57 |
+
+The direction is consistent but the effect is weak and non-significant
+externally. The local AUC 0.724 is optimistically biased — the bands were chosen
+on that same data. **Do not build a claim on this single-feature biomarker.**
+
+### Conclusion
+The PD/ET overlap **is** resolvable, but only with the **full spectral profile**
+(AUC 0.882), not with hand-picked summary features or a two-band ratio. The
+discriminative structure is distributed across the spectrum rather than
+localisable to one interpretable statistic — the strongest argument in this work
+for learned features over classical summaries, and a well-posed question for
+explainable AI: *which parts of the spectrum does the model combine, and how?*
