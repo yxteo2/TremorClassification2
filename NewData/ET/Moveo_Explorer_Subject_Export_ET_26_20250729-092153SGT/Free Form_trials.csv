@@ -1,0 +1,22 @@
+"CSV.5 | Subject Group","Subject Public ID","Subject First Name","Subject Last Name","Subject Date of Birth","Record Date/Time","Condition","File Name","Trial Notes","Analysis Log","Analysis Version","Duration (s)"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-085722SGT","Free Form","20250729-085722_Free_Form_ET_26.h5","","","2","40.74"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-085828SGT","Free Form","20250729-085828_Free_Form_ET_26.h5","","","2","40.39"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090018SGT","Free Form","20250729-090018_Free_Form_ET_26.h5","","","2","36.51"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090132SGT","Free Form","20250729-090132_Free_Form_ET_26.h5","","","2","21.57"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090227SGT","Free Form","20250729-090227_Free_Form_ET_26.h5","","","2","31.32"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090338SGT","Free Form","20250729-090338_Free_Form_ET_26.h5","","","2","20.58"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090436SGT","Free Form","20250729-090436_Free_Form_ET_26.h5","","","2","20.58"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090649SGT","Free Form","20250729-090649_Free_Form_ET_26.h5","","","2","40.45"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090754SGT","Free Form","20250729-090754_Free_Form_ET_26.h5","","","2","40.43"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-090858SGT","Free Form","20250729-090858_Free_Form_ET_26.h5","","Error::Unable to find still period in proximal monitor recording (10833) Wrist/Left angles will be unavailable.
+:::Error::Unable to find still period in distal monitor recording (10833) Elbow/Left angles will be unavailable.
+","2","38.51"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-091005SGT","Free Form","20250729-091005_Free_Form_ET_26.h5","","","2","20.91"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-091124SGT","Free Form","20250729-091124_Free_Form_ET_26.h5","","","2","25.05"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-091210SGT","Free Form","20250729-091210_Free_Form_ET_26.h5","","","2","30.45"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-091300SGT","Free Form","20250729-091300_Free_Form_ET_26.h5","","Error::Unable to find still period in proximal monitor recording (10833) Wrist/Left angles will be unavailable.
+:::Error::Unable to find still period in distal monitor recording (10833) Elbow/Left angles will be unavailable.
+","2","20.58"
+"Demo","ET 26","Ravdran","Raman","1963-09-30","20250729-091343SGT","Free Form","20250729-091343_Free_Form_ET_26.h5","","Error::Unable to find still period in proximal monitor recording (10833) Wrist/Left angles will be unavailable.
+:::Error::Unable to find still period in distal monitor recording (10833) Elbow/Left angles will be unavailable.
+","2","20.37"

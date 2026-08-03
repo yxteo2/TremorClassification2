@@ -1,0 +1,34 @@
+Data Transfer Specification (DTS) Notes:
+
+ * The file containing these notes, the data transfer specifications, and the exported data transfer files embed the version number of this specification on the first line of the file.
+ * Each test type has a corresponding data transfer specification. For example, the version 3 specification for Walk trials is in a file named Walk_DTS.v3.csv.
+ * The top section of the DTS is common to all test types, and describes the column headers of the exported CSV.
+ * The middle section of the DTS is also common to all test types, and describes the trial metadata variables.
+ * The bottom section of the DTS is specific to the test type, and describes all of the metrics that may be output.
+ * Length is interpreted as the maximum number of UTF-8 characters used to encode character values, and the bit depth for numeric values.
+ * Cardinality indicates whether the metric has a single value for a single trial, or (possibly) multiple values. For example, we compute the stride length for each detected gait cycle within a trial, and can report each individual value (verbose output) or the mean and standard deviation of the output (compact output).
+ * Variable IDs that end with "_L" in the CSV export are the left handed version of the metric. This only applies to bilateral metrics.
+ * Variable IDs that end with "_R" in the CSV export are the right handed version of the metric. This only applies to bilateral metrics.
+ * Variable IDs that end with "_T" are timing metrics for unilateral metrics (e.g., the time that a turn is initiated).
+ * Variable IDS that are appended with "_T_L" in the CSV export are the left handed version of timing metrics (e.g., the time of the left foot's initial contact within detected gait cycles). This only applies to bilateral metrics.
+ * Variable IDS that are appended with "_T_R" in the CSV export are the left handed version of timing metrics (e.g., the time of the right foot's initial contact within detected gait cycles). This only applies to bilateral metrics.
+ * Subject name and date of birth fields are not exported in this format. This is based on the assumption that this is a fully de-identified data set.
+ * Annotations made during recordings are not provided in this format.
+
+Compact Format:
+ * In this format, each single valued metric of each trial has a single row in the exported CSV file.
+ * Multiple valued metrics (metrics with cardinality of "MANY") have one row specifying the mean and one row specifying the standard deviation of the metric.
+ * Variable IDs that are appended with "_MEAN" in the CSV export report the mean of the multiple values for the given metric within the trial.
+ * Variable IDs that are appended with "_STD" in the CSV export report the standard deviation of the multiple values for the given metric within the trial.
+ * You may therefore have variable IDs of the format "BASEID_L_MEAN", which would hold the mean value of the left sided version of the "BASEID" metric.
+ * Timing events are not output in the compact format, as the mean and standard deviation of the timing is meaningless.
+
+Verbose Format:
+ * In this format, a single metric with the same Variable ID may occupy multiple rows of the exported CSV format. There will be one row for each distinct value of the metric.
+ * The mean and standard deviation are not provided in this format.
+ * The sequence of a multi-valued metric within a single trial is indicated by the "SEQUENCE" variable. * Timing events are output in this format.
+
+Definitions:
+Gait Cycle: The period from the foot's initial contact (typically a heel strike) to the next initial contact of the same foot.
+Step: The phase of a gait cycle spanning the opposite foot's initial contact (typically a heel strike) to the initial contact for the given foot.
+Stride: The movement of a foot during a single gait cycle.

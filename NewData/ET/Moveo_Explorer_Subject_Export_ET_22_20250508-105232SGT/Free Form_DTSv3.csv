@@ -1,0 +1,22 @@
+"Column Name","Column ID","Data Type","Length","Description","Units","Example"
+"Trial ID","TRIAL_ID","Integer","64bit","The unique identifier for the trial","","342"
+"Variable Name","VARIABLE_NAME","String","255","The full name of the output variable","","Gait/Lower Limb - Cadence (Left)"
+"Variable ID","VARIABLE_ID","String","255","The compact, machine readable variable ID","","GLCC_L"
+"Variable Sequence","SEQUENCE","Integer","32bit","(Verbose export only) For metrics with multiple values within one trial (cardinality==MANY), this indicates the sequence of the metric within the trial","","4"
+
+
+"Metadata Name","Metadata ID","Data Type","Length","Description","Units","Example"
+"Study Name","STUDYID","Char","255","The name of the exported study","","PharmaXK1"
+"Subject Public ID","SUBJECTID","Char","255","The public (non-identifying) ID of the subject","","S12345"
+"Trial Date/Time","DATETIME","Integer","64bit","The time of the start of the trial","Milliseconds since midnight, January 1, 1970 (epoch/unix time)","1543280024123"
+"Trial Timezone","TIMEZONE","String","40","Timezone identifier from the TZ database","","America/Los_Angeles"
+"Trial Filename","FILENAME","Char","255","The file name of the raw recording","","20180327-000957_Sway.h5"
+"File Checksum","CHECKSUM","Char","32","The md5 checksum the raw recording","","82f3df5058ed751fa2d70c608fb3527d"
+"Trial Condition","CONDITION","Char","255","The condition name for the test being administered","","Eyes Closed, Firm Surface"
+"Trial Notes","NOTES","Char","2048","User entered notes about the recorded trial","","Subject stumbled after first turn"
+"Trial Analysis Log","LOG","Char","2048","Automated information, warnings, or errors provided about the recording","","Info::No sternum sensor found in recording. Lean angle will not be calculated."
+"Trial Analysis Version","VERSION","Integer","32bit","The version of the algorithm applied to the recording","","3"
+
+
+"Metric Name","Metric ID","Data Type","Length","Description","Units","Cardinality","Symmetry","Example"
+"Duration","D","Float","64bit","The duration of the trial. Any start and/or end delay periods are not included.","s","ONE","UNILATERAL","123.45"
