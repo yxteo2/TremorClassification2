@@ -70,8 +70,29 @@ with per-dataset standardisation):
 | LOCAL + PADS | 0.686 | 0.389 | 0.467 | 0.424 | 7/15 | 11 |
 
 Quadrupling the ET training examples finds one extra ET patient but nearly
-triples false positives and costs 0.19 AUC. The device domain shift outweighs the
-extra data — **PADS is a validation cohort, not training data.**
+triples false positives and costs 0.19 AUC.
+
+**Adding only the PADS ET patients (minority-class augmentation) is worse still**
+— all variants tested, always evaluated on local patients:
+
+| training set | AUC | ET prec | ET recall | ET F1 | ET found | false-ET |
+|---|---|---|---|---|---|---|
+| **LOCAL only (15 ET)** | **0.873** | **0.600** | 0.400 | **0.480** | 6/15 | **4** |
+| + PADS ET only, aligned | 0.723 | 0.179 | **1.000** | 0.303 | 15/15 | **69** |
+| + PADS ET only, not aligned | 0.735 | 0.364 | 0.267 | 0.308 | 4/15 | 7 |
+| + PADS ET + equal PADS PD | 0.597 | 0.208 | 0.733 | 0.324 | 11/15 | 42 |
+
+The aligned ET-only row is a cautionary case: **ET recall reaches 1.000**, which
+looks like a breakthrough, but precision is 0.179 — it labels 69 of the 75 PD
+patients as ET, i.e. it answers "ET" to nearly everything. Adding 41 PADS ET
+makes training nearly class-balanced (75 PD vs 56 ET), shifting the boundary hard
+toward ET; because PADS ET patients do not resemble local ET patients, the
+shifted boundary does not transfer. AUC falls 0.873 → 0.723, so the *ranking*
+degrades as well — this is not fixable by moving the threshold.
+
+**Conclusion (all combinations tested): PADS cannot be used as training data for
+this cohort — as a full set, PD+ET balanced, or ET-only, aligned or not. It is a
+validation cohort.**
 
 ---
 
