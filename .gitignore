@@ -4,9 +4,8 @@ __pycache__/
 .venv/
 .env
 
-# Datasets / artifacts
-ProcessedData/
-*.mat
+# generated model artifacts (regenerable, large)
 artifacts/
 *.pt
 *.ckpt
+*.mat
