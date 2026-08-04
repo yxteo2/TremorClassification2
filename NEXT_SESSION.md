@@ -12,11 +12,20 @@ there should be no device domain shift. PD/HC folders are empty (ET-only).
   * 4910 samples @ 128 Hz = 38.4 s  (2015 data is ~10 s)
   * FileFormatVersion 5
 
-## BLOCKER: sensor-ID -> body-location mapping
-6 sensors vs the 3 in the 2015 data (hand/lower_arm/upper_arm). Files 01-07 are
-right limb, 08-14 left, so all 6 probably record at once (3 per arm). Need to know
-which IDs map to hand/lower_arm/upper_arm and which arm. Check Readme.docx in the
-Drive folder. Guessing here would silently corrupt the features.
+## SENSOR MAPPING — RESOLVED
+From NewData/Convert_h5_and_csv_to_xlsx.ipynb:
+    # Naming order: 10464 (I), 10468 (U), 10833 (T), 10871 (L), 7257 (H)
+    7257  = Hand (H)
+    10871 = Wrist (L)        <- matches 2015 "lower_arm" (worn near the wrist)
+    10468 = Upper Arm (U)
+    10464 = Index Finger (I) -- not in the 2015 set
+    10833 = Thorax/Trunk (T) -- not in the 2015 set
+    7279  = 6th sensor, role unconfirmed (check a file's column labels)
+
+Channel order to build (matching tremor.data):
+    hand=7257 (ch 0-2), lower_arm=10871 (ch 3-5), upper_arm=10468 (ch 6-8)
+Note the notebook labels columns 'REST (R)' etc., so column headers in the
+converted xlsx also encode condition + side -- useful cross-check.
 
 ## Loader plan (pdetn/load_2025.py)
 1. Actions: 02/09 -> OUT (the winning condition), 01/08 -> REST
