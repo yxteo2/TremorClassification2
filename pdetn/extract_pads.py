@@ -50,11 +50,27 @@ FS_HZ = 100.0   # PADS documented sampling rate; written to the manifest
 # We search these keys (and nested dicts) for a diagnosis string, then normalise.
 LABEL_KEYS = ["condition", "disease", "diagnosis", "group", "label",
               "study_group", "cohort", "class"]
-# substring -> N / PD / ET. Anything not matching is skipped (other disorders).
-LABEL_MAP = {
-    "healthy": "N", "control": "N", "hc": "N",
-    "parkinson": "PD", "pd": "PD",
-    "essential tremor": "ET", "essential-tremor": "ET", "et": "ET",
+
+# EXACT diagnosis string -> class. Anything else is SKIPPED.
+#
+# This used to be a substring map including the bare tokens "et" and "pd", which
+# was badly wrong: PADS free-text diagnoses put "et" inside "etiology",
+# "asymmetric", "Retrocollis" and "hypokinetic", so 13 of 41 extracted "ET"
+# patients were not Essential Tremor at all -- among them a hypokinetic-rigid
+# syndrome and a Lewy-Body dementia, i.e. PARKINSONIAN cases sitting in the ET
+# class. "parkinson" likewise swept in 20 Atypical Parkinsonism cases, which
+# PADS treats as a separate differential-diagnosis group.
+#
+# Exact matching yields N=79 / PD=276 / ET=28, and the ET count now agrees with
+# the published PADS cohort (Varghese 2024: 28 ET).
+#
+# Mixed/differential diagnoses that merely CONTAIN "Essential Tremor"
+# (e.g. "Essential Tremor, DD functional Tremor") are deliberately excluded:
+# they are ambiguous by construction and cannot support a clean PD-vs-ET claim.
+LABEL_MAP_EXACT = {
+    "healthy": "N",
+    "parkinson's": "PD",
+    "essential tremor": "ET",
 }
 
 
@@ -62,25 +78,32 @@ def _norm(s: str) -> str:
     return str(s).strip().lower()
 
 
+def map_label(raw: str) -> str | None:
+    """Exact diagnosis -> N/PD/ET, or None to skip. Never substring-matches."""
+    return LABEL_MAP_EXACT.get(_norm(raw))
+
+
 def find_label(meta):
-    """Return (N|PD|ET, raw_string) or (None, None) by searching the JSON."""
+    """Return (N|PD|ET, raw_string) or (None, None) by searching the JSON.
+
+    Matching is EXACT on the normalised diagnosis string -- see LABEL_MAP_EXACT
+    for why substring matching is unsafe here.
+    """
     def search(obj):
         if isinstance(obj, dict):
             for k in LABEL_KEYS:
                 if k in obj and isinstance(obj[k], (str, int)):
-                    v = _norm(obj[k])
-                    for key, lab in LABEL_MAP.items():
-                        if key in v:
-                            return lab, obj[k]
+                    lab = map_label(obj[k])
+                    if lab:
+                        return lab, obj[k]
             for v in obj.values():
                 r = search(v)
                 if r[0]:
                     return r
         elif isinstance(obj, str):
-            v = _norm(obj)
-            for key, lab in LABEL_MAP.items():
-                if key in v:
-                    return lab, obj
+            lab = map_label(obj)
+            if lab:
+                return lab, obj
         return None, None
     return search(meta)
 

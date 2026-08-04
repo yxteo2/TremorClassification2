@@ -48,16 +48,53 @@ def load_local_hand(data_root, action="OUT"):
     return load_local_sensor(data_root, action=action, sensor="hand")
 
 
-def load_pads_extracted(folder):
-    """Load the StretchHold data extracted by pdetn.extract_pads (<cls>_<pid>_<wrist>.txt)."""
+def load_pads_extracted(folder, strict=True):
+    """Load the StretchHold data extracted by pdetn.extract_pads.
+
+    The filename class token is NOT trusted. An earlier version of
+    ``extract_pads`` mapped diagnoses by substring, so the bare token "et"
+    matched "etiology", "asymmetric", "Retrocollis" and "hypokinetic": 13 of 41
+    files named ``ET_*`` are not Essential Tremor, including parkinsonian cases
+    (a hypokinetic-rigid syndrome, a Lewy-Body dementia). 20 ``PD_*`` files are
+    Atypical Parkinsonism, which PADS treats as a separate group.
+
+    With ``strict=True`` (default) the class is re-derived from the manifest's
+    ``raw_label`` by EXACT match, and every ambiguous or mixed diagnosis is
+    dropped. That gives N=79 / PD=276 / ET=28, and the ET count then agrees with
+    the published PADS cohort (Varghese 2024: 28 ET).
+
+    ``strict=False`` reproduces the old contaminated behaviour; it exists only
+    to re-derive the superseded numbers and should not be used for new results.
+    """
+    import csv
     import re
+
     cmap = {"N": 0, "PD": 1, "ET": 2}
+    folder = Path(folder)
+    manifest = folder / "manifest.csv"
+    exact = {"healthy": "N", "parkinson's": "PD", "essential tremor": "ET"}
+
+    true_cls = {}
+    if strict:
+        if not manifest.is_file():
+            raise FileNotFoundError(
+                f"{manifest} is required for strict labelling; pass strict=False "
+                "to fall back to the (contaminated) filename labels.")
+        for row in csv.DictReader(manifest.open()):
+            lab = exact.get(row["raw_label"].strip().lower())
+            if lab:
+                true_cls[row["file"]] = lab
+
     recs = []
-    for f in sorted(Path(folder).glob("*.txt")):
+    for f in sorted(folder.glob("*.txt")):
         m = re.match(r"(N|PD|ET)_(\d+)_(\w+)", f.stem)
         if not m:
             continue
         cls, pid, _ = m.groups()
+        if strict:
+            cls = true_cls.get(f.name)
+            if cls is None:            # ambiguous / non-N-PD-ET diagnosis
+                continue
         x = np.loadtxt(f, delimiter=",", ndmin=2).T          # (3, T) gyro
         recs.append(Recording(x=x.astype(np.float32), y=cmap[cls],
                              subject=f"PADS_{pid}", path=f, condition="OUT"))
