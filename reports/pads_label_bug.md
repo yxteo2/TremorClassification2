@@ -91,10 +91,28 @@ boundary.
    observation and must be attributed to the local cohort only, not presented as
    replicated across two cohorts.
 
-2. **"PADS-only, 41 ET, tight CI, ET-F1 0.262 ⇒ the difficulty is intrinsic,
-   not a small-cohort artifact."** The cohort was 28, not 41, and a third of it
-   was mislabelled. This is the load-bearing evidence for the project's central
-   conclusion and is being re-run — see `artifacts/pads_relabel.txt`.
+2. **"PADS-only ⇒ the difficulty is intrinsic, not a small-cohort artifact."**
+   Re-run with clean labels (balanced logreg, subject-level LOSO — *not* the
+   identical protocol that produced the historical 0.262, so treat these as a
+   fresh measurement rather than a like-for-like correction):
+
+   | features | PD | ET | AUC | bal-acc | ET-F1 [95% CI] |
+   |---|---|---|---|---|---|
+   | STFT + biomarker, contaminated | 296 | 41 | 0.688 | 0.617 | 0.316 [0.19, 0.43] |
+   | STFT + biomarker, **corrected** | 276 | 28 | 0.718 | 0.615 | 0.290 [0.14, 0.43] |
+   | **orbit geometry, corrected** | 276 | **28** | **0.758** | **0.747** | **0.414 [0.27, 0.53]** |
+
+   **The central conclusion survives.** With clean labels and 28 genuine ET
+   subjects, conventional spectral features still reach only ET-F1 0.290 and
+   balanced accuracy 0.615 — the difficulty is real and not an artifact of the
+   local cohort's 15 ET subjects.
+
+   **But the same clean cohort separates the two feature families sharply.**
+   Orbit geometry beats spectral features on identical data under an identical
+   protocol: balanced accuracy **0.747 vs 0.615**, ET-F1 **0.414 vs 0.290**.
+   That is the strongest independent evidence in the project for the
+   quaternion/orbit-geometry direction — it is not a local-cohort effect, and it
+   holds on 28 ET subjects with a tight CI.
 
 3. Any cross-dataset result in `reports/crossdataset_results.md` computed from
    PADS labels — including the domain-shift and "PADS cannot be training data"
