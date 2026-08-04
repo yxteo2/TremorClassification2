@@ -176,17 +176,111 @@ def angular_velocity_from_quaternions(
     return np.stack([x_part, y_part, z_part], axis=-1).astype(np.float32, copy=False)
 
 
+def log_map_from_quaternions(
+    Q: np.ndarray, convention: str = "xyzw", reference: str = "median",
+    normalize: bool = True, fix_signs: bool = True, eps: float = 1e-8,
+) -> np.ndarray:
+    """Lie-algebra (so(3)) rotation vector for a unit-quaternion sequence.
+
+    Maps each orientation off the S^3 manifold into R^3 via the quaternion
+    logarithm, ``theta = 2 * ln(q) = 2 * arccos(w) * v / |v|``, so the result is
+    a genuine Euclidean 3-vector whose norm is the rotation angle and whose
+    direction is the instantaneous axis of rotation. Component-wise spectral
+    analysis is then well defined, which it is not on the raw (w, x, y, z).
+
+    ``reference`` controls what the rotation is measured *relative to*, which
+    matters because an absolute log map encodes the sensor's mounting pose --
+    subject-specific nuisance that can be learned instead of tremor:
+
+    * ``'median'``  (default) -- relative to the recording's median orientation,
+      i.e. ``theta(t) = 2 ln(q_ref^* * q(t))``. Mount-invariant: rotating the
+      whole recording by a fixed R leaves theta unchanged. Use this.
+    * ``'first'``   -- relative to the first sample (drift-sensitive).
+    * ``'none'``    -- absolute pose. Keeps mounting orientation; only sensible
+      if you deliberately want the posture stream.
+
+    Returns ``(T, 3)`` in radians.
+    """
+    if Q.ndim != 2 or Q.shape[1] != 4:
+        raise ValueError(f"expected (T, 4) quaternion, got {Q.shape}")
+    if normalize:
+        Q = _normalize_quaternions(Q)
+    if fix_signs:
+        Q = _enforce_sign_continuity(Q)
+
+    if reference == "median":
+        ref = _normalize_quaternions(np.median(Q, axis=0, keepdims=True))
+        Q = quat_multiply(quat_conjugate(ref, convention), Q, convention)
+    elif reference == "first":
+        Q = quat_multiply(quat_conjugate(Q[:1], convention), Q, convention)
+    elif reference != "none":
+        raise ValueError(f"unknown reference {reference!r}")
+
+    w, x, y, z = _quat_components(Q, convention)
+    # antipodal fix: ln is defined on the w >= 0 hemisphere
+    flip = w < 0
+    w = np.where(flip, -w, w)
+    v = np.stack([x, y, z], axis=-1)
+    v = np.where(flip[:, None], -v, v)
+
+    v_norm = np.linalg.norm(v, axis=-1, keepdims=True)
+    angle = 2.0 * np.arccos(np.clip(w, -1.0, 1.0))[:, None]
+    # near identity, theta -> 2 * v (the arccos/|v| ratio is 2 in the limit)
+    axis = np.where(v_norm > eps, v / np.maximum(v_norm, eps), 0.0)
+    theta = np.where(v_norm > eps, angle * axis, 2.0 * v)
+    return theta.astype(np.float32, copy=False)
+
+
+def gravity_from_quaternions(
+    Q: np.ndarray, convention: str = "xyzw", normalize: bool = True,
+) -> np.ndarray:
+    """Body-frame gravity direction ``g_local = q^* * g_global * q``.
+
+    Encodes the static posture of the segment (which way the limb points) with
+    no dependence on tremor dynamics. Useful as an explicit low-frequency
+    context stream alongside a tremor-band spectrogram; PD (rest) and ET
+    (postural/action) tremor are elicited in different limb postures.
+
+    Returns ``(T, 3)``, unit-norm rows.
+    """
+    if Q.ndim != 2 or Q.shape[1] != 4:
+        raise ValueError(f"expected (T, 4) quaternion, got {Q.shape}")
+    if normalize:
+        Q = _normalize_quaternions(Q)
+    g = np.zeros((Q.shape[0], 4), dtype=Q.dtype)
+    gw_idx = 3 if convention == "xyzw" else 0
+    zi = 2 if convention == "xyzw" else 3
+    g[:, gw_idx] = 0.0
+    g[:, zi] = -1.0                      # gravity along -Z in the world frame
+    rotated = quat_multiply(
+        quat_multiply(quat_conjugate(Q, convention), g, convention), Q, convention
+    )
+    _, x, y, z = _quat_components(rotated, convention)
+    return np.stack([x, y, z], axis=-1).astype(np.float32, copy=False)
+
+
+#: Channels produced per sensor by each :func:`process_quaternion_data` mode.
+MODE_CHANNELS = {
+    "angular_velocity": 3, "components": 4, "log_map": 3, "gravity": 3,
+    "log_map_gravity": 6,
+}
+
+
 def process_quaternion_data(
     Q12: np.ndarray,
     fs: float = 100.0,
     mode: str = "angular_velocity",
     convention: str = "xyzw",
     n_sensors: int = 3,
+    log_map_reference: str = "median",
 ) -> np.ndarray:
     """Convert a (T, 12) quaternion CSV to a (channels, time) signal.
 
     mode='angular_velocity'  -> (n_sensors * 3, T-2) in rad/s
     mode='components'        -> (n_sensors * 4, T)   raw transposed
+    mode='log_map'           -> (n_sensors * 3, T)   so(3) rotation vector (rad)
+    mode='gravity'           -> (n_sensors * 3, T)   body-frame gravity (posture)
+    mode='log_map_gravity'   -> (n_sensors * 6, T)   log map stacked over gravity
     """
     if Q12.ndim != 2 or Q12.shape[1] != n_sensors * 4:
         raise ValueError(
@@ -194,15 +288,28 @@ def process_quaternion_data(
         )
     if mode == "components":
         return Q12.T.astype(np.float32, copy=False)
-    if mode != "angular_velocity":
+    if mode not in MODE_CHANNELS:
         raise ValueError(
-            f"unknown mode {mode!r}; expected 'angular_velocity' or 'components'"
+            f"unknown mode {mode!r}; expected one of {sorted(MODE_CHANNELS)}"
         )
 
     T = Q12.shape[0]
     Q = Q12.reshape(T, n_sensors, 4)
-    omegas = [
-        angular_velocity_from_quaternions(Q[:, s, :], fs=fs, convention=convention)
-        for s in range(n_sensors)
-    ]
-    return np.concatenate(omegas, axis=1).T.astype(np.float32, copy=False)
+
+    def per_sensor(s):
+        q = Q[:, s, :]
+        if mode == "angular_velocity":
+            return angular_velocity_from_quaternions(q, fs=fs, convention=convention)
+        if mode == "log_map":
+            return log_map_from_quaternions(q, convention=convention,
+                                            reference=log_map_reference)
+        if mode == "gravity":
+            return gravity_from_quaternions(q, convention=convention)
+        return np.concatenate([
+            log_map_from_quaternions(q, convention=convention,
+                                     reference=log_map_reference),
+            gravity_from_quaternions(q, convention=convention),
+        ], axis=1)
+
+    return np.concatenate([per_sensor(s) for s in range(n_sensors)],
+                          axis=1).T.astype(np.float32, copy=False)

@@ -27,7 +27,23 @@ def _load_h5(path, sensors=SENSOR_ORDER):
         # (T,4) per sensor -> concat to (T, 12) in 2015 channel order
         return np.concatenate([np.asarray(proc[s]["Orientation"]) for s in sensors], axis=1)
 
-def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST):
+#: Action codes 01-07 are the RIGHT upper limb, 08-14 the LEFT.
+SIDE = {c: ("right" if int(c) <= 7 else "left") for c in ACTION}
+
+
+def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
+              mode="angular_velocity", sides=("right", "left")):
+    """Load the 2025 cohort, aligned to the 2015 channel order and rate.
+
+    ``mode`` is passed to :func:`tremor.quaternion.process_quaternion_data`, so
+    the same log_map / gravity representations used on the 2015 data are
+    available here.
+
+    ``sides`` selects limbs. Both limbs of one subject share a subject id, so
+    they can never be split across CV folds -- but note that pooling both
+    doubles a subject's recordings without adding a subject, which matters for
+    anything that averages per patient.
+    """
     recs = []
     for subj_dir in sorted(glob.glob(os.path.join(root, cls, "*/"))):
         sid = re.search(r"_(%s_\d+)_" % cls, subj_dir)
@@ -37,14 +53,16 @@ def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST)
             cond = ACTION.get(code)
             if cond is None or cond not in conditions:
                 continue
+            if SIDE.get(code) not in sides:
+                continue
             q = _load_h5(f)
             if q is None or q.shape[0] < 256:
                 continue
             q = resample_poly(q, 25, 32, axis=0)      # 128 -> 100 Hz
             try:
                 x = process_quaternion_data(q.astype(np.float32), fs=fs,
-                                            mode="angular_velocity",
-                                            convention="xyzw", n_sensors=3)
+                                            mode=mode, convention="xyzw",
+                                            n_sensors=3)
             except Exception:
                 continue
             recs.append(Recording(x=x, y=label, subject=f"NEW_{sid}",
