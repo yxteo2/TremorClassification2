@@ -125,3 +125,60 @@ Substring matching on clinical free text is unsafe, full stop. Where a published
 cohort size exists, **assert it**: had the extractor checked `n_ET == 28`, this
 would have failed loudly at extraction time instead of silently propagating into
 every downstream result and two reports.
+
+## Cross-dataset claims, re-derived with clean labels
+
+Local `lower_arm` (wrist-equivalent) vs PADS wrist, subject-level LOSO,
+balanced logreg, PD-vs-ET only. `artifacts/xds_relabel.txt`.
+
+### STFT + biomarker features
+
+| protocol | AUC | bal-acc | ET-F1 [95% CI] |
+|---|---|---|---|
+| dataset-identity probe (ET only) | **1.000** | — | — |
+| LOCAL only (LOSO) | 0.859 | 0.707 | **0.538 [0.27, 0.74]** |
+| LOCAL + PADS pooled (scored on LOCAL) | 0.695 | 0.613 | 0.350 [0.17, 0.53] |
+| P1 train PADS → test LOCAL | 0.636 | 0.620 | 0.351 [0.20, 0.51] |
+| P1 train LOCAL → test PADS | 0.637 | 0.534 | 0.129 [0.00, 0.29] |
+
+### Orbit-geometry features
+
+| protocol | AUC | bal-acc | ET-F1 [95% CI] |
+|---|---|---|---|
+| dataset-identity probe (ET only) | 0.938 | — | — |
+| LOCAL only (LOSO) | 0.668 | 0.513 | 0.233 [0.06, 0.41] |
+| LOCAL + PADS pooled (scored on LOCAL) | 0.568 | 0.600 | 0.333 [0.19, 0.47] |
+| P1 train PADS → test LOCAL | **0.372** | 0.480 | 0.190 [0.05, 0.34] |
+| P1 train LOCAL → test PADS | 0.512 | 0.535 | 0.173 [0.09, 0.26] |
+
+### Conclusions
+
+1. **"PADS cannot be used as training data" — CONFIRMED, and it survives the
+   label fix.** Pooling still costs the local model heavily on the standard
+   features (ET-F1 0.538 → 0.350) and the identity probe is still **AUC 1.000**.
+   The contamination was not what made PADS unusable.
+
+2. **Orbit geometry does not transfer either — and this qualifies the
+   enthusiasm in the section above.** It is informative *within* each cohort
+   separately (PADS alone: bal-acc 0.747, ET-F1 0.414), but trained on one
+   cohort and tested on the other it collapses to chance: AUC **0.372** for
+   PADS→LOCAL (below chance) and 0.512 for LOCAL→PADS.
+
+   So the earlier statement that PADS gives "the strongest independent evidence
+   for the orbit-geometry direction" needs narrowing. What replicates is the
+   *claim that orbit geometry carries PD-vs-ET information*. What does **not**
+   replicate is the *mapping* from geometry to diagnosis — consistent with the
+   feature-level finding that no single geometry feature reaches significance in
+   both cohorts with the same sign, and that `plan_bandmean` inverts.
+   Orbit geometry is cohort-specific, not a portable biomarker.
+
+3. **The cross-dataset test handicaps the local side.** PADS has only a wrist
+   sensor, so the local model here uses `lower_arm` only — where local orbit
+   geometry is weak (ET-F1 0.233). The strong local finding is at the **upper
+   arm**, which PADS cannot test at all. This comparison therefore says little
+   about the headline handedness result.
+
+4. The identity probe drops from 1.000 (spectral) to 0.938 (geometry) — orbit
+   geometry is *somewhat* less device-revealing, consistent with it being built
+   from invariant contractions, but nowhere near the 0.567 that
+   gravity-chirality achieves against NewData. Not low enough to pool.
