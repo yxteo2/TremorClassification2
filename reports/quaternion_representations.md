@@ -213,3 +213,87 @@ univariate_screen(top=14)     # the biomarker screen
 compare(n_boot=1000, n_perm=1000)   # the classifier comparison
 ```
 Or run sections 8–8.3 of `pdetn/two_stage_comparison.ipynb`.
+
+## Finding 4 — all three cohorts
+
+| cohort | sensors | signal | classes | ET | orbit geometry | log map / gravity |
+|---|---|---|---|---|---|---|
+| LOCAL 2015 | 3 (hand/lower/upper) | quaternion | N/PD/ET | 15 | yes | yes |
+| NewData 2025 | 3, both limbs | quaternion | **ET only** | 6 | yes | yes |
+| PADS | 1 wrist | **gyro only** | N/PD/ET | 41 | yes | **no** |
+
+PADS ships raw gyroscope with no orientation, so gravity-chirality and the log
+map are not computable there. Polarization/QSTFT need only a 3-axis rate signal.
+**That portability is itself a result:** orbit *shape* transfers to any gyro
+dataset; orbit *handedness* requires orientation.
+
+### The device-identity probe decides what may be pooled
+
+NewData is ET-only, so if its device is identifiable a pooled model can learn
+"new device ⇒ ET" and report a fake ET-F1 gain. Probe = predict which cohort a
+patient came from, ET subjects only, subject-level LOSO:
+
+| feature block | LOCAL-ET vs NewData-ET | verdict |
+|---|---|---|
+| stft-702 | **AUC 1.000** | confounded — must not pool |
+| orbit geometry-66 | **AUC 1.000** | confounded — must not pool |
+| **gravity-chirality-15** | **AUC 0.567** | at chance — safe to pool |
+
+The mount-invariant chirality block is the **only** representation that carries
+no device signature, which is exactly what its construction predicts: it is
+built from rotation-invariant contractions referenced to gravity, so it encodes
+neither device scale, nor axis convention, nor mounting.
+
+### Pooling NewData (gravity-chirality only), PD vs ET
+
+| cohort | PD | ET | AUC | bal-acc | ET-F1 [95% CI] |
+|---|---|---|---|---|---|
+| LOCAL only | 75 | 15 | 0.761 | 0.787 | 0.545 [0.35, 0.71] |
+| + NewData right limb | 75 | 21 | 0.721 | 0.707 | 0.519 [0.34, 0.67] |
+| + NewData left limb | 75 | 21 | 0.752 | 0.690 | 0.500 [0.32, 0.65] |
+| **+ NewData both limbs** | 75 | **21** | 0.756 | 0.768 | **0.593 [0.42, 0.73]** |
+
+Pooling does not hurt (all within CI) and the ET-F1 CI **narrows** from width
+0.36 to 0.31 — which is what 6 extra ET subjects should buy. This is the first
+legitimate ET cohort expansion in the project: unlike PADS, it survives the
+device probe.
+
+### PADS — independent replication, and what it says
+
+| model | PD | ET | AUC | bal-acc | ET-F1 [95% CI] |
+|---|---|---|---|---|---|
+| LOCAL lower_arm, orbit geometry | 75 | 15 | 0.668 | 0.513 | 0.233 [0.06, 0.41] |
+| **PADS wrist, orbit geometry** | 296 | **41** | 0.715 | 0.690 | **0.381 [0.27, 0.48]** |
+
+Orbit geometry carries real PD-vs-ET signal on PADS, with 41 ET subjects and a
+tight CI — and it beats the previously reported PADS-only ET-F1 of 0.262
+(`reports/track3_external_data.md`). That is genuine independent support for the
+*general* claim that orbit geometry is informative.
+
+**But the specific features do not replicate.** Not one feature reaches p<0.05
+in both cohorts with the same sign, and the clearest shared one is *inverted*:
+
+| feature | LOCAL effect | LOCAL p | PADS effect | PADS p |
+|---|---|---|---|---|
+| plan_bandmean | +0.319 | 0.053 | **−0.193** | 0.046 |
+| plan_peak | +0.140 | 0.398 | −0.350 | 0.0003 |
+| peak_share | −0.054 | 0.745 | −0.455 | <0.0001 |
+| q_balance | −0.328 | 0.046 | −0.043 | 0.657 |
+
+And the device probe on ET subjects gives **AUC 0.959** — LOCAL and PADS are
+strongly separable, so pooling them remains confounded, consistent with every
+earlier PADS result in this project.
+
+**The honest reading.** Orbit geometry is informative in both cohorts, but
+through different features with different signs. The strongest LOCAL finding —
+upper-arm handedness — is **not testable on PADS at all**, because PADS has no
+upper-arm sensor and no orientation. So PADS neither confirms nor refutes the
+headline claim; it only shows the general family of features has signal.
+
+### What would settle it
+1. **Limb-side labels for the local cohort** — the one unresolved confound on
+   the headline result.
+2. **More NewData** — it is the only cohort that passes the device probe, and
+   ET is still the binding constraint at 21.
+3. An external cohort with **3 sensors and orientation**, which no public
+   dataset currently provides.
