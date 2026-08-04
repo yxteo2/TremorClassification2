@@ -38,25 +38,41 @@ def remap(recs, mapping):
     return out
 
 
-def _ds(recs, target_length, augment, f_max=15.0):
+def _ds(recs, target_length, augment, f_max=15.0, tfd_method="stft",
+        nperseg=256, noverlap=192):
     return TremorDataset(
         recs, target_length=target_length, fs=100.0, f_max=f_max,
-        tfd_method="stft", nperseg=256, nfft=256, noverlap=192,
+        tfd_method=tfd_method, nperseg=nperseg, nfft=nperseg, noverlap=noverlap,
         normalize="per_recording", augment=augment, oversample_to=None,
         length_mode="truncate",
     )
 
 
 def train_bilstm(train_recs, val_recs, num_classes, target_length,
-                 epochs=60, patience=12, focal_gamma=1.5, device=DEVICE):
-    tr, vl = _ds(train_recs, target_length, True), _ds(val_recs, target_length, False)
+                 epochs=60, patience=12, focal_gamma=1.5, device=DEVICE,
+                 lr=1e-3, weight_decay=1e-4, hidden=128, dropout=0.4,
+                 tfd_method="stft", nperseg=256, noverlap=192, seed=0,
+                 init_state=None):
+    """Train a BiLSTM on TF images. ``init_state`` warm-starts from a state dict
+    (used to FINE-TUNE a pretrained stage rather than train from scratch)."""
+    torch.manual_seed(seed)
+    tfd = dict(tfd_method=tfd_method, nperseg=nperseg, noverlap=noverlap)
+    tr = _ds(train_recs, target_length, True, **tfd)
+    vl = _ds(val_recs, target_length, False, **tfd)
     # drop_last avoids a size-1 final batch, which breaks BatchNorm in train mode
     tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
     vloader = DataLoader(vl, batch_size=16)
     sx, _ = tr[0]
     model = build_model("tremor_bilstm", input_size=sx.shape[0],
-                        num_classes=num_classes, target_T=sx.shape[1]).to(device)
-    opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+                        num_classes=num_classes, target_T=sx.shape[1],
+                        hidden=hidden, dropout=dropout).to(device)
+    if init_state is not None:
+        # load everything whose shape matches (the head may differ in width)
+        cur = model.state_dict()
+        keep = {k: v for k, v in init_state.items()
+                if k in cur and cur[k].shape == v.shape}
+        model.load_state_dict(keep, strict=False)
+    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     loss_fn = build_loss_fn("focal", train_labels=[r.y for r in train_recs],
                             num_classes=num_classes, focal_gamma=focal_gamma,
                             device=device)
