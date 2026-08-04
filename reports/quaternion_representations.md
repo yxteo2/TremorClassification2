@@ -119,7 +119,81 @@ known and balanced.
 Same two-stage LOSO, tuned ET threshold, subject bootstrap CI as everywhere else,
 so these rows are directly comparable to `reports/decomposition_study.md`.
 
-<!-- RESULTS_TABLE -->
+Patient-level LOSO, OUT condition, 151 patients (N=61, PD=75, ET=15).
+
+| feature set | n_feat | macro-F1 | ET-F1 [95% CI] | N-vs-T | PD-vs-ET acc |
+|---|---|---|---|---|---|
+| omega_stft (baseline) | 702 | 0.651 | 0.378 [0.16, 0.56] | 0.861 | 0.756 |
+| logmap_stft | 702 | 0.618 | 0.216 [0.06, 0.41] | **0.914** | 0.683 |
+| polarization | 36 | 0.493 | 0.200 [0.07, 0.33] | 0.815 | 0.473 |
+| qstft | 15 | 0.486 | 0.438 [0.21, 0.67] | 0.570 | 0.796 |
+| **grav_chirality** | **15** | 0.664 | **0.471 [0.24, 0.65]** | 0.795 | 0.855 |
+| polar + qstft + gchir | 66 | **0.696** | 0.412 [0.19, 0.61] | 0.887 | 0.815 |
+| omega_stft + qstft | 717 | 0.652 | 0.412 [0.18, 0.60] | 0.848 | 0.766 |
+| omega_stft + gchir | 717 | 0.648 | 0.359 [0.15, 0.54] | 0.874 | 0.731 |
+| omega_stft + polar + qstft | 753 | 0.669 | 0.424 [0.19, 0.62] | 0.868 | 0.772 |
+| omega_stft + polar + qstft + gchir | 768 | 0.686 | 0.471 [0.24, 0.65] | 0.861 | 0.795 |
+
+**Read the ET-F1 column honestly: every CI overlaps the baseline's.** 0.471
+[0.24, 0.65] against 0.378 [0.16, 0.56] is a real point improvement that is
+*not* separated at 15 ET subjects — the same verdict every other feature-
+engineering axis in this project has received. What is new is the efficiency:
+`grav_chirality` reaches it with **15 features instead of 702**, and it is the
+only feature block whose gain concentrates on the PD-vs-ET axis rather than
+being diluted by stage-1 routing.
+
+**Do not read the PD-vs-ET accuracy column as a win.** With 75 PD and 15 ET the
+majority-class baseline is **0.833**, so 0.855 is barely above always-guess-PD.
+Balanced accuracy is reported for the hybrids below instead.
+
+### The hybrid that follows from the table
+
+The two representations are specialists in opposite directions: `logmap_stft`
+is the best stage-1 (N-vs-tremor 0.914, the best that number has been) and the
+worst stage-2; `grav_chirality` is the reverse. `HybridTwoStage` uses a different
+feature matrix per stage, so:
+
+| stage 1 → stage 2 | macro-F1 | ET-F1 [95% CI] | N-vs-T | PD-vs-ET **bal-acc** | p |
+|---|---|---|---|---|---|
+| **logmap_stft → grav_chirality** | **0.718** | 0.462 [0.24, 0.64] | **0.914** | **0.745** | 0.0010 |
+| logmap_stft → polar+qstft+gchir | 0.714 | 0.432 [0.22, 0.62] | 0.914 | 0.721 | 0.0010 |
+| omega_stft → grav_chirality | 0.671 | 0.419 [0.21, 0.60] | 0.861 | 0.738 | 0.0010 |
+| omega_stft → polar+qstft+gchir | 0.656 | 0.378 [0.17, 0.56] | 0.861 | 0.677 | 0.0010 |
+| omega_stft → omega_stft (baseline) | 0.651 | 0.378 [0.16, 0.56] | 0.861 | 0.677 | 0.0010 |
+
+**macro-F1 0.651 → 0.718** on the same patients, with stage 2 using 15 features.
+This is the highest macro-F1 in the project (previous best: lower_arm single
+sensor, 0.704 — though that config still holds the ET-F1 record at 0.516).
+
+The gain decomposes cleanly, which is the part worth trusting:
+* **stage 1**: 0.861 → 0.914, entirely attributable to the log map. Not a CI
+  argument — it is a different, better-conditioned representation for "is there
+  tremor at all", because it retains pose excursion that ω differentiates away.
+* **stage 2**: balanced accuracy 0.677 → 0.745, from orbit handedness.
+
+Caveat on stage 1: 0.914 is the OUT-condition, patient-level LOSO number and is
+comparable **only** to the 0.861 baseline in the same table. It is not
+comparable to the headline 0.884 [0.832, 0.929] in `reports/final_results.md`,
+which is a different evaluation over 155 recordings.
+
+Caveat on stage 2: it inherits the unresolved limb-side confound above.
+
+## Reproduce the hybrid
+
+```python
+from pdetn.quaternion_repr import load_repr, patient_gchir_table
+from pdetn.separability import patient_decomp_features
+from pdetn.model import HybridTwoStage
+from pdetn.evaluate import evaluate_hybrid
+
+lm = load_repr(action="OUT", mode="log_map")
+om = load_repr(action="OUT", mode="angular_velocity")
+gr = load_repr(action="OUT", mode="gravity")
+X1, y, pats = patient_decomp_features(lm, "stft", nperseg=256, nfft=256, noverlap=192)[:3]
+X2 = patient_gchir_table(om, gr)[0]
+evaluate_hybrid(lambda: HybridTwoStage("logreg", "logreg", tune_et_threshold=True),
+                X1, X2, y, pats)
+```
 
 ## Finding 3 — the log map helps stage 1, hurts stage 2
 
