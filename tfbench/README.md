@@ -47,8 +47,14 @@ maps, which the BiLSTM does not have.
 2. **Use the BH q column, not raw p.** The univariate grid is ~120 tests; about
    6 raw p<0.05 are expected by chance.
 3. **A point estimate without a paired CI is not a comparison.** `rank_methods`
-   marks with `*` only methods whose paired bootstrap CI against the reference
-   excludes zero.
+   marks with `*` methods whose paired CI against the reference excludes zero,
+   and separately prints `BONF-PASS` / `bonf-fail` for whether p also clears the
+   Bonferroni alpha for the number of methods compared. **These are different
+   tests** — the stage-1 winner is `* bonf-fail`.
+4. **`n_boot` must resolve the threshold you are testing against.** At
+   `n_boot=1000` the smallest non-zero p is 0.001, and the stage-1 winner read
+   p=0.0040 (would pass alpha=0.00455). At `n_boot=20000` the same comparison is
+   p=0.0083 (fails). Use >=20000 whenever a comparison is close.
 
 These are not generic caution — each corresponds to a specific error made
 earlier in this project (see `reports/handedness_does_not_survive.md` and

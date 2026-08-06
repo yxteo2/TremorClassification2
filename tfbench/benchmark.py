@@ -108,8 +108,20 @@ def _bal(y, p):
                   + recall_score(y, p, pos_label=0, zero_division=0))
 
 
-def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0):
-    """Per-method LOSO, with a paired bootstrap CI against ``reference``."""
+def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0,
+                 correct_for_multiplicity=True):
+    """Per-method LOSO, with a paired bootstrap CI against ``reference``.
+
+    The ``*`` marks an UNCORRECTED CI excluding zero. When
+    ``correct_for_multiplicity`` is set, a second column reports whether p also
+    clears the Bonferroni alpha for the number of methods compared -- the two
+    are not the same, and conflating them is how a p=0.0083 result gets written
+    up as "survives Bonferroni" when alpha is 0.00455.
+
+    Note ``n_boot`` must be large enough to RESOLVE the corrected alpha: at
+    n_boot=1000 the smallest non-zero p is 0.001 and estimates near a threshold
+    of ~0.005 are unreliable. Use >=20000 when the comparison is close.
+    """
     rng = np.random.default_rng(seed)
     preds, ys = {}, {}
     for m, (X, y, g) in tables.items():
@@ -143,8 +155,12 @@ def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0
             print(f"{m:>15}{bal:>9.3f}{'n/a':>8}{'n/a':>21}{'n/a':>9}")
             out.append((m, bal, np.nan, np.nan, np.nan)); continue
         lo, hi = np.percentile(d, [2.5, 97.5])
+        pv = (d <= 0).mean()
         star = " *" if lo > 0 else ""
+        if correct_for_multiplicity:
+            alpha = 0.05 / max(len(preds) - 1, 1)
+            star += "  BONF-PASS" if pv < alpha else ("  bonf-fail" if lo > 0 else "")
         print(f"{m:>15}{bal:>9.3f}{d.mean():>+8.3f}   [{lo:>+.3f}, {hi:>+.3f}]"
-              f"{(d <= 0).mean():>9.4f}{star}")
+              f"{pv:>9.4f}{star}")
         out.append((m, bal, d.mean(), lo, hi))
     return out
