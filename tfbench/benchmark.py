@@ -126,10 +126,22 @@ def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0
         if ref is None or m == reference:
             print(f"{m:>15}{bal:>9.3f}{'—':>8}{'—':>21}{'—':>9}")
             out.append((m, bal, np.nan, np.nan, np.nan)); continue
-        ca, cb = (ref == y).astype(float), (p == y).astype(float)
+        # Bootstrap the BALANCED accuracy difference. Using raw accuracy here
+        # would be the classic trap on this axis: with 75 PD / 15 ET a model
+        # that simply predicts PD more often scores a large positive raw-accuracy
+        # difference while getting worse at the minority class.
         idx = np.arange(len(y))
-        d = np.array([cb[s].mean() - ca[s].mean()
-                      for s in (rng.choice(idx, len(idx), True) for _ in range(n_boot))])
+        d = []
+        for _ in range(n_boot):
+            bi = rng.choice(idx, len(idx), True)
+            yb = y[bi]
+            if len(np.unique(yb)) < 2:
+                continue
+            d.append(_bal(yb, p[bi]) - _bal(yb, ref[bi]))
+        d = np.array(d)
+        if d.size == 0:
+            print(f"{m:>15}{bal:>9.3f}{'n/a':>8}{'n/a':>21}{'n/a':>9}")
+            out.append((m, bal, np.nan, np.nan, np.nan)); continue
         lo, hi = np.percentile(d, [2.5, 97.5])
         star = " *" if lo > 0 else ""
         print(f"{m:>15}{bal:>9.3f}{d.mean():>+8.3f}   [{lo:>+.3f}, {hi:>+.3f}]"

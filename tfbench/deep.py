@@ -42,6 +42,12 @@ METHOD_TO_TFD = {
     "sst": dict(tfd_method="sst", nperseg=256, noverlap=192),
     "wavelet_packet": dict(tfd_method="wavelet_packet"),
     "welch": dict(tfd_method="stft", nperseg=256, noverlap=192),  # closest image
+    # Stage 1's winner. TremorDataset has no IMF-selection option, so the deep
+    # model sees the FULL Hilbert spectrum, IMF1 included -- i.e. it does NOT
+    # reproduce hht_imf2plus exactly. Since dropping IMF1 is precisely what made
+    # the method work in stage 1, read this row as "HHT-family", not as a
+    # like-for-like carry-over.
+    "hht_imf2plus": dict(tfd_method="hht"),
 }
 
 
