@@ -26,7 +26,18 @@ def describe(freqs, power):
     if f.size == 0 or P.sum() <= EPS:
         return dict.fromkeys(DESCRIPTOR_NAMES, 0.0)
 
-    w = P / (P.sum() + EPS)                       # power distribution over freq
+    # Weight by power x BIN WIDTH, not power alone. Several methods return a
+    # non-uniform frequency grid (VMD mode centres, the S-transform), where
+    # summing P treats a wide bin and a narrow one as equal and biases
+    # mean/median frequency toward wherever the grid happens to be dense.
+    if f.size > 1:
+        edges = np.concatenate([[f[0]], 0.5*(f[1:] + f[:-1]), [f[-1]]])
+        dfb = np.diff(edges)
+        dfb[dfb <= 0] = np.median(dfb[dfb > 0]) if (dfb > 0).any() else 1.0
+    else:
+        dfb = np.ones_like(f)
+    Pw = P * dfb
+    w = Pw / (Pw.sum() + EPS)                     # power distribution over freq
     pk = int(np.argmax(P))
     max_freq = float(f[pk])
     mean_freq = float((f * w).sum())
@@ -44,7 +55,7 @@ def describe(freqs, power):
     q = max_freq / (bw + EPS)
 
     mid = 0.5 * (f[0] + f[-1])
-    lo, hi = P[f <= mid].sum(), P[f > mid].sum()
+    lo, hi = Pw[f <= mid].sum(), Pw[f > mid].sum()
 
     return {
         "max_freq": max_freq,
@@ -53,8 +64,11 @@ def describe(freqs, power):
         "spectral_spread": spread,
         "spectral_entropy": entropy,
         "q_factor": float(q),
-        "peak_share": float(P[pk] / (P.sum() + EPS)),
+        "peak_share": float(Pw[pk] / (Pw.sum() + EPS)),
         "freq_iqr": q75 - q25,
         "low_high_ratio": float(np.log10((lo + EPS) / (hi + EPS))),
-        "total_power": float(np.log10(P.sum() + EPS)),
+        # integrated power. NOTE: absolute calibration differs per method
+        # (verified: integ/true ranges 0.15-1.4e4 across the 12 transforms), so
+        # total_power is comparable WITHIN a method, not across methods.
+        "total_power": float(np.log10(Pw.sum() + EPS)),
     }

@@ -59,7 +59,7 @@ def m_multitaper(x, fs=FS, nperseg=256, **kw):
                          f_max=F_MAX)
     n_ch = np.atleast_2d(x).shape[0]
     n_freq = np.asarray(S).shape[0] // n_ch
-    P = _per_freq_mean(S, n_freq, n_ch)
+    P = _per_freq_mean(S, n_freq, n_ch, square=True)
     # apply_multitaper already cropped to f_max, so the grid runs 0..F_MAX
     return _band(np.linspace(0.0, F_MAX, n_freq), P)
 
@@ -67,14 +67,14 @@ def m_multitaper(x, fs=FS, nperseg=256, **kw):
 def m_cwt(x, fs=FS, w0=6.0, step=0.25, **kw):
     freqs = np.arange(F_MIN, F_MAX + 1e-9, step)
     S = apply_cwt(x, fs=fs, freqs=freqs, w0=w0, decim=4, f_max=None)
-    return freqs, _per_freq_mean(S, len(freqs))
+    return freqs, _per_freq_mean(S, len(freqs), np.atleast_2d(x).shape[0], square=True)
 
 
 def m_hht(x, fs=FS, max_imfs=8, step=0.25, emd_method="emd", **kw):
     freqs = np.arange(F_MIN, F_MAX + 1e-9, step)
     S = apply_hht(x, fs=fs, freqs=freqs, max_imfs=max_imfs, decim=4,
                   emd_method=emd_method)
-    return freqs, _per_freq_mean(S, len(freqs))
+    return freqs, _per_freq_mean(S, len(freqs), np.atleast_2d(x).shape[0], square=True)
 
 
 def m_hht_imf2plus(x, fs=FS, max_imfs=8, step=0.25, **kw):
@@ -105,7 +105,7 @@ def m_sst(x, fs=FS, nperseg=256, **kw):
     S = apply_sst(x, fs=fs, nperseg=n, nfft=n, noverlap=n * 3 // 4, f_max=F_MAX)
     n_ch = np.atleast_2d(x).shape[0]
     n_freq = np.asarray(S).shape[0] // n_ch
-    P = _per_freq_mean(S, n_freq, n_ch)
+    P = _per_freq_mean(S, n_freq, n_ch, square=True)
     return _band(np.linspace(0.0, F_MAX, n_freq), P)
 
 
@@ -193,19 +193,31 @@ def m_ar(x, fs=FS, order=16, nfreq=257, **kw):
             continue
         w = 2 * np.pi * f / fs
         denom = 1 - (a[None, :] * np.exp(-1j * w[:, None] * np.arange(1, order + 1))).sum(1)
-        acc += 1.0 / (np.abs(denom) ** 2 + 1e-20)
+        # innovation variance: without this gain the AR spectrum is pure SHAPE and
+        # completely scale-invariant (doubling the signal leaves it unchanged),
+        # so total_power carries no amplitude information at all.
+        sigma2 = max(float(r[0] - a @ r[1:order + 1]) / len(ch), 1e-20)
+        acc += sigma2 / (np.abs(denom) ** 2 + 1e-20)
     return _band(f, acc / max(len(np.atleast_2d(x)), 1))
 
 
 # --------------------------------------------------------------------------- #
-def _per_freq_mean(S, n_freq, n_ch=None):
+def _per_freq_mean(S, n_freq, n_ch=None, square=False):
     """Stacked ``(n_ch*n_freq, T)`` -> mean power per frequency across channels.
 
     ``n_ch`` must be passed explicitly. Inferring it from the array shape is how
     the first version of this file silently mis-mapped SST and multitaper onto
     the wrong frequency grid.
+
+    ``square=True`` for transforms that return |S| rather than |S|^2. Getting
+    this wrong is not cosmetic: every power-weighted descriptor (mean_freq,
+    median_freq, spread, entropy) uses P as the weight, so an amplitude-valued
+    P weights low-power bins more heavily than a power-valued one and the
+    "same" descriptor means a different quantity per method.
     """
     S = np.abs(np.asarray(S))
+    if square:                    # transform returned AMPLITUDE -> make it POWER
+        S = S ** 2
     if S.ndim == 1:
         S = S[:, None]
     if n_ch is None:
