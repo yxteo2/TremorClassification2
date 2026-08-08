@@ -220,22 +220,30 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
         if (s0 or e0) and arr.shape[0] - s0 - e0 > int(FS_HZ):   # keep >= 1 s
             arr = arr[s0: arr.shape[0] - e0 if e0 else arr.shape[0]]
         wr = "RightWrist" if "right" in f.stem.lower() else ("LeftWrist" if "left" in f.stem.lower() else "NA")
-        outfile = out / f"{cls}_{pid}_{wr}.txt"
+        # The task token MUST be in the filename. Several PADS tasks have
+        # repetitions (Relaxed1/Relaxed2, Entrainment1/Entrainment2); without it
+        # the second repetition silently overwrites the first and half the data
+        # disappears with no error. The exact token is taken from the source
+        # stem, so Relaxed1 and Relaxed2 stay distinct.
+        tok = next((t for t in ALL_TASKS if t.lower() in f.stem.lower()), task)
+        outfile = out / f"{cls}_{pid}_{tok}_{wr}.txt"
         # comma-separated text (same format as the local raw_quaternion data)
         np.savetxt(outfile, arr.astype(np.float32), delimiter=",", fmt="%.6f")
         manifest.append({"file": outfile.name, "patient": pid, "class": cls,
+                         "task": tok,
                          "wrist": wr, "n_samples": arr.shape[0], "n_channels": arr.shape[1],
                          "fs_hz": FS_HZ, "duration_s": round(arr.shape[0] / FS_HZ, 3),
                          "raw_label": lab[1]})
         counts[cls] += 1
 
     with open(out / "manifest.csv", "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=["file", "patient", "class", "wrist",
+        w = csv.DictWriter(fh, fieldnames=["file", "patient", "class", "task", "wrist",
                                            "n_samples", "n_channels", "fs_hz",
                                            "duration_s", "raw_label"])
         w.writeheader(); w.writerows(manifest)
     n_pat = len({m["patient"] for m in manifest})
-    print(f"extracted {len(manifest)} StretchHold recordings, {n_pat} patients")
+    tasks = sorted({m["task"] for m in manifest})
+    print(f"extracted {len(manifest)} recordings ({', '.join(tasks)}), {n_pat} patients")
     print(f"  per class: {counts}   (skipped {skipped} non-N/PD/ET or unlabeled)")
     print(f"  saved -> {out}/ (one .txt per recording + manifest.csv)")
 

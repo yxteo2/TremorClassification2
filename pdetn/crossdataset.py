@@ -48,7 +48,7 @@ def load_local_hand(data_root, action="OUT"):
     return load_local_sensor(data_root, action=action, sensor="hand")
 
 
-def load_pads_extracted(folder, strict=True):
+def load_pads_extracted(folder, strict=True, task=None):
     """Load the StretchHold data extracted by pdetn.extract_pads.
 
     The filename class token is NOT trusted. An earlier version of
@@ -65,6 +65,10 @@ def load_pads_extracted(folder, strict=True):
 
     ``strict=False`` reproduces the old contaminated behaviour; it exists only
     to re-derive the superseded numbers and should not be used for new results.
+
+    ``task`` filters by PADS task substring (e.g. ``"Relaxed"`` matches both
+    Relaxed1 and Relaxed2, ``"StretchHold"`` the postural task). ``None`` loads
+    everything in the folder, which is correct for a single-task folder.
     """
     import csv
     import re
@@ -74,7 +78,7 @@ def load_pads_extracted(folder, strict=True):
     manifest = folder / "manifest.csv"
     exact = {"healthy": "N", "parkinson's": "PD", "essential tremor": "ET"}
 
-    true_cls = {}
+    true_cls, file_task = {}, {}
     if strict:
         if not manifest.is_file():
             raise FileNotFoundError(
@@ -84,13 +88,22 @@ def load_pads_extracted(folder, strict=True):
             lab = exact.get(row["raw_label"].strip().lower())
             if lab:
                 true_cls[row["file"]] = lab
+            file_task[row["file"]] = (row.get("task") or "").strip()
 
     recs = []
     for f in sorted(folder.glob("*.txt")):
+        # two layouts: legacy <cls>_<pid>_<wrist> and current
+        # <cls>_<pid>_<task>_<wrist> (the task token was added so repetitions
+        # like Relaxed1/Relaxed2 stop overwriting each other)
         m = re.match(r"(N|PD|ET)_(\d+)_(\w+)", f.stem)
         if not m:
             continue
         cls, pid, _ = m.groups()
+        if task is not None:
+            parts = f.stem.split("_")
+            t = file_task.get(f.name) or (parts[2] if len(parts) > 3 else "")
+            if task.lower() not in t.lower():
+                continue
         if strict:
             cls = true_cls.get(f.name)
             if cls is None:            # ambiguous / non-N-PD-ET diagnosis
