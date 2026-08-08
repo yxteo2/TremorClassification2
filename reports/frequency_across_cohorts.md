@@ -28,7 +28,7 @@ across methods. Shape descriptors are unaffected.
 | cohort | n | max_freq median [IQR] | mean_freq median [IQR] |
 |---|---|---|---|
 | Data (2015) ET | 15 | 6.45 [5.76–8.30] | 7.25 [6.73–8.14] |
-| **NewData (2025) ET** | 6 | **3.32 [3.12–5.27]** | 5.86 [5.56–6.35] |
+| ~~NewData (2025) ET~~ | 6 | ~~3.32~~ **6.93** (see §NewData) | ~~5.86~~ **7.11** |
 | PADS ET | 28 | 5.86 [5.42–7.23] | 6.55 [5.93–7.26] |
 | Data (2015) PD | 75 | 6.64 [5.37–8.69] | 7.35 [6.44–8.22] |
 | PADS PD | 276 | 6.84 [5.66–8.01] | 7.71 [6.97–8.30] |
@@ -94,3 +94,73 @@ The most likely explanations, in order of how much they would change the plan:
 same PD-vs-ET frequency test on the 2015 `WING` and `REST` conditions. If the
 contrast is absent in every local condition but present in PADS, that points at
 acquisition rather than task.
+
+
+# CORRECTION — the NewData figures above were a loader bug, not a cohort difference
+
+The 3.32 Hz `max_freq` I flagged as "sitting on the band floor" was real, but the
+cause was **our loader, not the subjects**.
+
+`pdetn/load_2025` fed the **entire 38-second `Free_Form` recording** to the
+spectrum. Those exports have an **empty `Annotations` table**, so there is no
+task marker and the capture includes set-up and settling motion either side of
+the actual outstretch. That non-task movement dominates:
+
+| | fraction of power in 3–15 Hz |
+|---|---|
+| **NewData, whole 38 s recording** | **0.099** |
+| NewData, any 10 s window (see below) | 0.63–0.72 |
+| Data 2015 ET | 0.765 |
+| PADS ET | 0.812 |
+
+## The fix, and that it is not a selection artifact
+
+`select_task_epoch()` slides a window and keeps the most tremor-dominated one.
+That selector optimises the very quantity being reported, so it was checked
+against three alternatives that do not:
+
+| segment rule | in-band | max_freq | mean_freq |
+|---|---|---|---|
+| whole 38 s (old behaviour) | 0.099 | 3.12 | 6.04 |
+| **middle 10 s** (no selection at all) | **0.652** | 7.42 | 7.68 |
+| **last 10 s** (no selection at all) | **0.627** | 7.62 | 7.69 |
+| steadiest posture 10 s (tremor-blind) | 0.722 | 8.40 | 7.67 |
+| max in-band 10 s (biased by construction) | 0.714 | 8.20 | 7.46 |
+
+Every rule — including two that involve no selection whatsoever — lands at
+in-band 0.63–0.72 and mean_freq 7.46–7.69. **Any 10-second window works.** The
+problem was only ever using all 38 seconds.
+
+## Corrected cohort comparison
+
+| cohort | n | max_freq median | mean_freq median |
+|---|---|---|---|
+| Data 2015 ET | 15 | 6.45 | 7.25 |
+| **NewData 2025 ET (segmented)** | 6 | **6.93** | **7.11** |
+| PADS ET | 28 | 5.86 | 6.55 |
+
+| test | before (unsegmented) | **after (segmented)** |
+|---|---|---|
+| Kruskal-Wallis, mean_freq | p=0.0156 **DIFFER** | p=0.0301 (still differ) |
+| Data-2015 ET vs NewData ET | eff **+0.733**, p=**0.0084** | eff **−0.133**, p=**0.68** |
+| Data-2015 ET vs PADS ET | eff +0.424, p=0.0241 | eff +0.424, p=0.0241 |
+
+**The claim that our own two ET cohorts differ significantly is retracted.**
+With correct segmentation they agree closely (eff −0.133, p=0.68). The apparent
++0.733 difference was entirely the unsegmented drift. The remaining cohort
+difference is Data-2015 vs **PADS**, which is unchanged and independent of this
+bug.
+
+## Consequences
+
+1. **Every previous NewData result used unsegmented recordings** — the
+   device-identity probes, the pooled PD-vs-ET runs (ET 15→21), and the
+   limb-side handedness flip test. All of them were reading set-up motion for
+   ~90 % of the signal power and need re-running with `segment=True`.
+2. NewData ET is **not** anomalously slow. At max_freq 6.93 / mean_freq 7.11 Hz
+   it sits between the 2015 cohort and PADS, squarely in the normal ET range.
+3. The recommendation to "inspect those 6 subjects before pooling" is withdrawn
+   — the subjects were fine; the loader was not.
+4. `load_2025(..., segment=True)` is **not** the default, so existing callers are
+   unchanged until they opt in. Given the size of the effect, segmentation
+   should probably become the default once the re-runs confirm it.
