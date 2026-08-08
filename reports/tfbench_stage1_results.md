@@ -1,3 +1,9 @@
+> **SUPERSEDED — see `reports/multicohort_method_ranking.md`.** These numbers were
+> computed before the power fix (four transforms returned amplitude, not power, so
+> every power-weighted descriptor used the wrong weights) and on 2015 OUT only —
+> the cohort/condition where PD-vs-ET sits at chance. Re-run, `hht_imf2plus` falls
+> to bal-acc 0.613 with CI [-0.030, +0.247], p=0.067: no method beats Welch there.
+
 # Stage 1 results — which signal-processing method discriminates tremor best?
 
 12 methods, same descriptors, same patients (151: N=61, PD=75, ET=15), OUT
