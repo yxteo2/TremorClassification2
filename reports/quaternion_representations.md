@@ -47,7 +47,14 @@ Verified on synthetic orbits: circularity 1.000 (circle) vs 0.000 (line), exact
 rotation-invariance to 2e-16; signed handedness +1.000 / −1.000 for CCW / CW,
 mount-invariance to 8e-16; QSTFT chirality ±0.866 for CCW/CW, 0.000 for linear.
 
-## Finding 1 — orbit handedness is the strongest single PD-vs-ET feature found
+## Finding 1 — orbit handedness ~~is the strongest single PD-vs-ET feature~~ (RETRACTED)
+
+> **RETRACTED — see `reports/handedness_does_not_survive.md`.** This section's
+> headline does not survive multiple-comparison correction (raw p 0.00035 vs a
+> Bonferroni threshold of 0.000253 over n=198 tests; BH q = 0.070), it is
+> OUT-only and **reverses sign at WING**, and the limb-side confound was never
+> excluded. Treat everything below as a hypothesis for a future cohort, not a
+> finding. The text is kept unedited for the record.
 
 Univariate screen, patient-level, OUT condition, PD (n=75) vs ET (n=15),
 Mann-Whitney with rank-biserial effect. Uncorrected p-values; **screening only**,
