@@ -74,6 +74,14 @@ def load_pads_extracted(folder, strict=True, task=None):
     import re
 
     cmap = {"N": 0, "PD": 1, "ET": 2}
+    # Accept several folders. PADS repetitions (Relaxed1, Relaxed2) must be
+    # extracted separately because each run rewrites manifest.csv, so the
+    # natural layout is one folder per repetition -- load them together here.
+    if isinstance(folder, (list, tuple)):
+        out = []
+        for one in folder:
+            out.extend(load_pads_extracted(one, strict=strict, task=task))
+        return out
     folder = Path(folder)
     manifest = folder / "manifest.csv"
     exact = {"healthy": "N", "parkinson's": "PD", "essential tremor": "ET"}
