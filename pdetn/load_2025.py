@@ -66,13 +66,19 @@ def select_task_epoch(x, fs=100.0, win_s=10.0, hop_s=0.5, f_lo=3.0, f_hi=15.0,
 
 
 def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
-              mode="angular_velocity", sides=("right", "left"), segment=False,
+              mode="angular_velocity", sides=("right", "left"), segment=True,
               win_s=10.0):
     """Load the 2025 cohort, aligned to the 2015 channel order and rate.
 
     ``mode`` is passed to :func:`tremor.quaternion.process_quaternion_data`, so
     the same log_map / gravity representations used on the 2015 data are
     available here.
+
+    ``segment`` defaults to **True**. These exports are ~38 s ``Free_Form``
+    captures with an empty Annotations table, and using the whole recording
+    leaves only 9.9 % of power in the 3-15 Hz tremor band (vs 76.5 % for the
+    2015 cohort and 81.2 % for PADS) because set-up and settling motion
+    dominate. Pass ``segment=False`` only to reproduce the superseded numbers.
 
     ``sides`` selects limbs. Both limbs of one subject share a subject id, so
     they can never be split across CV folds -- but note that pooling both
