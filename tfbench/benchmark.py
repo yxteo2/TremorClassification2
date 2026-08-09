@@ -56,8 +56,17 @@ def patient_table(recs, method, fs=100.0, **kw):
     return X, np.array([lab[p] for p in pats]), np.array(pats)
 
 
-def build_all(recs, methods=None, fs=100.0, verbose=True, **kw):
-    """Compute the patient table for every method once, and reuse it."""
+def build_all(recs, methods=None, fs=100.0, verbose=True, cache=None, **kw):
+    """Compute the patient table for every method once, and reuse it.
+
+    Pass ``cache="artifacts/tfbench_tables.npz"`` to persist across runs -- the
+    12 transforms take ~8 minutes over the full cohort, and everything
+    downstream (both axes, reruns, notebooks) needs the same tables.
+    """
+    if cache is not None:
+        from tfbench.cache import load_or_build
+        return load_or_build(recs, path=cache, methods=methods, fs=fs,
+                             verbose=verbose, **kw)
     tables = {}
     for m in (methods or list(METHODS)):
         try:
