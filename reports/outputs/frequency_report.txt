@@ -1,0 +1,36 @@
+### A. Median MAX and MEAN frequency (Hz) per class
+   cohort    condition                 N                PD                ET
+                              max / mean        max / mean        max / mean
+     2015         REST       7.03 / 8.13       5.47 / 7.09       6.15 / 7.45
+     2015          OUT       7.81 / 8.29       6.64 / 7.35       6.45 / 7.25
+     2015         WING       3.71 / 7.15       4.49 / 6.51       5.66 / 6.63
+  NewData   REST (seg)                 —                 —       5.86 / 6.59
+  NewData    OUT (seg)                 —                 —       6.93 / 7.11
+     PADS      Relaxed       6.05 / 7.04       5.86 / 6.91       4.69 / 5.90
+     PADS  StretchHold       6.64 / 8.05       6.84 / 7.71       5.86 / 6.55
+
+### B. PD vs ET — direction, effect, significance
+   cohort    condition    measure     PD     ET   direction   effect        p
+     2015         REST   max_freq   5.47   6.15   PD slower   -0.325   0.0421 *
+     2015         REST  mean_freq   7.09   7.45   PD slower   -0.313   0.0506
+     2015          OUT   max_freq   6.64   6.45   PD FASTER   -0.029   0.8624
+     2015          OUT  mean_freq   7.35   7.25   PD FASTER   -0.070   0.6729
+     2015         WING   max_freq   4.49   5.66   PD slower   -0.200   0.2591
+     2015         WING  mean_freq   6.51   6.63   PD slower   -0.177   0.3206
+     PADS      Relaxed   max_freq   5.86   4.69   PD FASTER   +0.409   0.0004 *
+     PADS      Relaxed  mean_freq   6.91   5.90   PD FASTER   +0.546   0.0000 *
+     PADS  StretchHold   max_freq   6.84   5.86   PD FASTER   +0.281   0.0143 *
+     PADS  StretchHold  mean_freq   7.71   6.55   PD FASTER   +0.538   0.0000 *
+
+### C. Classification from max+mean frequency ALONE
+   cohort    condition         axis     n    acc    maj  bal-acc    AUC         F1 [95% CI]
+     2015         REST  N-vs-Tremor   152  0.704  0.599    0.707  0.798   0.737 [0.66,0.81]
+     2015         REST     PD-vs-ET    91  0.571  0.824    0.568  0.628   0.316 [0.15,0.47]
+     2015          OUT  N-vs-Tremor   151  0.715  0.596    0.724  0.808   0.739 [0.66,0.81]
+     2015          OUT     PD-vs-ET    90  0.489  0.833    0.453  0.465   0.207 [0.07,0.35]
+     2015         WING  N-vs-Tremor   137  0.781  0.555    0.785  0.839   0.792 [0.72,0.86]
+     2015         WING     PD-vs-ET    76  0.513  0.829    0.462  0.499   0.213 [0.05,0.37]
+     PADS      Relaxed  N-vs-Tremor   383  0.491  0.794    0.468  0.499   0.612 [0.56,0.66]
+     PADS      Relaxed     PD-vs-ET   304  0.691  0.908    0.669  0.759   0.277 [0.18,0.38]
+     PADS  StretchHold  N-vs-Tremor   383  0.629  0.794    0.612  0.664   0.733 [0.69,0.77]
+     PADS  StretchHold     PD-vs-ET   304  0.724  0.908    0.703  0.775   0.311 [0.20,0.41]

@@ -24,10 +24,8 @@ from sklearn.metrics import recall_score
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import DataLoader
 
-from tremor.datasets import TremorDataset
 from tremor.evaluate import softmax
-from tremor.losses import build_loss_fn
-from tremor.models import build_model
+from pdetn.deep_crossdataset import _ds as _canon_ds, train_bilstm
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -52,53 +50,25 @@ METHOD_TO_TFD = {
 
 
 def _ds(recs, target_length, augment, tfd, f_max=15.0):
-    kw = dict(nperseg=256, nfft=256, noverlap=192)
-    kw.update({k: v for k, v in tfd.items() if k != "tfd_method"})
-    kw["nfft"] = kw.get("nperseg", 256)
-    return TremorDataset(recs, target_length=target_length, fs=100.0, f_max=f_max,
-                         tfd_method=tfd["tfd_method"], normalize="per_recording",
-                         augment=augment, oversample_to=None,
-                         length_mode="truncate", **kw)
+    """Thin adapter onto the canonical dataset builder."""
+    kw = {k: v for k, v in tfd.items() if k != "tfd_method"}
+    return _canon_ds(recs, target_length, augment, f_max=f_max,
+                     tfd_method=tfd["tfd_method"], **kw)
 
 
 def train_one(train_recs, val_recs, n_classes, target_length, tfd, arch,
               epochs=40, patience=10, lr=1e-3, focal_gamma=1.5, seed=0,
               hidden=128, dropout=0.4, device=DEVICE):
-    torch.manual_seed(seed)
-    tr, vl = _ds(train_recs, target_length, True, tfd), _ds(val_recs, target_length, False, tfd)
-    tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
-    vloader = DataLoader(vl, batch_size=16)
-    sx, _ = tr[0]
-    model = build_model(arch, input_size=sx.shape[0], num_classes=n_classes,
-                        target_T=sx.shape[1], hidden=hidden, dropout=dropout,
-                        n_input_channels=sx.shape[0]).to(device)
-    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
-    loss_fn = build_loss_fn("focal", train_labels=[r.y for r in train_recs],
-                            num_classes=n_classes, focal_gamma=focal_gamma,
-                            device=device)
-    best, best_state, bad = float("inf"), None, 0
-    for _ in range(epochs):
-        model.train()
-        for x, y in tl:
-            opt.zero_grad()
-            loss_fn(model(x.to(device)), y.to(device)).backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            opt.step()
-        model.eval(); v = n = 0
-        with torch.no_grad():
-            for x, y in vloader:
-                v += float(loss_fn(model(x.to(device)), y.to(device))) * len(y); n += len(y)
-        v /= max(n, 1)
-        if v < best:
-            best, bad = v, 0
-            best_state = {k: t.cpu().clone() for k, t in model.state_dict().items()}
-        else:
-            bad += 1
-            if bad >= patience:
-                break
-    if best_state:
-        model.load_state_dict(best_state)
-    return model
+    """Train one model. Delegates to the single canonical loop in
+    ``pdetn.deep_crossdataset.train_bilstm`` -- this module used to carry an
+    independent copy, so a fix to early stopping or the loss had to be made
+    twice and could silently diverge."""
+    kw = {k: v for k, v in tfd.items() if k != "tfd_method"}
+    return train_bilstm(train_recs, val_recs, n_classes, target_length,
+                        epochs=epochs, patience=patience, lr=lr,
+                        focal_gamma=focal_gamma, seed=seed, hidden=hidden,
+                        dropout=dropout, device=device, arch=arch,
+                        tfd_method=tfd["tfd_method"], **kw)
 
 
 @torch.no_grad()

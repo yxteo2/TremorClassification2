@@ -52,9 +52,17 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
                  epochs=60, patience=12, focal_gamma=1.5, device=DEVICE,
                  lr=1e-3, weight_decay=1e-4, hidden=128, dropout=0.4,
                  tfd_method="stft", nperseg=256, noverlap=192, seed=0,
-                 init_state=None):
-    """Train a BiLSTM on TF images. ``init_state`` warm-starts from a state dict
-    (used to FINE-TUNE a pretrained stage rather than train from scratch)."""
+                 init_state=None, arch="tremor_bilstm"):
+    """Train a model on TF images. THE canonical training loop for this repo.
+
+    ``arch`` is any name in ``tremor.models.MODELS`` (tremor_bilstm, restcn,
+    resnet18, ...), so this serves the architecture comparison as well as the
+    two-stage work -- ``tfbench.deep`` used to carry a second, independent copy
+    of this loop.
+
+    ``init_state`` warm-starts from a state dict, to FINE-TUNE a pretrained
+    stage rather than train from scratch.
+    """
     torch.manual_seed(seed)
     tfd = dict(tfd_method=tfd_method, nperseg=nperseg, noverlap=noverlap)
     tr = _ds(train_recs, target_length, True, **tfd)
@@ -63,9 +71,9 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
     tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
     vloader = DataLoader(vl, batch_size=16)
     sx, _ = tr[0]
-    model = build_model("tremor_bilstm", input_size=sx.shape[0],
-                        num_classes=num_classes, target_T=sx.shape[1],
-                        hidden=hidden, dropout=dropout).to(device)
+    model = build_model(arch, input_size=sx.shape[0], num_classes=num_classes,
+                        target_T=sx.shape[1], hidden=hidden, dropout=dropout,
+                        n_input_channels=sx.shape[0]).to(device)
     if init_state is not None:
         # load everything whose shape matches (the head may differ in width)
         cur = model.state_dict()
@@ -104,8 +112,16 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
 
 
 @torch.no_grad()
-def predict_logits(model, recs, target_length, device=DEVICE):
-    dl = DataLoader(_ds(recs, target_length, False), batch_size=16)
+def predict_logits(model, recs, target_length, device=DEVICE,
+                   tfd_method="stft", nperseg=256, noverlap=192):
+    """Logits for ``recs``.
+
+    The TFD parameters MUST match those the model was trained with. This used to
+    hardcode the defaults, so a model trained on CWT was silently evaluated on
+    STFT images -- wrong input, no error.
+    """
+    dl = DataLoader(_ds(recs, target_length, False, tfd_method=tfd_method,
+                        nperseg=nperseg, noverlap=noverlap), batch_size=16)
     model.eval()
     return np.concatenate([model(x.to(device)).cpu().numpy() for x, _ in dl])
 
