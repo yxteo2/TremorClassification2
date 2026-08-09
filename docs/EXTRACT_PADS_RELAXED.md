@@ -19,7 +19,8 @@ test**. `Relaxed` is PADS's rest condition and would provide one.
 python -m pdetn.extract_pads --pads-root PADS --inspect
 python -m pdetn.extract_pads --pads-root PADS --list-tasks
 
-# 3. Extract Relaxed (matches both Relaxed1 and Relaxed2)
+# 3. Extract Relaxed. The task field is matched EXACTLY, so this does NOT
+#    pull in RelaxedTask (rest WITH a cognitive task -- a different condition).
 python -m pdetn.extract_pads --pads-root PADS --task Relaxed --out pads_relaxed
 
 # 4. Re-extract StretchHold with the current code so both folders share the
@@ -40,8 +41,12 @@ print("N/PD/ET:", [y.count(k) for k in (0,1,2)])
 **Expect N=79 / PD=276 / ET=28 patients.** If ET comes out as 41, the strict
 label mapping has regressed — see `reports/pads_label_bug.md`.
 
-Relaxed has **two repetitions** per wrist (Relaxed1, Relaxed2), so expect
-roughly **4 recordings per patient** vs 2 for StretchHold.
+**On-disk task names differ from PADS's own preprocessing script.** The script
+refers to `Relaxed1`/`Relaxed2`/`Entrainment1`/`Entrainment2`; the actual files
+contain a single `Relaxed` and a single `Entrainment`. Verified against a real
+download via `--list-tasks`: 938 files per task = 469 patients x 2 wrists. So
+expect **2 recordings per patient**, same as StretchHold -- there are no
+repetitions to merge.
 
 ## Two bugs fixed in preparation
 
