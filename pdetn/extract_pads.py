@@ -27,10 +27,17 @@ import numpy as np
 
 TASK = "StretchHold"
 
-# PADS task order, from the dataset's own scripts/run_preprocessing.py:
-ALL_TASKS = ['Relaxed1', 'Relaxed2', 'RelaxedTask1', 'RelaxedTask2', 'StretchHold',
-             'LiftHold', 'HoldWeight', 'PointFinger', 'DrinkGlas', 'CrossArms',
-             'TouchIndex', 'TouchNose', 'Entrainment1', 'Entrainment2']
+# Task tokens as they appear in the ACTUAL filenames (<id>_<Task>_<Wrist>.txt),
+# confirmed by --list-tasks against a real download: 938 files each = 469
+# patients x 2 wrists.
+#
+# NOTE these differ from the names in PADS's own run_preprocessing.py, which
+# uses 'Relaxed1'/'Relaxed2'/'Entrainment1'/'Entrainment2'. On disk there is a
+# single 'Relaxed' and a single 'Entrainment'. Matching against the script's
+# names finds nothing.
+ALL_TASKS = ['Relaxed', 'RelaxedTask', 'StretchHold', 'LiftHold', 'HoldWeight',
+             'PointFinger', 'DrinkGlas', 'CrossArms', 'TouchIndex', 'TouchNose',
+             'Entrainment']
 # NOTE: PADS's own preprocessing drops these tasks
 #   to_remove = 'Time|LiftHold|PointFinger|TouchIndex'
 # so LiftHold is NOT used by the dataset authors. StretchHold is the
@@ -233,8 +240,16 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
     manifest = []
     counts = {"N": 0, "PD": 0, "ET": 0}
     skipped = 0
-    for f in sorted(ts_dir.rglob(f"*{task}*")):
+    # Match the task field EXACTLY, not as a substring. Filenames are
+    # <id>_<Task>_<Wrist>, and a substring match on "Relaxed" also pulls in
+    # every "RelaxedTask" file -- a different condition (rest WITH a cognitive
+    # task). Both would then be written under the same output name and silently
+    # overwrite each other.
+    for f in sorted(ts_dir.rglob("*")):
         if f.suffix.lower() not in (".txt", ".csv", ".json"):
+            continue
+        parts = f.stem.split("_")
+        if len(parts) < 2 or parts[1].lower() != task.lower():
             continue
         if wrist != "both" and wrist.lower() not in f.stem.lower():
             continue
@@ -261,7 +276,7 @@ def extract(root: Path, out: Path, wrist: str, gyro_only: bool,
         # the second repetition silently overwrites the first and half the data
         # disappears with no error. The exact token is taken from the source
         # stem, so Relaxed1 and Relaxed2 stay distinct.
-        tok = next((t for t in ALL_TASKS if t.lower() in f.stem.lower()), task)
+        tok = parts[1]                      # exact token from the source filename
         outfile = out / f"{cls}_{pid}_{tok}_{wr}.txt"
         # comma-separated text (same format as the local raw_quaternion data)
         np.savetxt(outfile, arr.astype(np.float32), delimiter=",", fmt="%.6f")
