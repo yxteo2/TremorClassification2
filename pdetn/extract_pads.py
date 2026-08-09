@@ -127,8 +127,40 @@ def patient_id_from_name(stem: str) -> str:
 
 
 def find_dirs(root: Path):
-    ts = next(iter(root.rglob("timeseries")), None) or root
+    """Locate the timeseries/ and patients/ dirs inside a PADS download.
+
+    Fails loudly. Earlier this returned ``(root, None)`` for a non-existent
+    root, so ``--inspect`` printed two header lines and exited 0 -- looking like
+    "ran fine, found nothing" instead of "that folder does not exist".
+    """
+    if not root.exists():
+        raise SystemExit(
+            f"--pads-root '{root}' does not exist.\n"
+            f"  This repo does NOT ship the raw PADS dataset -- only the\n"
+            f"  pre-extracted 'pads_stretchhold/' output. Download PADS first:\n"
+            f"    https://physionet.org/content/parkinsons-disease-smartwatch/1.0.0/\n"
+            f"  (PhysioNet DOI 10.13026/m0w9-zx22), unpack it, and point\n"
+            f"  --pads-root at the unpacked folder.")
+    if not root.is_dir():
+        raise SystemExit(f"--pads-root '{root}' is a file, not a directory.")
+
+    ts = next(iter(root.rglob("timeseries")), None)
     pat = next(iter(root.rglob("patients")), None)
+    if ts is None:
+        n_txt = sum(1 for _ in root.rglob("*.txt"))
+        raise SystemExit(
+            f"no 'timeseries/' directory found under '{root}' "
+            f"({n_txt} .txt files seen anywhere below it).\n"
+            f"  Expected the PADS layout:\n"
+            f"    <root>/movement/timeseries/<id>_<Task>_<Wrist>.txt\n"
+            f"    <root>/patients/patient_<id>.json\n"
+            f"  If your copy is laid out differently, point --pads-root at the\n"
+            f"  directory that CONTAINS 'timeseries'.")
+    if pat is None:
+        raise SystemExit(
+            f"found timeseries at '{ts}' but no 'patients/' directory under "
+            f"'{root}'.\n  Diagnoses live in patients/patient_<id>.json and are "
+            f"required for labelling.")
     return ts, pat
 
 
@@ -151,6 +183,8 @@ def inspect(root: Path):
     ts_dir, pat_dir = find_dirs(root)
     print(f"timeseries dir: {ts_dir}\npatients dir:   {pat_dir}\n")
     sample = next(iter(ts_dir.rglob(f"*{TASK}*.txt")), None) or next(iter(ts_dir.rglob("*.txt")), None)
+    if sample is None:
+        raise SystemExit(f"no .txt recordings found under '{ts_dir}'.")
     if sample:
         print(f"--- sample timeseries: {sample.name} ---")
         for line in sample.read_text().splitlines()[:3]:
@@ -182,6 +216,8 @@ def list_tasks(root: Path):
         parts = f.stem.split("_")
         if len(parts) >= 2:
             counts[parts[1]] = counts.get(parts[1], 0) + 1
+    if not counts:
+        raise SystemExit(f"no .txt recordings found under '{ts_dir}'.")
     print(f"tasks found in {ts_dir}:")
     for t, n in sorted(counts.items(), key=lambda kv: -kv[1]):
         flag = "  <-- excluded by PADS's own pipeline" if t in PADS_EXCLUDED_TASKS else ""
