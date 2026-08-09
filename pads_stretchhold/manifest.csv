@@ -1,833 +1,767 @@
-file,patient,class,wrist,n_samples,n_channels,raw_label
-N_001_LeftWrist.txt,001,N,LeftWrist,1024,3,Healthy
-N_001_RightWrist.txt,001,N,RightWrist,1024,3,Healthy
-N_003_LeftWrist.txt,003,N,LeftWrist,1024,3,Healthy
-N_003_RightWrist.txt,003,N,RightWrist,1024,3,Healthy
-PD_004_LeftWrist.txt,004,PD,LeftWrist,1024,3,Parkinson's
-PD_004_RightWrist.txt,004,PD,RightWrist,1024,3,Parkinson's
-PD_005_LeftWrist.txt,005,PD,LeftWrist,1024,3,Parkinson's
-PD_005_RightWrist.txt,005,PD,RightWrist,1024,3,Parkinson's
-PD_006_LeftWrist.txt,006,PD,LeftWrist,1024,3,Parkinson's
-PD_006_RightWrist.txt,006,PD,RightWrist,1024,3,Parkinson's
-PD_008_LeftWrist.txt,008,PD,LeftWrist,1024,3,Parkinson's
-PD_008_RightWrist.txt,008,PD,RightWrist,1024,3,Parkinson's
-PD_009_LeftWrist.txt,009,PD,LeftWrist,1024,3,Parkinson's
-PD_009_RightWrist.txt,009,PD,RightWrist,1024,3,Parkinson's
-PD_010_LeftWrist.txt,010,PD,LeftWrist,1024,3,Parkinson's
-PD_010_RightWrist.txt,010,PD,RightWrist,1024,3,Parkinson's
-PD_011_LeftWrist.txt,011,PD,LeftWrist,1024,3,"Dystonia-Parkinson-Syndrome, possibly genetically"
-PD_011_RightWrist.txt,011,PD,RightWrist,1024,3,"Dystonia-Parkinson-Syndrome, possibly genetically"
-PD_012_LeftWrist.txt,012,PD,LeftWrist,1024,3,Parkinson's
-PD_012_RightWrist.txt,012,PD,RightWrist,1024,3,Parkinson's
-PD_013_LeftWrist.txt,013,PD,LeftWrist,1024,3,Parkinson's
-PD_013_RightWrist.txt,013,PD,RightWrist,1024,3,Parkinson's
-PD_014_LeftWrist.txt,014,PD,LeftWrist,1024,3,Parkinson's
-PD_014_RightWrist.txt,014,PD,RightWrist,1024,3,Parkinson's
-PD_015_LeftWrist.txt,015,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_015_RightWrist.txt,015,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_018_LeftWrist.txt,018,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_018_RightWrist.txt,018,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_019_LeftWrist.txt,019,PD,LeftWrist,1024,3,Parkinson's
-PD_019_RightWrist.txt,019,PD,RightWrist,1024,3,Parkinson's
-PD_020_LeftWrist.txt,020,PD,LeftWrist,1024,3,Parkinson's
-PD_020_RightWrist.txt,020,PD,RightWrist,1024,3,Parkinson's
-N_021_LeftWrist.txt,021,N,LeftWrist,1024,3,Healthy
-N_021_RightWrist.txt,021,N,RightWrist,1024,3,Healthy
-PD_022_LeftWrist.txt,022,PD,LeftWrist,1024,3,Parkinson's
-PD_022_RightWrist.txt,022,PD,RightWrist,1024,3,Parkinson's
-PD_025_LeftWrist.txt,025,PD,LeftWrist,1024,3,Parkinson's
-PD_025_RightWrist.txt,025,PD,RightWrist,1024,3,Parkinson's
-PD_026_LeftWrist.txt,026,PD,LeftWrist,1024,3,Parkinson's
-PD_026_RightWrist.txt,026,PD,RightWrist,1024,3,Parkinson's
-N_027_LeftWrist.txt,027,N,LeftWrist,1024,3,Healthy
-N_027_RightWrist.txt,027,N,RightWrist,1024,3,Healthy
-PD_028_LeftWrist.txt,028,PD,LeftWrist,1024,3,Parkinson's
-PD_028_RightWrist.txt,028,PD,RightWrist,1024,3,Parkinson's
-PD_029_LeftWrist.txt,029,PD,LeftWrist,1024,3,Parkinson's
-PD_029_RightWrist.txt,029,PD,RightWrist,1024,3,Parkinson's
-PD_030_LeftWrist.txt,030,PD,LeftWrist,1024,3,Parkinson's
-PD_030_RightWrist.txt,030,PD,RightWrist,1024,3,Parkinson's
-PD_031_LeftWrist.txt,031,PD,LeftWrist,1024,3,Parkinson's
-PD_031_RightWrist.txt,031,PD,RightWrist,1024,3,Parkinson's
-PD_032_LeftWrist.txt,032,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_032_RightWrist.txt,032,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_033_LeftWrist.txt,033,PD,LeftWrist,1024,3,Parkinson's
-PD_033_RightWrist.txt,033,PD,RightWrist,1024,3,Parkinson's
-N_034_LeftWrist.txt,034,N,LeftWrist,1024,3,Healthy
-N_034_RightWrist.txt,034,N,RightWrist,1024,3,Healthy
-ET_035_LeftWrist.txt,035,ET,LeftWrist,1024,3,Cervical dystonia with Torticollis with tremor. Essential Tremor
-ET_035_RightWrist.txt,035,ET,RightWrist,1024,3,Cervical dystonia with Torticollis with tremor. Essential Tremor
-PD_038_LeftWrist.txt,038,PD,LeftWrist,1024,3,Parkinson's
-PD_038_RightWrist.txt,038,PD,RightWrist,1024,3,Parkinson's
-PD_039_LeftWrist.txt,039,PD,LeftWrist,1024,3,Parkinson's
-PD_039_RightWrist.txt,039,PD,RightWrist,1024,3,Parkinson's
-PD_040_LeftWrist.txt,040,PD,LeftWrist,1024,3,Parkinson's
-PD_040_RightWrist.txt,040,PD,RightWrist,1024,3,Parkinson's
-PD_041_LeftWrist.txt,041,PD,LeftWrist,1024,3,Parkinson's
-PD_041_RightWrist.txt,041,PD,RightWrist,1024,3,Parkinson's
-N_045_LeftWrist.txt,045,N,LeftWrist,1024,3,Healthy
-N_045_RightWrist.txt,045,N,RightWrist,1024,3,Healthy
-N_046_LeftWrist.txt,046,N,LeftWrist,1024,3,Healthy
-N_046_RightWrist.txt,046,N,RightWrist,1024,3,Healthy
-PD_047_LeftWrist.txt,047,PD,LeftWrist,1024,3,Parkinson's
-PD_047_RightWrist.txt,047,PD,RightWrist,1024,3,Parkinson's
-PD_048_LeftWrist.txt,048,PD,LeftWrist,1024,3,Parkinson's
-PD_048_RightWrist.txt,048,PD,RightWrist,1024,3,Parkinson's
-PD_049_LeftWrist.txt,049,PD,LeftWrist,1024,3,Parkinson's
-PD_049_RightWrist.txt,049,PD,RightWrist,1024,3,Parkinson's
-PD_051_LeftWrist.txt,051,PD,LeftWrist,1024,3,Parkinson's
-PD_051_RightWrist.txt,051,PD,RightWrist,1024,3,Parkinson's
-N_052_LeftWrist.txt,052,N,LeftWrist,1024,3,Healthy
-N_052_RightWrist.txt,052,N,RightWrist,1024,3,Healthy
-PD_053_LeftWrist.txt,053,PD,LeftWrist,1024,3,Parkinson's
-PD_053_RightWrist.txt,053,PD,RightWrist,1024,3,Parkinson's
-N_054_LeftWrist.txt,054,N,LeftWrist,1024,3,Healthy
-N_054_RightWrist.txt,054,N,RightWrist,1024,3,Healthy
-PD_055_LeftWrist.txt,055,PD,LeftWrist,1024,3,Parkinson's
-PD_055_RightWrist.txt,055,PD,RightWrist,1024,3,Parkinson's
-PD_056_LeftWrist.txt,056,PD,LeftWrist,1024,3,Parkinson's
-PD_056_RightWrist.txt,056,PD,RightWrist,1024,3,Parkinson's
-PD_057_LeftWrist.txt,057,PD,LeftWrist,1024,3,Parkinson's
-PD_057_RightWrist.txt,057,PD,RightWrist,1024,3,Parkinson's
-PD_059_LeftWrist.txt,059,PD,LeftWrist,1024,3,Parkinson's
-PD_059_RightWrist.txt,059,PD,RightWrist,1024,3,Parkinson's
-PD_060_LeftWrist.txt,060,PD,LeftWrist,1024,3,Parkinson's
-PD_060_RightWrist.txt,060,PD,RightWrist,1024,3,Parkinson's
-PD_061_LeftWrist.txt,061,PD,LeftWrist,1024,3,Parkinson's
-PD_061_RightWrist.txt,061,PD,RightWrist,1024,3,Parkinson's
-N_062_LeftWrist.txt,062,N,LeftWrist,1024,3,Healthy
-N_062_RightWrist.txt,062,N,RightWrist,1024,3,Healthy
-PD_063_LeftWrist.txt,063,PD,LeftWrist,1024,3,Parkinson's
-PD_063_RightWrist.txt,063,PD,RightWrist,1024,3,Parkinson's
-PD_064_LeftWrist.txt,064,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_064_RightWrist.txt,064,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_065_LeftWrist.txt,065,PD,LeftWrist,1024,3,Parkinson's
-PD_065_RightWrist.txt,065,PD,RightWrist,1024,3,Parkinson's
-ET_066_LeftWrist.txt,066,ET,LeftWrist,1024,3,Essential Tremor
-ET_066_RightWrist.txt,066,ET,RightWrist,1024,3,Essential Tremor
-PD_067_LeftWrist.txt,067,PD,LeftWrist,1024,3,Parkinson's
-PD_067_RightWrist.txt,067,PD,RightWrist,1024,3,Parkinson's
-PD_068_LeftWrist.txt,068,PD,LeftWrist,1024,3,Parkinson's
-PD_068_RightWrist.txt,068,PD,RightWrist,1024,3,Parkinson's
-PD_069_LeftWrist.txt,069,PD,LeftWrist,1024,3,Parkinson's
-PD_069_RightWrist.txt,069,PD,RightWrist,1024,3,Parkinson's
-ET_070_LeftWrist.txt,070,ET,LeftWrist,1024,3,Essential Tremor
-ET_070_RightWrist.txt,070,ET,RightWrist,1024,3,Essential Tremor
-PD_071_LeftWrist.txt,071,PD,LeftWrist,1024,3,Parkinson's
-PD_071_RightWrist.txt,071,PD,RightWrist,1024,3,Parkinson's
-ET_072_LeftWrist.txt,072,ET,LeftWrist,1024,3,Essential Tremor
-ET_072_RightWrist.txt,072,ET,RightWrist,1024,3,Essential Tremor
-PD_073_LeftWrist.txt,073,PD,LeftWrist,1024,3,Parkinson's
-PD_073_RightWrist.txt,073,PD,RightWrist,1024,3,Parkinson's
-PD_074_LeftWrist.txt,074,PD,LeftWrist,1024,3,Parkinson's
-PD_074_RightWrist.txt,074,PD,RightWrist,1024,3,Parkinson's
-PD_076_LeftWrist.txt,076,PD,LeftWrist,1024,3,Parkinson's
-PD_076_RightWrist.txt,076,PD,RightWrist,1024,3,Parkinson's
-N_078_LeftWrist.txt,078,N,LeftWrist,1024,3,Healthy
-N_078_RightWrist.txt,078,N,RightWrist,1024,3,Healthy
-ET_079_LeftWrist.txt,079,ET,LeftWrist,1024,3,Essential Tremor
-ET_079_RightWrist.txt,079,ET,RightWrist,1024,3,Essential Tremor
-N_080_LeftWrist.txt,080,N,LeftWrist,1024,3,Healthy
-N_080_RightWrist.txt,080,N,RightWrist,1024,3,Healthy
-N_081_LeftWrist.txt,081,N,LeftWrist,1024,3,Healthy
-N_081_RightWrist.txt,081,N,RightWrist,1024,3,Healthy
-PD_082_LeftWrist.txt,082,PD,LeftWrist,1024,3,Parkinson's
-PD_082_RightWrist.txt,082,PD,RightWrist,1024,3,Parkinson's
-PD_083_LeftWrist.txt,083,PD,LeftWrist,1024,3,Parkinson's
-PD_083_RightWrist.txt,083,PD,RightWrist,1024,3,Parkinson's
-N_084_LeftWrist.txt,084,N,LeftWrist,1024,3,Healthy
-N_084_RightWrist.txt,084,N,RightWrist,1024,3,Healthy
-PD_085_LeftWrist.txt,085,PD,LeftWrist,1024,3,Parkinson's
-PD_085_RightWrist.txt,085,PD,RightWrist,1024,3,Parkinson's
-PD_086_LeftWrist.txt,086,PD,LeftWrist,1024,3,Parkinson's
-PD_086_RightWrist.txt,086,PD,RightWrist,1024,3,Parkinson's
-PD_087_LeftWrist.txt,087,PD,LeftWrist,1024,3,Parkinson's
-PD_087_RightWrist.txt,087,PD,RightWrist,1024,3,Parkinson's
-ET_088_LeftWrist.txt,088,ET,LeftWrist,1024,3,Essential Tremor
-ET_088_RightWrist.txt,088,ET,RightWrist,1024,3,Essential Tremor
-PD_089_LeftWrist.txt,089,PD,LeftWrist,1024,3,Parkinson's
-PD_089_RightWrist.txt,089,PD,RightWrist,1024,3,Parkinson's
-PD_090_LeftWrist.txt,090,PD,LeftWrist,1024,3,Parkinson's
-PD_090_RightWrist.txt,090,PD,RightWrist,1024,3,Parkinson's
-ET_091_LeftWrist.txt,091,ET,LeftWrist,1024,3,Essential Tremor
-ET_091_RightWrist.txt,091,ET,RightWrist,1024,3,Essential Tremor
-PD_092_LeftWrist.txt,092,PD,LeftWrist,1024,3,Parkinson's
-PD_092_RightWrist.txt,092,PD,RightWrist,1024,3,Parkinson's
-PD_093_LeftWrist.txt,093,PD,LeftWrist,1024,3,Parkinson's
-PD_093_RightWrist.txt,093,PD,RightWrist,1024,3,Parkinson's
-PD_094_LeftWrist.txt,094,PD,LeftWrist,1024,3,Parkinson's
-PD_094_RightWrist.txt,094,PD,RightWrist,1024,3,Parkinson's
-PD_095_LeftWrist.txt,095,PD,LeftWrist,1024,3,Parkinson's
-PD_095_RightWrist.txt,095,PD,RightWrist,1024,3,Parkinson's
-PD_096_LeftWrist.txt,096,PD,LeftWrist,1024,3,Parkinson's
-PD_096_RightWrist.txt,096,PD,RightWrist,1024,3,Parkinson's
-N_097_LeftWrist.txt,097,N,LeftWrist,1024,3,Healthy
-N_097_RightWrist.txt,097,N,RightWrist,1024,3,Healthy
-PD_099_LeftWrist.txt,099,PD,LeftWrist,1024,3,Parkinson's
-PD_099_RightWrist.txt,099,PD,RightWrist,1024,3,Parkinson's
-ET_100_LeftWrist.txt,100,ET,LeftWrist,1024,3,Essential Tremor
-ET_100_RightWrist.txt,100,ET,RightWrist,1024,3,Essential Tremor
-N_101_LeftWrist.txt,101,N,LeftWrist,1024,3,Healthy
-N_101_RightWrist.txt,101,N,RightWrist,1024,3,Healthy
-PD_102_LeftWrist.txt,102,PD,LeftWrist,1024,3,Parkinson's
-PD_102_RightWrist.txt,102,PD,RightWrist,1024,3,Parkinson's
-ET_104_LeftWrist.txt,104,ET,LeftWrist,1024,3,Essential Tremor
-ET_104_RightWrist.txt,104,ET,RightWrist,1024,3,Essential Tremor
-PD_105_LeftWrist.txt,105,PD,LeftWrist,1024,3,Parkinson's
-PD_105_RightWrist.txt,105,PD,RightWrist,1024,3,Parkinson's
-PD_106_LeftWrist.txt,106,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_106_RightWrist.txt,106,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_107_LeftWrist.txt,107,PD,LeftWrist,1024,3,Parkinson's
-PD_107_RightWrist.txt,107,PD,RightWrist,1024,3,Parkinson's
-N_108_LeftWrist.txt,108,N,LeftWrist,1024,3,Healthy
-N_108_RightWrist.txt,108,N,RightWrist,1024,3,Healthy
-PD_109_LeftWrist.txt,109,PD,LeftWrist,1024,3,Parkinson's
-PD_109_RightWrist.txt,109,PD,RightWrist,1024,3,Parkinson's
-PD_110_LeftWrist.txt,110,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_110_RightWrist.txt,110,PD,RightWrist,1024,3,Atypical Parkinsonism
-ET_111_LeftWrist.txt,111,ET,LeftWrist,1024,3,"Tremor of unknown etiology, DD, SWEDD syndrome, Restless Legs Syndrom"
-ET_111_RightWrist.txt,111,ET,RightWrist,1024,3,"Tremor of unknown etiology, DD, SWEDD syndrome, Restless Legs Syndrom"
-ET_112_LeftWrist.txt,112,ET,LeftWrist,1024,3,Essential Tremor
-ET_112_RightWrist.txt,112,ET,RightWrist,1024,3,Essential Tremor
-PD_113_LeftWrist.txt,113,PD,LeftWrist,1024,3,Parkinson's
-PD_113_RightWrist.txt,113,PD,RightWrist,1024,3,Parkinson's
-PD_114_LeftWrist.txt,114,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_114_RightWrist.txt,114,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_115_LeftWrist.txt,115,PD,LeftWrist,1024,3,Parkinson's
-PD_115_RightWrist.txt,115,PD,RightWrist,1024,3,Parkinson's
-PD_116_LeftWrist.txt,116,PD,LeftWrist,1024,3,Parkinson's
-PD_116_RightWrist.txt,116,PD,RightWrist,1024,3,Parkinson's
-PD_117_LeftWrist.txt,117,PD,LeftWrist,1024,3,"Hypokinetic-rigid syndrome, vascular Parkinson syndrome"
-PD_117_RightWrist.txt,117,PD,RightWrist,1024,3,"Hypokinetic-rigid syndrome, vascular Parkinson syndrome"
-PD_118_LeftWrist.txt,118,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_118_RightWrist.txt,118,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_119_LeftWrist.txt,119,PD,LeftWrist,1024,3,Parkinson's
-PD_119_RightWrist.txt,119,PD,RightWrist,1024,3,Parkinson's
-PD_120_LeftWrist.txt,120,PD,LeftWrist,1024,3,Parkinson's
-PD_120_RightWrist.txt,120,PD,RightWrist,1024,3,Parkinson's
-N_121_LeftWrist.txt,121,N,LeftWrist,1024,3,Healthy
-N_121_RightWrist.txt,121,N,RightWrist,1024,3,Healthy
-PD_122_LeftWrist.txt,122,PD,LeftWrist,1024,3,Parkinson's
-PD_122_RightWrist.txt,122,PD,RightWrist,1024,3,Parkinson's
-ET_123_LeftWrist.txt,123,ET,LeftWrist,1024,3,"Starting IPS DD, age dependent tremor DD, asymmetric Essential Tremor"
-ET_123_RightWrist.txt,123,ET,RightWrist,1024,3,"Starting IPS DD, age dependent tremor DD, asymmetric Essential Tremor"
-ET_124_LeftWrist.txt,124,ET,LeftWrist,1024,3,Essential Tremor
-ET_124_RightWrist.txt,124,ET,RightWrist,1024,3,Essential Tremor
-PD_125_LeftWrist.txt,125,PD,LeftWrist,1024,3,Parkinson's
-PD_125_RightWrist.txt,125,PD,RightWrist,1024,3,Parkinson's
-ET_126_LeftWrist.txt,126,ET,LeftWrist,1024,3,Essential Tremor
-ET_126_RightWrist.txt,126,ET,RightWrist,1024,3,Essential Tremor
-PD_127_LeftWrist.txt,127,PD,LeftWrist,1024,3,Parkinson's
-PD_127_RightWrist.txt,127,PD,RightWrist,1024,3,Parkinson's
-PD_128_LeftWrist.txt,128,PD,LeftWrist,1024,3,Parkinson's
-PD_128_RightWrist.txt,128,PD,RightWrist,1024,3,Parkinson's
-PD_129_LeftWrist.txt,129,PD,LeftWrist,1024,3,Parkinson's
-PD_129_RightWrist.txt,129,PD,RightWrist,1024,3,Parkinson's
-ET_130_LeftWrist.txt,130,ET,LeftWrist,1024,3,Asymmetric tremor of the hands of unknown etiology
-ET_130_RightWrist.txt,130,ET,RightWrist,1024,3,Asymmetric tremor of the hands of unknown etiology
-PD_131_LeftWrist.txt,131,PD,LeftWrist,1024,3,Parkinson's
-PD_131_RightWrist.txt,131,PD,RightWrist,1024,3,Parkinson's
-N_132_LeftWrist.txt,132,N,LeftWrist,1024,3,Healthy
-N_132_RightWrist.txt,132,N,RightWrist,1024,3,Healthy
-PD_133_LeftWrist.txt,133,PD,LeftWrist,1024,3,Parkinson's
-PD_133_RightWrist.txt,133,PD,RightWrist,1024,3,Parkinson's
-N_134_LeftWrist.txt,134,N,LeftWrist,1024,3,Healthy
-N_134_RightWrist.txt,134,N,RightWrist,1024,3,Healthy
-PD_135_LeftWrist.txt,135,PD,LeftWrist,1024,3,Parkinson's
-PD_135_RightWrist.txt,135,PD,RightWrist,1024,3,Parkinson's
-PD_136_LeftWrist.txt,136,PD,LeftWrist,1024,3,Parkinson's
-PD_136_RightWrist.txt,136,PD,RightWrist,1024,3,Parkinson's
-PD_139_LeftWrist.txt,139,PD,LeftWrist,1024,3,Parkinson's
-PD_139_RightWrist.txt,139,PD,RightWrist,1024,3,Parkinson's
-N_141_LeftWrist.txt,141,N,LeftWrist,1024,3,Healthy
-N_141_RightWrist.txt,141,N,RightWrist,1024,3,Healthy
-ET_143_LeftWrist.txt,143,ET,LeftWrist,1024,3,Essential Tremor
-ET_143_RightWrist.txt,143,ET,RightWrist,1024,3,Essential Tremor
-PD_144_LeftWrist.txt,144,PD,LeftWrist,1024,3,Parkinson's
-PD_144_RightWrist.txt,144,PD,RightWrist,1024,3,Parkinson's
-PD_145_LeftWrist.txt,145,PD,LeftWrist,1024,3,Parkinson's
-PD_145_RightWrist.txt,145,PD,RightWrist,1024,3,Parkinson's
-PD_146_LeftWrist.txt,146,PD,LeftWrist,1024,3,Parkinson's
-PD_146_RightWrist.txt,146,PD,RightWrist,1024,3,Parkinson's
-PD_147_LeftWrist.txt,147,PD,LeftWrist,1024,3,Parkinson's
-PD_147_RightWrist.txt,147,PD,RightWrist,1024,3,Parkinson's
-N_148_LeftWrist.txt,148,N,LeftWrist,1024,3,Healthy
-N_148_RightWrist.txt,148,N,RightWrist,1024,3,Healthy
-PD_149_LeftWrist.txt,149,PD,LeftWrist,1024,3,Parkinson's
-PD_149_RightWrist.txt,149,PD,RightWrist,1024,3,Parkinson's
-PD_150_LeftWrist.txt,150,PD,LeftWrist,1024,3,Parkinson's
-PD_150_RightWrist.txt,150,PD,RightWrist,1024,3,Parkinson's
-PD_151_LeftWrist.txt,151,PD,LeftWrist,1024,3,Parkinson's
-PD_151_RightWrist.txt,151,PD,RightWrist,1024,3,Parkinson's
-N_152_LeftWrist.txt,152,N,LeftWrist,1024,3,Healthy
-N_152_RightWrist.txt,152,N,RightWrist,1024,3,Healthy
-N_153_LeftWrist.txt,153,N,LeftWrist,1024,3,Healthy
-N_153_RightWrist.txt,153,N,RightWrist,1024,3,Healthy
-PD_154_LeftWrist.txt,154,PD,LeftWrist,1024,3,Parkinson's
-PD_154_RightWrist.txt,154,PD,RightWrist,1024,3,Parkinson's
-PD_155_LeftWrist.txt,155,PD,LeftWrist,1024,3,Parkinson's
-PD_155_RightWrist.txt,155,PD,RightWrist,1024,3,Parkinson's
-PD_156_LeftWrist.txt,156,PD,LeftWrist,1024,3,Parkinson's
-PD_156_RightWrist.txt,156,PD,RightWrist,1024,3,Parkinson's
-PD_157_LeftWrist.txt,157,PD,LeftWrist,1024,3,Parkinson's
-PD_157_RightWrist.txt,157,PD,RightWrist,1024,3,Parkinson's
-PD_158_LeftWrist.txt,158,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_158_RightWrist.txt,158,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_159_LeftWrist.txt,159,PD,LeftWrist,1024,3,Parkinson's
-PD_159_RightWrist.txt,159,PD,RightWrist,1024,3,Parkinson's
-N_160_LeftWrist.txt,160,N,LeftWrist,1024,3,Healthy
-N_160_RightWrist.txt,160,N,RightWrist,1024,3,Healthy
-PD_161_LeftWrist.txt,161,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_161_RightWrist.txt,161,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_162_LeftWrist.txt,162,PD,LeftWrist,1024,3,Parkinson's
-PD_162_RightWrist.txt,162,PD,RightWrist,1024,3,Parkinson's
-PD_163_LeftWrist.txt,163,PD,LeftWrist,1024,3,Parkinson's
-PD_163_RightWrist.txt,163,PD,RightWrist,1024,3,Parkinson's
-N_165_LeftWrist.txt,165,N,LeftWrist,1024,3,Healthy
-N_165_RightWrist.txt,165,N,RightWrist,1024,3,Healthy
-PD_166_LeftWrist.txt,166,PD,LeftWrist,1024,3,Parkinson's
-PD_166_RightWrist.txt,166,PD,RightWrist,1024,3,Parkinson's
-N_167_LeftWrist.txt,167,N,LeftWrist,1024,3,Healthy
-N_167_RightWrist.txt,167,N,RightWrist,1024,3,Healthy
-PD_168_LeftWrist.txt,168,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_168_RightWrist.txt,168,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_169_LeftWrist.txt,169,PD,LeftWrist,1024,3,Parkinson's
-PD_169_RightWrist.txt,169,PD,RightWrist,1024,3,Parkinson's
-PD_170_LeftWrist.txt,170,PD,LeftWrist,1024,3,Parkinson's
-PD_170_RightWrist.txt,170,PD,RightWrist,1024,3,Parkinson's
-ET_171_LeftWrist.txt,171,ET,LeftWrist,1024,3,Essential Tremor
-ET_171_RightWrist.txt,171,ET,RightWrist,1024,3,Essential Tremor
-PD_172_LeftWrist.txt,172,PD,LeftWrist,1024,3,Parkinson's
-PD_172_RightWrist.txt,172,PD,RightWrist,1024,3,Parkinson's
-PD_173_LeftWrist.txt,173,PD,LeftWrist,1024,3,Parkinson's
-PD_173_RightWrist.txt,173,PD,RightWrist,1024,3,Parkinson's
-PD_174_LeftWrist.txt,174,PD,LeftWrist,1024,3,Parkinson's
-PD_174_RightWrist.txt,174,PD,RightWrist,1024,3,Parkinson's
-PD_175_LeftWrist.txt,175,PD,LeftWrist,1024,3,Parkinson's
-PD_175_RightWrist.txt,175,PD,RightWrist,1024,3,Parkinson's
-N_177_LeftWrist.txt,177,N,LeftWrist,1024,3,Healthy
-N_177_RightWrist.txt,177,N,RightWrist,1024,3,Healthy
-PD_179_LeftWrist.txt,179,PD,LeftWrist,1024,3,Parkinson's
-PD_179_RightWrist.txt,179,PD,RightWrist,1024,3,Parkinson's
-PD_180_LeftWrist.txt,180,PD,LeftWrist,1024,3,Parkinson's
-PD_180_RightWrist.txt,180,PD,RightWrist,1024,3,Parkinson's
-PD_181_LeftWrist.txt,181,PD,LeftWrist,1024,3,Parkinson's
-PD_181_RightWrist.txt,181,PD,RightWrist,1024,3,Parkinson's
-PD_182_LeftWrist.txt,182,PD,LeftWrist,1024,3,Parkinson's
-PD_182_RightWrist.txt,182,PD,RightWrist,1024,3,Parkinson's
-N_184_LeftWrist.txt,184,N,LeftWrist,1024,3,Healthy
-N_184_RightWrist.txt,184,N,RightWrist,1024,3,Healthy
-PD_185_LeftWrist.txt,185,PD,LeftWrist,1024,3,Parkinson's
-PD_185_RightWrist.txt,185,PD,RightWrist,1024,3,Parkinson's
-PD_186_LeftWrist.txt,186,PD,LeftWrist,1024,3,Parkinson's
-PD_186_RightWrist.txt,186,PD,RightWrist,1024,3,Parkinson's
-PD_187_LeftWrist.txt,187,PD,LeftWrist,1024,3,Parkinson's
-PD_187_RightWrist.txt,187,PD,RightWrist,1024,3,Parkinson's
-ET_188_LeftWrist.txt,188,ET,LeftWrist,1024,3,Essential Tremor
-ET_188_RightWrist.txt,188,ET,RightWrist,1024,3,Essential Tremor
-PD_189_LeftWrist.txt,189,PD,LeftWrist,1024,3,Parkinson's
-PD_189_RightWrist.txt,189,PD,RightWrist,1024,3,Parkinson's
-PD_190_LeftWrist.txt,190,PD,LeftWrist,1024,3,Parkinson's
-PD_190_RightWrist.txt,190,PD,RightWrist,1024,3,Parkinson's
-PD_192_LeftWrist.txt,192,PD,LeftWrist,1024,3,Parkinson's
-PD_192_RightWrist.txt,192,PD,RightWrist,1024,3,Parkinson's
-N_193_LeftWrist.txt,193,N,LeftWrist,1024,3,Healthy
-N_193_RightWrist.txt,193,N,RightWrist,1024,3,Healthy
-PD_194_LeftWrist.txt,194,PD,LeftWrist,1024,3,Parkinson's
-PD_194_RightWrist.txt,194,PD,RightWrist,1024,3,Parkinson's
-ET_196_LeftWrist.txt,196,ET,LeftWrist,1024,3,Cervical dystonia with rotatory Torticollis to the right side and Retrocollis. THS
-ET_196_RightWrist.txt,196,ET,RightWrist,1024,3,Cervical dystonia with rotatory Torticollis to the right side and Retrocollis. THS
-PD_197_LeftWrist.txt,197,PD,LeftWrist,1024,3,Parkinson's
-PD_197_RightWrist.txt,197,PD,RightWrist,1024,3,Parkinson's
-PD_198_LeftWrist.txt,198,PD,LeftWrist,1024,3,Parkinson's
-PD_198_RightWrist.txt,198,PD,RightWrist,1024,3,Parkinson's
-N_199_LeftWrist.txt,199,N,LeftWrist,1024,3,Healthy
-N_199_RightWrist.txt,199,N,RightWrist,1024,3,Healthy
-ET_200_LeftWrist.txt,200,ET,LeftWrist,1024,3,Essential Tremor
-ET_200_RightWrist.txt,200,ET,RightWrist,1024,3,Essential Tremor
-PD_201_LeftWrist.txt,201,PD,LeftWrist,1024,3,Parkinson's
-PD_201_RightWrist.txt,201,PD,RightWrist,1024,3,Parkinson's
-PD_202_LeftWrist.txt,202,PD,LeftWrist,1024,3,Parkinson's
-PD_202_RightWrist.txt,202,PD,RightWrist,1024,3,Parkinson's
-N_203_LeftWrist.txt,203,N,LeftWrist,1024,3,Healthy
-N_203_RightWrist.txt,203,N,RightWrist,1024,3,Healthy
-N_204_LeftWrist.txt,204,N,LeftWrist,1024,3,Healthy
-N_204_RightWrist.txt,204,N,RightWrist,1024,3,Healthy
-N_205_LeftWrist.txt,205,N,LeftWrist,1024,3,Healthy
-N_205_RightWrist.txt,205,N,RightWrist,1024,3,Healthy
-PD_206_LeftWrist.txt,206,PD,LeftWrist,1024,3,Parkinson's
-PD_206_RightWrist.txt,206,PD,RightWrist,1024,3,Parkinson's
-ET_207_LeftWrist.txt,207,ET,LeftWrist,1024,3,"Essential Tremor, DD functional Tremor"
-ET_207_RightWrist.txt,207,ET,RightWrist,1024,3,"Essential Tremor, DD functional Tremor"
-PD_208_LeftWrist.txt,208,PD,LeftWrist,1024,3,Parkinson's
-PD_208_RightWrist.txt,208,PD,RightWrist,1024,3,Parkinson's
-ET_209_LeftWrist.txt,209,ET,LeftWrist,1024,3,Leukoencephalopathy of unknown etiology
-ET_209_RightWrist.txt,209,ET,RightWrist,1024,3,Leukoencephalopathy of unknown etiology
-PD_210_LeftWrist.txt,210,PD,LeftWrist,1024,3,Parkinson's
-PD_210_RightWrist.txt,210,PD,RightWrist,1024,3,Parkinson's
-PD_211_LeftWrist.txt,211,PD,LeftWrist,1024,3,Parkinson's
-PD_211_RightWrist.txt,211,PD,RightWrist,1024,3,Parkinson's
-N_212_LeftWrist.txt,212,N,LeftWrist,1024,3,Healthy
-N_212_RightWrist.txt,212,N,RightWrist,1024,3,Healthy
-N_214_LeftWrist.txt,214,N,LeftWrist,1024,3,Healthy
-N_214_RightWrist.txt,214,N,RightWrist,1024,3,Healthy
-PD_215_LeftWrist.txt,215,PD,LeftWrist,1024,3,Parkinson's
-PD_215_RightWrist.txt,215,PD,RightWrist,1024,3,Parkinson's
-PD_216_LeftWrist.txt,216,PD,LeftWrist,1024,3,Parkinson's
-PD_216_RightWrist.txt,216,PD,RightWrist,1024,3,Parkinson's
-PD_217_LeftWrist.txt,217,PD,LeftWrist,1024,3,Parkinson's
-PD_217_RightWrist.txt,217,PD,RightWrist,1024,3,Parkinson's
-PD_218_LeftWrist.txt,218,PD,LeftWrist,1024,3,Parkinson's
-PD_218_RightWrist.txt,218,PD,RightWrist,1024,3,Parkinson's
-PD_219_LeftWrist.txt,219,PD,LeftWrist,1024,3,Parkinson's
-PD_219_RightWrist.txt,219,PD,RightWrist,1024,3,Parkinson's
-PD_220_LeftWrist.txt,220,PD,LeftWrist,1024,3,Parkinson's
-PD_220_RightWrist.txt,220,PD,RightWrist,1024,3,Parkinson's
-PD_221_LeftWrist.txt,221,PD,LeftWrist,1024,3,Parkinson's
-PD_221_RightWrist.txt,221,PD,RightWrist,1024,3,Parkinson's
-ET_222_LeftWrist.txt,222,ET,LeftWrist,1024,3,Essential Tremor
-ET_222_RightWrist.txt,222,ET,RightWrist,1024,3,Essential Tremor
-PD_223_LeftWrist.txt,223,PD,LeftWrist,1024,3,Parkinson's
-PD_223_RightWrist.txt,223,PD,RightWrist,1024,3,Parkinson's
-PD_226_LeftWrist.txt,226,PD,LeftWrist,1024,3,Parkinson's
-PD_226_RightWrist.txt,226,PD,RightWrist,1024,3,Parkinson's
-N_227_LeftWrist.txt,227,N,LeftWrist,1024,3,Healthy
-N_227_RightWrist.txt,227,N,RightWrist,1024,3,Healthy
-PD_228_LeftWrist.txt,228,PD,LeftWrist,1024,3,Parkinson's
-PD_228_RightWrist.txt,228,PD,RightWrist,1024,3,Parkinson's
-N_229_LeftWrist.txt,229,N,LeftWrist,1024,3,Healthy
-N_229_RightWrist.txt,229,N,RightWrist,1024,3,Healthy
-N_230_LeftWrist.txt,230,N,LeftWrist,1024,3,Healthy
-N_230_RightWrist.txt,230,N,RightWrist,1024,3,Healthy
-N_231_LeftWrist.txt,231,N,LeftWrist,1024,3,Healthy
-N_231_RightWrist.txt,231,N,RightWrist,1024,3,Healthy
-N_232_LeftWrist.txt,232,N,LeftWrist,1024,3,Healthy
-N_232_RightWrist.txt,232,N,RightWrist,1024,3,Healthy
-PD_233_LeftWrist.txt,233,PD,LeftWrist,1024,3,Parkinson's
-PD_233_RightWrist.txt,233,PD,RightWrist,1024,3,Parkinson's
-PD_234_LeftWrist.txt,234,PD,LeftWrist,1024,3,Parkinson's
-PD_234_RightWrist.txt,234,PD,RightWrist,1024,3,Parkinson's
-PD_235_LeftWrist.txt,235,PD,LeftWrist,1024,3,Parkinson's
-PD_235_RightWrist.txt,235,PD,RightWrist,1024,3,Parkinson's
-PD_236_LeftWrist.txt,236,PD,LeftWrist,1024,3,Parkinson's
-PD_236_RightWrist.txt,236,PD,RightWrist,1024,3,Parkinson's
-PD_237_LeftWrist.txt,237,PD,LeftWrist,1024,3,Parkinson's
-PD_237_RightWrist.txt,237,PD,RightWrist,1024,3,Parkinson's
-PD_238_LeftWrist.txt,238,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_238_RightWrist.txt,238,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_239_LeftWrist.txt,239,PD,LeftWrist,1024,3,Parkinson's
-PD_239_RightWrist.txt,239,PD,RightWrist,1024,3,Parkinson's
-PD_240_LeftWrist.txt,240,PD,LeftWrist,1024,3,Parkinson's
-PD_240_RightWrist.txt,240,PD,RightWrist,1024,3,Parkinson's
-PD_241_LeftWrist.txt,241,PD,LeftWrist,1024,3,"Atypical Parkinsonism, DD, spinocerebellar ataxia"
-PD_241_RightWrist.txt,241,PD,RightWrist,1024,3,"Atypical Parkinsonism, DD, spinocerebellar ataxia"
-PD_242_LeftWrist.txt,242,PD,LeftWrist,1024,3,Parkinson's
-PD_242_RightWrist.txt,242,PD,RightWrist,1024,3,Parkinson's
-PD_243_LeftWrist.txt,243,PD,LeftWrist,1024,3,Parkinson's
-PD_243_RightWrist.txt,243,PD,RightWrist,1024,3,Parkinson's
-PD_244_LeftWrist.txt,244,PD,LeftWrist,1024,3,Parkinson's
-PD_244_RightWrist.txt,244,PD,RightWrist,1024,3,Parkinson's
-PD_245_LeftWrist.txt,245,PD,LeftWrist,1024,3,Parkinson's
-PD_245_RightWrist.txt,245,PD,RightWrist,1024,3,Parkinson's
-PD_246_LeftWrist.txt,246,PD,LeftWrist,1024,3,Parkinson's
-PD_246_RightWrist.txt,246,PD,RightWrist,1024,3,Parkinson's
-N_247_LeftWrist.txt,247,N,LeftWrist,1024,3,Healthy
-N_247_RightWrist.txt,247,N,RightWrist,1024,3,Healthy
-PD_248_LeftWrist.txt,248,PD,LeftWrist,1024,3,Parkinson's
-PD_248_RightWrist.txt,248,PD,RightWrist,1024,3,Parkinson's
-PD_249_LeftWrist.txt,249,PD,LeftWrist,1024,3,Parkinson's
-PD_249_RightWrist.txt,249,PD,RightWrist,1024,3,Parkinson's
-N_250_LeftWrist.txt,250,N,LeftWrist,1024,3,Healthy
-N_250_RightWrist.txt,250,N,RightWrist,1024,3,Healthy
-N_251_LeftWrist.txt,251,N,LeftWrist,1024,3,Healthy
-N_251_RightWrist.txt,251,N,RightWrist,1024,3,Healthy
-PD_252_LeftWrist.txt,252,PD,LeftWrist,1024,3,Parkinson's
-PD_252_RightWrist.txt,252,PD,RightWrist,1024,3,Parkinson's
-N_253_LeftWrist.txt,253,N,LeftWrist,1024,3,Healthy
-N_253_RightWrist.txt,253,N,RightWrist,1024,3,Healthy
-N_254_LeftWrist.txt,254,N,LeftWrist,1024,3,Healthy
-N_254_RightWrist.txt,254,N,RightWrist,1024,3,Healthy
-PD_255_LeftWrist.txt,255,PD,LeftWrist,1024,3,Parkinson's
-PD_255_RightWrist.txt,255,PD,RightWrist,1024,3,Parkinson's
-PD_256_LeftWrist.txt,256,PD,LeftWrist,1024,3,Parkinson's
-PD_256_RightWrist.txt,256,PD,RightWrist,1024,3,Parkinson's
-PD_257_LeftWrist.txt,257,PD,LeftWrist,1024,3,Parkinson's
-PD_257_RightWrist.txt,257,PD,RightWrist,1024,3,Parkinson's
-PD_258_LeftWrist.txt,258,PD,LeftWrist,1024,3,Parkinson's
-PD_258_RightWrist.txt,258,PD,RightWrist,1024,3,Parkinson's
-PD_259_LeftWrist.txt,259,PD,LeftWrist,1024,3,Parkinson's
-PD_259_RightWrist.txt,259,PD,RightWrist,1024,3,Parkinson's
-PD_260_LeftWrist.txt,260,PD,LeftWrist,1024,3,Parkinson's
-PD_260_RightWrist.txt,260,PD,RightWrist,1024,3,Parkinson's
-PD_261_LeftWrist.txt,261,PD,LeftWrist,1024,3,Parkinson's
-PD_261_RightWrist.txt,261,PD,RightWrist,1024,3,Parkinson's
-PD_262_LeftWrist.txt,262,PD,LeftWrist,1024,3,Parkinson's
-PD_262_RightWrist.txt,262,PD,RightWrist,1024,3,Parkinson's
-PD_263_LeftWrist.txt,263,PD,LeftWrist,1024,3,Parkinson's
-PD_263_RightWrist.txt,263,PD,RightWrist,1024,3,Parkinson's
-PD_264_LeftWrist.txt,264,PD,LeftWrist,1024,3,Parkinson's
-PD_264_RightWrist.txt,264,PD,RightWrist,1024,3,Parkinson's
-PD_265_LeftWrist.txt,265,PD,LeftWrist,1024,3,Parkinson's
-PD_265_RightWrist.txt,265,PD,RightWrist,1024,3,Parkinson's
-PD_266_LeftWrist.txt,266,PD,LeftWrist,1024,3,Parkinson's
-PD_266_RightWrist.txt,266,PD,RightWrist,1024,3,Parkinson's
-PD_267_LeftWrist.txt,267,PD,LeftWrist,1024,3,Parkinson's
-PD_267_RightWrist.txt,267,PD,RightWrist,1024,3,Parkinson's
-PD_268_LeftWrist.txt,268,PD,LeftWrist,1024,3,Parkinson's
-PD_268_RightWrist.txt,268,PD,RightWrist,1024,3,Parkinson's
-PD_269_LeftWrist.txt,269,PD,LeftWrist,1024,3,Parkinson's
-PD_269_RightWrist.txt,269,PD,RightWrist,1024,3,Parkinson's
-PD_270_LeftWrist.txt,270,PD,LeftWrist,1024,3,Parkinson's
-PD_270_RightWrist.txt,270,PD,RightWrist,1024,3,Parkinson's
-PD_271_LeftWrist.txt,271,PD,LeftWrist,1024,3,Parkinson's
-PD_271_RightWrist.txt,271,PD,RightWrist,1024,3,Parkinson's
-N_272_LeftWrist.txt,272,N,LeftWrist,1024,3,Healthy
-N_272_RightWrist.txt,272,N,RightWrist,1024,3,Healthy
-ET_273_LeftWrist.txt,273,ET,LeftWrist,1024,3,Dystonia of unknown etiology
-ET_273_RightWrist.txt,273,ET,RightWrist,1024,3,Dystonia of unknown etiology
-PD_274_LeftWrist.txt,274,PD,LeftWrist,1024,3,Parkinson's
-PD_274_RightWrist.txt,274,PD,RightWrist,1024,3,Parkinson's
-ET_275_LeftWrist.txt,275,ET,LeftWrist,1024,3,Essential Tremor
-ET_275_RightWrist.txt,275,ET,RightWrist,1024,3,Essential Tremor
-ET_276_LeftWrist.txt,276,ET,LeftWrist,1024,3,ET DD functional tremor right arm and mild tremor of the head
-ET_276_RightWrist.txt,276,ET,RightWrist,1024,3,ET DD functional tremor right arm and mild tremor of the head
-PD_277_LeftWrist.txt,277,PD,LeftWrist,1024,3,Parkinson's
-PD_277_RightWrist.txt,277,PD,RightWrist,1024,3,Parkinson's
-ET_278_LeftWrist.txt,278,ET,LeftWrist,1024,3,Essential Tremor
-ET_278_RightWrist.txt,278,ET,RightWrist,1024,3,Essential Tremor
-PD_279_LeftWrist.txt,279,PD,LeftWrist,1024,3,Parkinson's
-PD_279_RightWrist.txt,279,PD,RightWrist,1024,3,Parkinson's
-PD_280_LeftWrist.txt,280,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_280_RightWrist.txt,280,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_281_LeftWrist.txt,281,PD,LeftWrist,1024,3,Parkinson's
-PD_281_RightWrist.txt,281,PD,RightWrist,1024,3,Parkinson's
-PD_282_LeftWrist.txt,282,PD,LeftWrist,1024,3,Parkinson's
-PD_282_RightWrist.txt,282,PD,RightWrist,1024,3,Parkinson's
-N_283_LeftWrist.txt,283,N,LeftWrist,1024,3,Healthy
-N_283_RightWrist.txt,283,N,RightWrist,1024,3,Healthy
-N_284_LeftWrist.txt,284,N,LeftWrist,1024,3,Healthy
-N_284_RightWrist.txt,284,N,RightWrist,1024,3,Healthy
-N_285_LeftWrist.txt,285,N,LeftWrist,1024,3,Healthy
-N_285_RightWrist.txt,285,N,RightWrist,1024,3,Healthy
-PD_286_LeftWrist.txt,286,PD,LeftWrist,1024,3,Parkinson's
-PD_286_RightWrist.txt,286,PD,RightWrist,1024,3,Parkinson's
-ET_287_LeftWrist.txt,287,ET,LeftWrist,1024,3,Adult multifocal dystonia of unknown etiology
-ET_287_RightWrist.txt,287,ET,RightWrist,1024,3,Adult multifocal dystonia of unknown etiology
-PD_289_LeftWrist.txt,289,PD,LeftWrist,1024,3,Parkinson's
-PD_289_RightWrist.txt,289,PD,RightWrist,1024,3,Parkinson's
-PD_290_LeftWrist.txt,290,PD,LeftWrist,1024,3,Parkinson's
-PD_290_RightWrist.txt,290,PD,RightWrist,1024,3,Parkinson's
-PD_291_LeftWrist.txt,291,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_291_RightWrist.txt,291,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_292_LeftWrist.txt,292,PD,LeftWrist,1024,3,Parkinson's
-PD_292_RightWrist.txt,292,PD,RightWrist,1024,3,Parkinson's
-PD_293_LeftWrist.txt,293,PD,LeftWrist,1024,3,Parkinson's
-PD_293_RightWrist.txt,293,PD,RightWrist,1024,3,Parkinson's
-N_294_LeftWrist.txt,294,N,LeftWrist,1024,3,Healthy
-N_294_RightWrist.txt,294,N,RightWrist,1024,3,Healthy
-N_295_LeftWrist.txt,295,N,LeftWrist,1024,3,Healthy
-N_295_RightWrist.txt,295,N,RightWrist,1024,3,Healthy
-PD_296_LeftWrist.txt,296,PD,LeftWrist,1024,3,Parkinson's
-PD_296_RightWrist.txt,296,PD,RightWrist,1024,3,Parkinson's
-PD_299_LeftWrist.txt,299,PD,LeftWrist,1024,3,Parkinson's
-PD_299_RightWrist.txt,299,PD,RightWrist,1024,3,Parkinson's
-PD_300_LeftWrist.txt,300,PD,LeftWrist,1024,3,Parkinson's
-PD_300_RightWrist.txt,300,PD,RightWrist,1024,3,Parkinson's
-ET_302_LeftWrist.txt,302,ET,LeftWrist,1024,3,Essential Tremor
-ET_302_RightWrist.txt,302,ET,RightWrist,1024,3,Essential Tremor
-PD_303_LeftWrist.txt,303,PD,LeftWrist,1024,3,Parkinson's
-PD_303_RightWrist.txt,303,PD,RightWrist,1024,3,Parkinson's
-PD_304_LeftWrist.txt,304,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_304_RightWrist.txt,304,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_305_LeftWrist.txt,305,PD,LeftWrist,1024,3,Parkinson's
-PD_305_RightWrist.txt,305,PD,RightWrist,1024,3,Parkinson's
-PD_306_LeftWrist.txt,306,PD,LeftWrist,1024,3,Parkinson's
-PD_306_RightWrist.txt,306,PD,RightWrist,1024,3,Parkinson's
-PD_307_LeftWrist.txt,307,PD,LeftWrist,1024,3,Parkinson's
-PD_307_RightWrist.txt,307,PD,RightWrist,1024,3,Parkinson's
-N_308_LeftWrist.txt,308,N,LeftWrist,1024,3,Healthy
-N_308_RightWrist.txt,308,N,RightWrist,1024,3,Healthy
-PD_309_LeftWrist.txt,309,PD,LeftWrist,1024,3,Parkinson's
-PD_309_RightWrist.txt,309,PD,RightWrist,1024,3,Parkinson's
-N_311_LeftWrist.txt,311,N,LeftWrist,1024,3,Healthy
-N_311_RightWrist.txt,311,N,RightWrist,1024,3,Healthy
-PD_312_LeftWrist.txt,312,PD,LeftWrist,1024,3,Parkinson's
-PD_312_RightWrist.txt,312,PD,RightWrist,1024,3,Parkinson's
-PD_313_LeftWrist.txt,313,PD,LeftWrist,1024,3,Parkinson's
-PD_313_RightWrist.txt,313,PD,RightWrist,1024,3,Parkinson's
-PD_316_LeftWrist.txt,316,PD,LeftWrist,1024,3,Parkinson's
-PD_316_RightWrist.txt,316,PD,RightWrist,1024,3,Parkinson's
-N_319_LeftWrist.txt,319,N,LeftWrist,1024,3,Healthy
-N_319_RightWrist.txt,319,N,RightWrist,1024,3,Healthy
-N_320_LeftWrist.txt,320,N,LeftWrist,1024,3,Healthy
-N_320_RightWrist.txt,320,N,RightWrist,1024,3,Healthy
-PD_322_LeftWrist.txt,322,PD,LeftWrist,1024,3,Parkinson's
-PD_322_RightWrist.txt,322,PD,RightWrist,1024,3,Parkinson's
-PD_323_LeftWrist.txt,323,PD,LeftWrist,1024,3,Parkinson's
-PD_323_RightWrist.txt,323,PD,RightWrist,1024,3,Parkinson's
-PD_324_LeftWrist.txt,324,PD,LeftWrist,1024,3,Parkinson's
-PD_324_RightWrist.txt,324,PD,RightWrist,1024,3,Parkinson's
-PD_325_LeftWrist.txt,325,PD,LeftWrist,1024,3,Parkinson's
-PD_325_RightWrist.txt,325,PD,RightWrist,1024,3,Parkinson's
-PD_327_LeftWrist.txt,327,PD,LeftWrist,1024,3,Parkinson's
-PD_327_RightWrist.txt,327,PD,RightWrist,1024,3,Parkinson's
-PD_328_LeftWrist.txt,328,PD,LeftWrist,1024,3,Parkinson's
-PD_328_RightWrist.txt,328,PD,RightWrist,1024,3,Parkinson's
-N_329_LeftWrist.txt,329,N,LeftWrist,1024,3,Healthy
-N_329_RightWrist.txt,329,N,RightWrist,1024,3,Healthy
-ET_330_LeftWrist.txt,330,ET,LeftWrist,1024,3,Essential Tremor
-ET_330_RightWrist.txt,330,ET,RightWrist,1024,3,Essential Tremor
-PD_331_LeftWrist.txt,331,PD,LeftWrist,1024,3,Parkinson's
-PD_331_RightWrist.txt,331,PD,RightWrist,1024,3,Parkinson's
-PD_332_LeftWrist.txt,332,PD,LeftWrist,1024,3,Parkinson's
-PD_332_RightWrist.txt,332,PD,RightWrist,1024,3,Parkinson's
-PD_333_LeftWrist.txt,333,PD,LeftWrist,1024,3,Parkinson's
-PD_333_RightWrist.txt,333,PD,RightWrist,1024,3,Parkinson's
-N_335_LeftWrist.txt,335,N,LeftWrist,1024,3,Healthy
-N_335_RightWrist.txt,335,N,RightWrist,1024,3,Healthy
-PD_336_LeftWrist.txt,336,PD,LeftWrist,1024,3,Parkinson's
-PD_336_RightWrist.txt,336,PD,RightWrist,1024,3,Parkinson's
-N_337_LeftWrist.txt,337,N,LeftWrist,1024,3,Healthy
-N_337_RightWrist.txt,337,N,RightWrist,1024,3,Healthy
-PD_338_LeftWrist.txt,338,PD,LeftWrist,1024,3,Parkinson's
-PD_338_RightWrist.txt,338,PD,RightWrist,1024,3,Parkinson's
-PD_339_LeftWrist.txt,339,PD,LeftWrist,1024,3,Parkinson's
-PD_339_RightWrist.txt,339,PD,RightWrist,1024,3,Parkinson's
-ET_340_LeftWrist.txt,340,ET,LeftWrist,1024,3,Essential Tremor
-ET_340_RightWrist.txt,340,ET,RightWrist,1024,3,Essential Tremor
-PD_341_LeftWrist.txt,341,PD,LeftWrist,1024,3,Parkinson's
-PD_341_RightWrist.txt,341,PD,RightWrist,1024,3,Parkinson's
-PD_342_LeftWrist.txt,342,PD,LeftWrist,1024,3,Parkinson's
-PD_342_RightWrist.txt,342,PD,RightWrist,1024,3,Parkinson's
-PD_343_LeftWrist.txt,343,PD,LeftWrist,1024,3,Parkinson's
-PD_343_RightWrist.txt,343,PD,RightWrist,1024,3,Parkinson's
-PD_344_LeftWrist.txt,344,PD,LeftWrist,1024,3,Parkinson's
-PD_344_RightWrist.txt,344,PD,RightWrist,1024,3,Parkinson's
-PD_345_LeftWrist.txt,345,PD,LeftWrist,1024,3,Parkinson's
-PD_345_RightWrist.txt,345,PD,RightWrist,1024,3,Parkinson's
-PD_346_LeftWrist.txt,346,PD,LeftWrist,1024,3,Parkinson's
-PD_346_RightWrist.txt,346,PD,RightWrist,1024,3,Parkinson's
-PD_347_LeftWrist.txt,347,PD,LeftWrist,1024,3,Parkinson's
-PD_347_RightWrist.txt,347,PD,RightWrist,1024,3,Parkinson's
-PD_348_LeftWrist.txt,348,PD,LeftWrist,1024,3,Parkinson's
-PD_348_RightWrist.txt,348,PD,RightWrist,1024,3,Parkinson's
-PD_349_LeftWrist.txt,349,PD,LeftWrist,1024,3,Parkinson's
-PD_349_RightWrist.txt,349,PD,RightWrist,1024,3,Parkinson's
-ET_350_LeftWrist.txt,350,ET,LeftWrist,1024,3,Essential Tremor
-ET_350_RightWrist.txt,350,ET,RightWrist,1024,3,Essential Tremor
-PD_351_LeftWrist.txt,351,PD,LeftWrist,1024,3,Parkinson's
-PD_351_RightWrist.txt,351,PD,RightWrist,1024,3,Parkinson's
-PD_352_LeftWrist.txt,352,PD,LeftWrist,1024,3,Parkinson's
-PD_352_RightWrist.txt,352,PD,RightWrist,1024,3,Parkinson's
-PD_353_LeftWrist.txt,353,PD,LeftWrist,1024,3,Parkinson's
-PD_353_RightWrist.txt,353,PD,RightWrist,1024,3,Parkinson's
-PD_354_LeftWrist.txt,354,PD,LeftWrist,1024,3,Parkinson's
-PD_354_RightWrist.txt,354,PD,RightWrist,1024,3,Parkinson's
-PD_355_LeftWrist.txt,355,PD,LeftWrist,1024,3,Parkinson's
-PD_355_RightWrist.txt,355,PD,RightWrist,1024,3,Parkinson's
-PD_356_LeftWrist.txt,356,PD,LeftWrist,1024,3,Parkinson's
-PD_356_RightWrist.txt,356,PD,RightWrist,1024,3,Parkinson's
-PD_357_LeftWrist.txt,357,PD,LeftWrist,1024,3,Parkinson's
-PD_357_RightWrist.txt,357,PD,RightWrist,1024,3,Parkinson's
-PD_358_LeftWrist.txt,358,PD,LeftWrist,1024,3,Parkinson's
-PD_358_RightWrist.txt,358,PD,RightWrist,1024,3,Parkinson's
-PD_360_LeftWrist.txt,360,PD,LeftWrist,1024,3,Parkinson's
-PD_360_RightWrist.txt,360,PD,RightWrist,1024,3,Parkinson's
-PD_361_LeftWrist.txt,361,PD,LeftWrist,1024,3,Parkinson's
-PD_361_RightWrist.txt,361,PD,RightWrist,1024,3,Parkinson's
-PD_362_LeftWrist.txt,362,PD,LeftWrist,1024,3,Parkinson's
-PD_362_RightWrist.txt,362,PD,RightWrist,1024,3,Parkinson's
-PD_363_LeftWrist.txt,363,PD,LeftWrist,1024,3,Parkinson's
-PD_363_RightWrist.txt,363,PD,RightWrist,1024,3,Parkinson's
-PD_364_LeftWrist.txt,364,PD,LeftWrist,1024,3,Parkinson's
-PD_364_RightWrist.txt,364,PD,RightWrist,1024,3,Parkinson's
-PD_365_LeftWrist.txt,365,PD,LeftWrist,1024,3,Parkinson's
-PD_365_RightWrist.txt,365,PD,RightWrist,1024,3,Parkinson's
-PD_366_LeftWrist.txt,366,PD,LeftWrist,1024,3,Parkinson's
-PD_366_RightWrist.txt,366,PD,RightWrist,1024,3,Parkinson's
-PD_368_LeftWrist.txt,368,PD,LeftWrist,1024,3,Parkinson's
-PD_368_RightWrist.txt,368,PD,RightWrist,1024,3,Parkinson's
-PD_369_LeftWrist.txt,369,PD,LeftWrist,1024,3,Parkinson's
-PD_369_RightWrist.txt,369,PD,RightWrist,1024,3,Parkinson's
-N_370_LeftWrist.txt,370,N,LeftWrist,1024,3,Healthy
-N_370_RightWrist.txt,370,N,RightWrist,1024,3,Healthy
-N_371_LeftWrist.txt,371,N,LeftWrist,1024,3,Healthy
-N_371_RightWrist.txt,371,N,RightWrist,1024,3,Healthy
-PD_372_LeftWrist.txt,372,PD,LeftWrist,1024,3,Parkinson's
-PD_372_RightWrist.txt,372,PD,RightWrist,1024,3,Parkinson's
-PD_374_LeftWrist.txt,374,PD,LeftWrist,1024,3,Parkinson's
-PD_374_RightWrist.txt,374,PD,RightWrist,1024,3,Parkinson's
-PD_375_LeftWrist.txt,375,PD,LeftWrist,1024,3,Parkinson's
-PD_375_RightWrist.txt,375,PD,RightWrist,1024,3,Parkinson's
-PD_376_LeftWrist.txt,376,PD,LeftWrist,1024,3,Parkinson's
-PD_376_RightWrist.txt,376,PD,RightWrist,1024,3,Parkinson's
-PD_377_LeftWrist.txt,377,PD,LeftWrist,1024,3,Parkinson's
-PD_377_RightWrist.txt,377,PD,RightWrist,1024,3,Parkinson's
-PD_378_LeftWrist.txt,378,PD,LeftWrist,1024,3,Parkinson's
-PD_378_RightWrist.txt,378,PD,RightWrist,1024,3,Parkinson's
-N_379_LeftWrist.txt,379,N,LeftWrist,1024,3,Healthy
-N_379_RightWrist.txt,379,N,RightWrist,1024,3,Healthy
-PD_380_LeftWrist.txt,380,PD,LeftWrist,1024,3,Parkinson's
-PD_380_RightWrist.txt,380,PD,RightWrist,1024,3,Parkinson's
-PD_381_LeftWrist.txt,381,PD,LeftWrist,1024,3,Parkinson's
-PD_381_RightWrist.txt,381,PD,RightWrist,1024,3,Parkinson's
-ET_382_LeftWrist.txt,382,ET,LeftWrist,1024,3,Essential Tremor
-ET_382_RightWrist.txt,382,ET,RightWrist,1024,3,Essential Tremor
-PD_383_LeftWrist.txt,383,PD,LeftWrist,1024,3,Parkinson's
-PD_383_RightWrist.txt,383,PD,RightWrist,1024,3,Parkinson's
-PD_384_LeftWrist.txt,384,PD,LeftWrist,1024,3,Parkinson's
-PD_384_RightWrist.txt,384,PD,RightWrist,1024,3,Parkinson's
-PD_385_LeftWrist.txt,385,PD,LeftWrist,1024,3,Parkinson's
-PD_385_RightWrist.txt,385,PD,RightWrist,1024,3,Parkinson's
-ET_386_LeftWrist.txt,386,ET,LeftWrist,1024,3,Essential Tremor
-ET_386_RightWrist.txt,386,ET,RightWrist,1024,3,Essential Tremor
-PD_387_LeftWrist.txt,387,PD,LeftWrist,1024,3,Parkinson's
-PD_387_RightWrist.txt,387,PD,RightWrist,1024,3,Parkinson's
-PD_388_LeftWrist.txt,388,PD,LeftWrist,1024,3,Parkinson's
-PD_388_RightWrist.txt,388,PD,RightWrist,1024,3,Parkinson's
-N_389_LeftWrist.txt,389,N,LeftWrist,1024,3,Healthy
-N_389_RightWrist.txt,389,N,RightWrist,1024,3,Healthy
-PD_390_LeftWrist.txt,390,PD,LeftWrist,1024,3,Parkinson's
-PD_390_RightWrist.txt,390,PD,RightWrist,1024,3,Parkinson's
-N_391_LeftWrist.txt,391,N,LeftWrist,1024,3,Healthy
-N_391_RightWrist.txt,391,N,RightWrist,1024,3,Healthy
-PD_392_LeftWrist.txt,392,PD,LeftWrist,1024,3,Parkinson's
-PD_392_RightWrist.txt,392,PD,RightWrist,1024,3,Parkinson's
-PD_393_LeftWrist.txt,393,PD,LeftWrist,1024,3,Parkinson's
-PD_393_RightWrist.txt,393,PD,RightWrist,1024,3,Parkinson's
-PD_394_LeftWrist.txt,394,PD,LeftWrist,1024,3,Parkinson's
-PD_394_RightWrist.txt,394,PD,RightWrist,1024,3,Parkinson's
-PD_395_LeftWrist.txt,395,PD,LeftWrist,1024,3,Parkinson's
-PD_395_RightWrist.txt,395,PD,RightWrist,1024,3,Parkinson's
-ET_396_LeftWrist.txt,396,ET,LeftWrist,1024,3,Essential Tremor
-ET_396_RightWrist.txt,396,ET,RightWrist,1024,3,Essential Tremor
-PD_397_LeftWrist.txt,397,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_397_RightWrist.txt,397,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_398_LeftWrist.txt,398,PD,LeftWrist,1024,3,Parkinson's
-PD_398_RightWrist.txt,398,PD,RightWrist,1024,3,Parkinson's
-PD_399_LeftWrist.txt,399,PD,LeftWrist,1024,3,Atypical Parkinsonism
-PD_399_RightWrist.txt,399,PD,RightWrist,1024,3,Atypical Parkinsonism
-PD_400_LeftWrist.txt,400,PD,LeftWrist,1024,3,Parkinson's
-PD_400_RightWrist.txt,400,PD,RightWrist,1024,3,Parkinson's
-PD_401_LeftWrist.txt,401,PD,LeftWrist,1024,3,Parkinson's
-PD_401_RightWrist.txt,401,PD,RightWrist,1024,3,Parkinson's
-N_402_LeftWrist.txt,402,N,LeftWrist,1024,3,Healthy
-N_402_RightWrist.txt,402,N,RightWrist,1024,3,Healthy
-PD_403_LeftWrist.txt,403,PD,LeftWrist,1024,3,Parkinson's
-PD_403_RightWrist.txt,403,PD,RightWrist,1024,3,Parkinson's
-ET_404_LeftWrist.txt,404,ET,LeftWrist,1024,3,Tremor of unknown etiology. Lewy-Body-Dementia
-ET_404_RightWrist.txt,404,ET,RightWrist,1024,3,Tremor of unknown etiology. Lewy-Body-Dementia
-PD_405_LeftWrist.txt,405,PD,LeftWrist,1024,3,Parkinson's
-PD_405_RightWrist.txt,405,PD,RightWrist,1024,3,Parkinson's
-PD_406_LeftWrist.txt,406,PD,LeftWrist,1024,3,Parkinson's
-PD_406_RightWrist.txt,406,PD,RightWrist,1024,3,Parkinson's
-N_407_LeftWrist.txt,407,N,LeftWrist,1024,3,Healthy
-N_407_RightWrist.txt,407,N,RightWrist,1024,3,Healthy
-N_408_LeftWrist.txt,408,N,LeftWrist,1024,3,Healthy
-N_408_RightWrist.txt,408,N,RightWrist,1024,3,Healthy
-PD_409_LeftWrist.txt,409,PD,LeftWrist,1024,3,Parkinson's
-PD_409_RightWrist.txt,409,PD,RightWrist,1024,3,Parkinson's
-PD_410_LeftWrist.txt,410,PD,LeftWrist,1024,3,Parkinson's
-PD_410_RightWrist.txt,410,PD,RightWrist,1024,3,Parkinson's
-PD_411_LeftWrist.txt,411,PD,LeftWrist,1024,3,Parkinson's
-PD_411_RightWrist.txt,411,PD,RightWrist,1024,3,Parkinson's
-PD_412_LeftWrist.txt,412,PD,LeftWrist,1024,3,Parkinson's
-PD_412_RightWrist.txt,412,PD,RightWrist,1024,3,Parkinson's
-PD_413_LeftWrist.txt,413,PD,LeftWrist,1024,3,Parkinson's
-PD_413_RightWrist.txt,413,PD,RightWrist,1024,3,Parkinson's
-ET_414_LeftWrist.txt,414,ET,LeftWrist,1024,3,Starting hypokinetic-rigid syndrome
-ET_414_RightWrist.txt,414,ET,RightWrist,1024,3,Starting hypokinetic-rigid syndrome
-PD_415_LeftWrist.txt,415,PD,LeftWrist,1024,3,Parkinson's
-PD_415_RightWrist.txt,415,PD,RightWrist,1024,3,Parkinson's
-N_416_LeftWrist.txt,416,N,LeftWrist,1024,3,Healthy
-N_416_RightWrist.txt,416,N,RightWrist,1024,3,Healthy
-PD_417_LeftWrist.txt,417,PD,LeftWrist,1024,3,Parkinson's
-PD_417_RightWrist.txt,417,PD,RightWrist,1024,3,Parkinson's
-PD_418_LeftWrist.txt,418,PD,LeftWrist,1024,3,Parkinson's
-PD_418_RightWrist.txt,418,PD,RightWrist,1024,3,Parkinson's
-N_419_LeftWrist.txt,419,N,LeftWrist,1024,3,Healthy
-N_419_RightWrist.txt,419,N,RightWrist,1024,3,Healthy
-N_420_LeftWrist.txt,420,N,LeftWrist,1024,3,Healthy
-N_420_RightWrist.txt,420,N,RightWrist,1024,3,Healthy
-PD_422_LeftWrist.txt,422,PD,LeftWrist,1024,3,Parkinson's
-PD_422_RightWrist.txt,422,PD,RightWrist,1024,3,Parkinson's
-ET_423_LeftWrist.txt,423,ET,LeftWrist,1024,3,Essential Tremor
-ET_423_RightWrist.txt,423,ET,RightWrist,1024,3,Essential Tremor
-PD_424_LeftWrist.txt,424,PD,LeftWrist,1024,3,Parkinson's
-PD_424_RightWrist.txt,424,PD,RightWrist,1024,3,Parkinson's
-PD_425_LeftWrist.txt,425,PD,LeftWrist,1024,3,Parkinson's
-PD_425_RightWrist.txt,425,PD,RightWrist,1024,3,Parkinson's
-PD_426_LeftWrist.txt,426,PD,LeftWrist,1024,3,Parkinson's
-PD_426_RightWrist.txt,426,PD,RightWrist,1024,3,Parkinson's
-N_427_LeftWrist.txt,427,N,LeftWrist,1024,3,Healthy
-N_427_RightWrist.txt,427,N,RightWrist,1024,3,Healthy
-PD_428_LeftWrist.txt,428,PD,LeftWrist,1024,3,Parkinson's
-PD_428_RightWrist.txt,428,PD,RightWrist,1024,3,Parkinson's
-ET_429_LeftWrist.txt,429,ET,LeftWrist,1024,3,Essential Tremor
-ET_429_RightWrist.txt,429,ET,RightWrist,1024,3,Essential Tremor
-PD_430_LeftWrist.txt,430,PD,LeftWrist,1024,3,Parkinson's
-PD_430_RightWrist.txt,430,PD,RightWrist,1024,3,Parkinson's
-PD_431_LeftWrist.txt,431,PD,LeftWrist,1024,3,Parkinson's
-PD_431_RightWrist.txt,431,PD,RightWrist,1024,3,Parkinson's
-PD_433_LeftWrist.txt,433,PD,LeftWrist,1024,3,Parkinson's
-PD_433_RightWrist.txt,433,PD,RightWrist,1024,3,Parkinson's
-PD_435_LeftWrist.txt,435,PD,LeftWrist,1024,3,Parkinson's
-PD_435_RightWrist.txt,435,PD,RightWrist,1024,3,Parkinson's
-N_436_LeftWrist.txt,436,N,LeftWrist,1024,3,Healthy
-N_436_RightWrist.txt,436,N,RightWrist,1024,3,Healthy
-PD_437_LeftWrist.txt,437,PD,LeftWrist,1024,3,Parkinson's
-PD_437_RightWrist.txt,437,PD,RightWrist,1024,3,Parkinson's
-ET_439_LeftWrist.txt,439,ET,LeftWrist,1024,3,Spinocerebellar syndrome with cerebral atrophy. Intention tremor both-sided asymmetric
-ET_439_RightWrist.txt,439,ET,RightWrist,1024,3,Spinocerebellar syndrome with cerebral atrophy. Intention tremor both-sided asymmetric
-PD_440_LeftWrist.txt,440,PD,LeftWrist,1024,3,Parkinson's
-PD_440_RightWrist.txt,440,PD,RightWrist,1024,3,Parkinson's
-PD_441_LeftWrist.txt,441,PD,LeftWrist,1024,3,Parkinson's
-PD_441_RightWrist.txt,441,PD,RightWrist,1024,3,Parkinson's
-PD_442_LeftWrist.txt,442,PD,LeftWrist,1024,3,Parkinson's
-PD_442_RightWrist.txt,442,PD,RightWrist,1024,3,Parkinson's
-PD_443_LeftWrist.txt,443,PD,LeftWrist,1024,3,Parkinson's
-PD_443_RightWrist.txt,443,PD,RightWrist,1024,3,Parkinson's
-N_444_LeftWrist.txt,444,N,LeftWrist,1024,3,Healthy
-N_444_RightWrist.txt,444,N,RightWrist,1024,3,Healthy
-ET_445_LeftWrist.txt,445,ET,LeftWrist,1024,3,Essential Tremor
-ET_445_RightWrist.txt,445,ET,RightWrist,1024,3,Essential Tremor
-PD_446_LeftWrist.txt,446,PD,LeftWrist,1024,3,Parkinson's
-PD_446_RightWrist.txt,446,PD,RightWrist,1024,3,Parkinson's
-PD_447_LeftWrist.txt,447,PD,LeftWrist,1024,3,Parkinson's
-PD_447_RightWrist.txt,447,PD,RightWrist,1024,3,Parkinson's
-PD_448_LeftWrist.txt,448,PD,LeftWrist,1024,3,Parkinson's
-PD_448_RightWrist.txt,448,PD,RightWrist,1024,3,Parkinson's
-N_449_LeftWrist.txt,449,N,LeftWrist,1024,3,Healthy
-N_449_RightWrist.txt,449,N,RightWrist,1024,3,Healthy
-PD_452_LeftWrist.txt,452,PD,LeftWrist,1024,3,Parkinson's
-PD_452_RightWrist.txt,452,PD,RightWrist,1024,3,Parkinson's
-PD_454_LeftWrist.txt,454,PD,LeftWrist,1024,3,Parkinson's
-PD_454_RightWrist.txt,454,PD,RightWrist,1024,3,Parkinson's
-N_455_LeftWrist.txt,455,N,LeftWrist,1024,3,Healthy
-N_455_RightWrist.txt,455,N,RightWrist,1024,3,Healthy
-PD_456_LeftWrist.txt,456,PD,LeftWrist,1024,3,Parkinson's
-PD_456_RightWrist.txt,456,PD,RightWrist,1024,3,Parkinson's
-N_457_LeftWrist.txt,457,N,LeftWrist,1024,3,Healthy
-N_457_RightWrist.txt,457,N,RightWrist,1024,3,Healthy
-PD_458_LeftWrist.txt,458,PD,LeftWrist,1024,3,Parkinson's
-PD_458_RightWrist.txt,458,PD,RightWrist,1024,3,Parkinson's
-N_459_LeftWrist.txt,459,N,LeftWrist,1024,3,Healthy
-N_459_RightWrist.txt,459,N,RightWrist,1024,3,Healthy
-PD_460_LeftWrist.txt,460,PD,LeftWrist,1024,3,Parkinson's
-PD_460_RightWrist.txt,460,PD,RightWrist,1024,3,Parkinson's
-PD_461_LeftWrist.txt,461,PD,LeftWrist,1024,3,Parkinson's
-PD_461_RightWrist.txt,461,PD,RightWrist,1024,3,Parkinson's
-N_463_LeftWrist.txt,463,N,LeftWrist,1024,3,Healthy
-N_463_RightWrist.txt,463,N,RightWrist,1024,3,Healthy
-PD_464_LeftWrist.txt,464,PD,LeftWrist,1024,3,Parkinson's
-PD_464_RightWrist.txt,464,PD,RightWrist,1024,3,Parkinson's
-PD_465_LeftWrist.txt,465,PD,LeftWrist,1024,3,Parkinson's
-PD_465_RightWrist.txt,465,PD,RightWrist,1024,3,Parkinson's
-N_466_LeftWrist.txt,466,N,LeftWrist,1024,3,Healthy
-N_466_RightWrist.txt,466,N,RightWrist,1024,3,Healthy
-PD_467_LeftWrist.txt,467,PD,LeftWrist,1024,3,Parkinson's
-PD_467_RightWrist.txt,467,PD,RightWrist,1024,3,Parkinson's
-PD_468_LeftWrist.txt,468,PD,LeftWrist,1024,3,Parkinson's
-PD_468_RightWrist.txt,468,PD,RightWrist,1024,3,Parkinson's
-PD_469_LeftWrist.txt,469,PD,LeftWrist,1024,3,Parkinson's
-PD_469_RightWrist.txt,469,PD,RightWrist,1024,3,Parkinson's
+file,patient,class,task,wrist,n_samples,n_channels,fs_hz,duration_s,raw_label
+N_001_StretchHold_LeftWrist.txt,001,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_001_StretchHold_RightWrist.txt,001,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_003_StretchHold_LeftWrist.txt,003,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_003_StretchHold_RightWrist.txt,003,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_004_StretchHold_LeftWrist.txt,004,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_004_StretchHold_RightWrist.txt,004,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_005_StretchHold_LeftWrist.txt,005,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_005_StretchHold_RightWrist.txt,005,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_006_StretchHold_LeftWrist.txt,006,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_006_StretchHold_RightWrist.txt,006,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_008_StretchHold_LeftWrist.txt,008,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_008_StretchHold_RightWrist.txt,008,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_009_StretchHold_LeftWrist.txt,009,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_009_StretchHold_RightWrist.txt,009,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_010_StretchHold_LeftWrist.txt,010,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_010_StretchHold_RightWrist.txt,010,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_012_StretchHold_LeftWrist.txt,012,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_012_StretchHold_RightWrist.txt,012,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_013_StretchHold_LeftWrist.txt,013,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_013_StretchHold_RightWrist.txt,013,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_014_StretchHold_LeftWrist.txt,014,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_014_StretchHold_RightWrist.txt,014,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_019_StretchHold_LeftWrist.txt,019,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_019_StretchHold_RightWrist.txt,019,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_020_StretchHold_LeftWrist.txt,020,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_020_StretchHold_RightWrist.txt,020,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_021_StretchHold_LeftWrist.txt,021,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_021_StretchHold_RightWrist.txt,021,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_022_StretchHold_LeftWrist.txt,022,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_022_StretchHold_RightWrist.txt,022,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_025_StretchHold_LeftWrist.txt,025,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_025_StretchHold_RightWrist.txt,025,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_026_StretchHold_LeftWrist.txt,026,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_026_StretchHold_RightWrist.txt,026,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_027_StretchHold_LeftWrist.txt,027,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_027_StretchHold_RightWrist.txt,027,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_028_StretchHold_LeftWrist.txt,028,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_028_StretchHold_RightWrist.txt,028,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_029_StretchHold_LeftWrist.txt,029,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_029_StretchHold_RightWrist.txt,029,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_030_StretchHold_LeftWrist.txt,030,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_030_StretchHold_RightWrist.txt,030,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_031_StretchHold_LeftWrist.txt,031,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_031_StretchHold_RightWrist.txt,031,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_033_StretchHold_LeftWrist.txt,033,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_033_StretchHold_RightWrist.txt,033,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_034_StretchHold_LeftWrist.txt,034,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_034_StretchHold_RightWrist.txt,034,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_038_StretchHold_LeftWrist.txt,038,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_038_StretchHold_RightWrist.txt,038,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_039_StretchHold_LeftWrist.txt,039,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_039_StretchHold_RightWrist.txt,039,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_040_StretchHold_LeftWrist.txt,040,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_040_StretchHold_RightWrist.txt,040,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_041_StretchHold_LeftWrist.txt,041,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_041_StretchHold_RightWrist.txt,041,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_045_StretchHold_LeftWrist.txt,045,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_045_StretchHold_RightWrist.txt,045,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_046_StretchHold_LeftWrist.txt,046,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_046_StretchHold_RightWrist.txt,046,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_047_StretchHold_LeftWrist.txt,047,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_047_StretchHold_RightWrist.txt,047,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_048_StretchHold_LeftWrist.txt,048,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_048_StretchHold_RightWrist.txt,048,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_049_StretchHold_LeftWrist.txt,049,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_049_StretchHold_RightWrist.txt,049,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_051_StretchHold_LeftWrist.txt,051,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_051_StretchHold_RightWrist.txt,051,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_052_StretchHold_LeftWrist.txt,052,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_052_StretchHold_RightWrist.txt,052,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_053_StretchHold_LeftWrist.txt,053,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_053_StretchHold_RightWrist.txt,053,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_054_StretchHold_LeftWrist.txt,054,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_054_StretchHold_RightWrist.txt,054,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_055_StretchHold_LeftWrist.txt,055,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_055_StretchHold_RightWrist.txt,055,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_056_StretchHold_LeftWrist.txt,056,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_056_StretchHold_RightWrist.txt,056,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_057_StretchHold_LeftWrist.txt,057,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_057_StretchHold_RightWrist.txt,057,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_059_StretchHold_LeftWrist.txt,059,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_059_StretchHold_RightWrist.txt,059,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_060_StretchHold_LeftWrist.txt,060,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_060_StretchHold_RightWrist.txt,060,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_061_StretchHold_LeftWrist.txt,061,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_061_StretchHold_RightWrist.txt,061,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_062_StretchHold_LeftWrist.txt,062,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_062_StretchHold_RightWrist.txt,062,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_063_StretchHold_LeftWrist.txt,063,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_063_StretchHold_RightWrist.txt,063,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_065_StretchHold_LeftWrist.txt,065,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_065_StretchHold_RightWrist.txt,065,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_066_StretchHold_LeftWrist.txt,066,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_066_StretchHold_RightWrist.txt,066,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_067_StretchHold_LeftWrist.txt,067,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_067_StretchHold_RightWrist.txt,067,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_068_StretchHold_LeftWrist.txt,068,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_068_StretchHold_RightWrist.txt,068,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_069_StretchHold_LeftWrist.txt,069,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_069_StretchHold_RightWrist.txt,069,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_070_StretchHold_LeftWrist.txt,070,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_070_StretchHold_RightWrist.txt,070,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_071_StretchHold_LeftWrist.txt,071,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_071_StretchHold_RightWrist.txt,071,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_072_StretchHold_LeftWrist.txt,072,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_072_StretchHold_RightWrist.txt,072,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_073_StretchHold_LeftWrist.txt,073,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_073_StretchHold_RightWrist.txt,073,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_074_StretchHold_LeftWrist.txt,074,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_074_StretchHold_RightWrist.txt,074,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_076_StretchHold_LeftWrist.txt,076,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_076_StretchHold_RightWrist.txt,076,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_078_StretchHold_LeftWrist.txt,078,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_078_StretchHold_RightWrist.txt,078,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+ET_079_StretchHold_LeftWrist.txt,079,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_079_StretchHold_RightWrist.txt,079,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+N_080_StretchHold_LeftWrist.txt,080,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_080_StretchHold_RightWrist.txt,080,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_081_StretchHold_LeftWrist.txt,081,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_081_StretchHold_RightWrist.txt,081,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_082_StretchHold_LeftWrist.txt,082,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_082_StretchHold_RightWrist.txt,082,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_083_StretchHold_LeftWrist.txt,083,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_083_StretchHold_RightWrist.txt,083,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_084_StretchHold_LeftWrist.txt,084,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_084_StretchHold_RightWrist.txt,084,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_085_StretchHold_LeftWrist.txt,085,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_085_StretchHold_RightWrist.txt,085,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_086_StretchHold_LeftWrist.txt,086,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_086_StretchHold_RightWrist.txt,086,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_087_StretchHold_LeftWrist.txt,087,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_087_StretchHold_RightWrist.txt,087,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_088_StretchHold_LeftWrist.txt,088,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_088_StretchHold_RightWrist.txt,088,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_089_StretchHold_LeftWrist.txt,089,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_089_StretchHold_RightWrist.txt,089,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_090_StretchHold_LeftWrist.txt,090,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_090_StretchHold_RightWrist.txt,090,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_091_StretchHold_LeftWrist.txt,091,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_091_StretchHold_RightWrist.txt,091,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_092_StretchHold_LeftWrist.txt,092,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_092_StretchHold_RightWrist.txt,092,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_093_StretchHold_LeftWrist.txt,093,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_093_StretchHold_RightWrist.txt,093,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_094_StretchHold_LeftWrist.txt,094,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_094_StretchHold_RightWrist.txt,094,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_095_StretchHold_LeftWrist.txt,095,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_095_StretchHold_RightWrist.txt,095,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_096_StretchHold_LeftWrist.txt,096,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_096_StretchHold_RightWrist.txt,096,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_097_StretchHold_LeftWrist.txt,097,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_097_StretchHold_RightWrist.txt,097,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_099_StretchHold_LeftWrist.txt,099,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_099_StretchHold_RightWrist.txt,099,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_100_StretchHold_LeftWrist.txt,100,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_100_StretchHold_RightWrist.txt,100,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+N_101_StretchHold_LeftWrist.txt,101,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_101_StretchHold_RightWrist.txt,101,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_102_StretchHold_LeftWrist.txt,102,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_102_StretchHold_RightWrist.txt,102,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_104_StretchHold_LeftWrist.txt,104,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_104_StretchHold_RightWrist.txt,104,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_105_StretchHold_LeftWrist.txt,105,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_105_StretchHold_RightWrist.txt,105,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_107_StretchHold_LeftWrist.txt,107,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_107_StretchHold_RightWrist.txt,107,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_108_StretchHold_LeftWrist.txt,108,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_108_StretchHold_RightWrist.txt,108,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_109_StretchHold_LeftWrist.txt,109,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_109_StretchHold_RightWrist.txt,109,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_112_StretchHold_LeftWrist.txt,112,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_112_StretchHold_RightWrist.txt,112,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_113_StretchHold_LeftWrist.txt,113,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_113_StretchHold_RightWrist.txt,113,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_115_StretchHold_LeftWrist.txt,115,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_115_StretchHold_RightWrist.txt,115,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_116_StretchHold_LeftWrist.txt,116,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_116_StretchHold_RightWrist.txt,116,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_119_StretchHold_LeftWrist.txt,119,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_119_StretchHold_RightWrist.txt,119,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_120_StretchHold_LeftWrist.txt,120,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_120_StretchHold_RightWrist.txt,120,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_121_StretchHold_LeftWrist.txt,121,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_121_StretchHold_RightWrist.txt,121,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_122_StretchHold_LeftWrist.txt,122,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_122_StretchHold_RightWrist.txt,122,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_124_StretchHold_LeftWrist.txt,124,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_124_StretchHold_RightWrist.txt,124,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_125_StretchHold_LeftWrist.txt,125,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_125_StretchHold_RightWrist.txt,125,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_126_StretchHold_LeftWrist.txt,126,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_126_StretchHold_RightWrist.txt,126,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_127_StretchHold_LeftWrist.txt,127,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_127_StretchHold_RightWrist.txt,127,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_128_StretchHold_LeftWrist.txt,128,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_128_StretchHold_RightWrist.txt,128,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_129_StretchHold_LeftWrist.txt,129,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_129_StretchHold_RightWrist.txt,129,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_131_StretchHold_LeftWrist.txt,131,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_131_StretchHold_RightWrist.txt,131,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_132_StretchHold_LeftWrist.txt,132,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_132_StretchHold_RightWrist.txt,132,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_133_StretchHold_LeftWrist.txt,133,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_133_StretchHold_RightWrist.txt,133,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_134_StretchHold_LeftWrist.txt,134,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_134_StretchHold_RightWrist.txt,134,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_135_StretchHold_LeftWrist.txt,135,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_135_StretchHold_RightWrist.txt,135,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_136_StretchHold_LeftWrist.txt,136,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_136_StretchHold_RightWrist.txt,136,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_139_StretchHold_LeftWrist.txt,139,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_139_StretchHold_RightWrist.txt,139,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_141_StretchHold_LeftWrist.txt,141,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_141_StretchHold_RightWrist.txt,141,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+ET_143_StretchHold_LeftWrist.txt,143,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_143_StretchHold_RightWrist.txt,143,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_144_StretchHold_LeftWrist.txt,144,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_144_StretchHold_RightWrist.txt,144,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_145_StretchHold_LeftWrist.txt,145,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_145_StretchHold_RightWrist.txt,145,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_146_StretchHold_LeftWrist.txt,146,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_146_StretchHold_RightWrist.txt,146,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_147_StretchHold_LeftWrist.txt,147,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_147_StretchHold_RightWrist.txt,147,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_148_StretchHold_LeftWrist.txt,148,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_148_StretchHold_RightWrist.txt,148,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_149_StretchHold_LeftWrist.txt,149,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_149_StretchHold_RightWrist.txt,149,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_150_StretchHold_LeftWrist.txt,150,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_150_StretchHold_RightWrist.txt,150,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_151_StretchHold_LeftWrist.txt,151,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_151_StretchHold_RightWrist.txt,151,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_152_StretchHold_LeftWrist.txt,152,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_152_StretchHold_RightWrist.txt,152,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_153_StretchHold_LeftWrist.txt,153,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_153_StretchHold_RightWrist.txt,153,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_154_StretchHold_LeftWrist.txt,154,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_154_StretchHold_RightWrist.txt,154,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_155_StretchHold_LeftWrist.txt,155,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_155_StretchHold_RightWrist.txt,155,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_156_StretchHold_LeftWrist.txt,156,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_156_StretchHold_RightWrist.txt,156,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_157_StretchHold_LeftWrist.txt,157,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_157_StretchHold_RightWrist.txt,157,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_159_StretchHold_LeftWrist.txt,159,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_159_StretchHold_RightWrist.txt,159,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_160_StretchHold_LeftWrist.txt,160,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_160_StretchHold_RightWrist.txt,160,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_162_StretchHold_LeftWrist.txt,162,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_162_StretchHold_RightWrist.txt,162,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_163_StretchHold_LeftWrist.txt,163,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_163_StretchHold_RightWrist.txt,163,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_165_StretchHold_LeftWrist.txt,165,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_165_StretchHold_RightWrist.txt,165,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_166_StretchHold_LeftWrist.txt,166,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_166_StretchHold_RightWrist.txt,166,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_167_StretchHold_LeftWrist.txt,167,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_167_StretchHold_RightWrist.txt,167,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_169_StretchHold_LeftWrist.txt,169,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_169_StretchHold_RightWrist.txt,169,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_170_StretchHold_LeftWrist.txt,170,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_170_StretchHold_RightWrist.txt,170,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_171_StretchHold_LeftWrist.txt,171,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_171_StretchHold_RightWrist.txt,171,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_172_StretchHold_LeftWrist.txt,172,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_172_StretchHold_RightWrist.txt,172,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_173_StretchHold_LeftWrist.txt,173,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_173_StretchHold_RightWrist.txt,173,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_174_StretchHold_LeftWrist.txt,174,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_174_StretchHold_RightWrist.txt,174,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_175_StretchHold_LeftWrist.txt,175,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_175_StretchHold_RightWrist.txt,175,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_177_StretchHold_LeftWrist.txt,177,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_177_StretchHold_RightWrist.txt,177,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_179_StretchHold_LeftWrist.txt,179,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_179_StretchHold_RightWrist.txt,179,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_180_StretchHold_LeftWrist.txt,180,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_180_StretchHold_RightWrist.txt,180,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_181_StretchHold_LeftWrist.txt,181,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_181_StretchHold_RightWrist.txt,181,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_182_StretchHold_LeftWrist.txt,182,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_182_StretchHold_RightWrist.txt,182,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_184_StretchHold_LeftWrist.txt,184,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_184_StretchHold_RightWrist.txt,184,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_185_StretchHold_LeftWrist.txt,185,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_185_StretchHold_RightWrist.txt,185,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_186_StretchHold_LeftWrist.txt,186,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_186_StretchHold_RightWrist.txt,186,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_187_StretchHold_LeftWrist.txt,187,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_187_StretchHold_RightWrist.txt,187,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_188_StretchHold_LeftWrist.txt,188,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_188_StretchHold_RightWrist.txt,188,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_189_StretchHold_LeftWrist.txt,189,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_189_StretchHold_RightWrist.txt,189,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_190_StretchHold_LeftWrist.txt,190,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_190_StretchHold_RightWrist.txt,190,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_192_StretchHold_LeftWrist.txt,192,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_192_StretchHold_RightWrist.txt,192,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_193_StretchHold_LeftWrist.txt,193,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_193_StretchHold_RightWrist.txt,193,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_194_StretchHold_LeftWrist.txt,194,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_194_StretchHold_RightWrist.txt,194,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_197_StretchHold_LeftWrist.txt,197,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_197_StretchHold_RightWrist.txt,197,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_198_StretchHold_LeftWrist.txt,198,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_198_StretchHold_RightWrist.txt,198,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_199_StretchHold_LeftWrist.txt,199,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_199_StretchHold_RightWrist.txt,199,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+ET_200_StretchHold_LeftWrist.txt,200,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_200_StretchHold_RightWrist.txt,200,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_201_StretchHold_LeftWrist.txt,201,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_201_StretchHold_RightWrist.txt,201,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_202_StretchHold_LeftWrist.txt,202,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_202_StretchHold_RightWrist.txt,202,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_203_StretchHold_LeftWrist.txt,203,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_203_StretchHold_RightWrist.txt,203,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_204_StretchHold_LeftWrist.txt,204,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_204_StretchHold_RightWrist.txt,204,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_205_StretchHold_LeftWrist.txt,205,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_205_StretchHold_RightWrist.txt,205,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_206_StretchHold_LeftWrist.txt,206,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_206_StretchHold_RightWrist.txt,206,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_208_StretchHold_LeftWrist.txt,208,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_208_StretchHold_RightWrist.txt,208,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_210_StretchHold_LeftWrist.txt,210,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_210_StretchHold_RightWrist.txt,210,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_211_StretchHold_LeftWrist.txt,211,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_211_StretchHold_RightWrist.txt,211,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_212_StretchHold_LeftWrist.txt,212,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_212_StretchHold_RightWrist.txt,212,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_214_StretchHold_LeftWrist.txt,214,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_214_StretchHold_RightWrist.txt,214,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_215_StretchHold_LeftWrist.txt,215,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_215_StretchHold_RightWrist.txt,215,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_216_StretchHold_LeftWrist.txt,216,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_216_StretchHold_RightWrist.txt,216,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_217_StretchHold_LeftWrist.txt,217,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_217_StretchHold_RightWrist.txt,217,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_218_StretchHold_LeftWrist.txt,218,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_218_StretchHold_RightWrist.txt,218,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_219_StretchHold_LeftWrist.txt,219,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_219_StretchHold_RightWrist.txt,219,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_220_StretchHold_LeftWrist.txt,220,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_220_StretchHold_RightWrist.txt,220,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_221_StretchHold_LeftWrist.txt,221,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_221_StretchHold_RightWrist.txt,221,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_222_StretchHold_LeftWrist.txt,222,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_222_StretchHold_RightWrist.txt,222,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_223_StretchHold_LeftWrist.txt,223,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_223_StretchHold_RightWrist.txt,223,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_226_StretchHold_LeftWrist.txt,226,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_226_StretchHold_RightWrist.txt,226,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_227_StretchHold_LeftWrist.txt,227,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_227_StretchHold_RightWrist.txt,227,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_228_StretchHold_LeftWrist.txt,228,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_228_StretchHold_RightWrist.txt,228,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_229_StretchHold_LeftWrist.txt,229,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_229_StretchHold_RightWrist.txt,229,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_230_StretchHold_LeftWrist.txt,230,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_230_StretchHold_RightWrist.txt,230,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_231_StretchHold_LeftWrist.txt,231,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_231_StretchHold_RightWrist.txt,231,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_232_StretchHold_LeftWrist.txt,232,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_232_StretchHold_RightWrist.txt,232,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_233_StretchHold_LeftWrist.txt,233,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_233_StretchHold_RightWrist.txt,233,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_234_StretchHold_LeftWrist.txt,234,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_234_StretchHold_RightWrist.txt,234,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_235_StretchHold_LeftWrist.txt,235,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_235_StretchHold_RightWrist.txt,235,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_236_StretchHold_LeftWrist.txt,236,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_236_StretchHold_RightWrist.txt,236,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_237_StretchHold_LeftWrist.txt,237,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_237_StretchHold_RightWrist.txt,237,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_239_StretchHold_LeftWrist.txt,239,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_239_StretchHold_RightWrist.txt,239,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_240_StretchHold_LeftWrist.txt,240,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_240_StretchHold_RightWrist.txt,240,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_242_StretchHold_LeftWrist.txt,242,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_242_StretchHold_RightWrist.txt,242,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_243_StretchHold_LeftWrist.txt,243,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_243_StretchHold_RightWrist.txt,243,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_244_StretchHold_LeftWrist.txt,244,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_244_StretchHold_RightWrist.txt,244,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_245_StretchHold_LeftWrist.txt,245,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_245_StretchHold_RightWrist.txt,245,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_246_StretchHold_LeftWrist.txt,246,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_246_StretchHold_RightWrist.txt,246,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_247_StretchHold_LeftWrist.txt,247,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_247_StretchHold_RightWrist.txt,247,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_248_StretchHold_LeftWrist.txt,248,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_248_StretchHold_RightWrist.txt,248,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_249_StretchHold_LeftWrist.txt,249,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_249_StretchHold_RightWrist.txt,249,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_250_StretchHold_LeftWrist.txt,250,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_250_StretchHold_RightWrist.txt,250,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_251_StretchHold_LeftWrist.txt,251,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_251_StretchHold_RightWrist.txt,251,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_252_StretchHold_LeftWrist.txt,252,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_252_StretchHold_RightWrist.txt,252,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_253_StretchHold_LeftWrist.txt,253,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_253_StretchHold_RightWrist.txt,253,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_254_StretchHold_LeftWrist.txt,254,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_254_StretchHold_RightWrist.txt,254,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_255_StretchHold_LeftWrist.txt,255,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_255_StretchHold_RightWrist.txt,255,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_256_StretchHold_LeftWrist.txt,256,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_256_StretchHold_RightWrist.txt,256,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_257_StretchHold_LeftWrist.txt,257,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_257_StretchHold_RightWrist.txt,257,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_258_StretchHold_LeftWrist.txt,258,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_258_StretchHold_RightWrist.txt,258,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_259_StretchHold_LeftWrist.txt,259,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_259_StretchHold_RightWrist.txt,259,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_260_StretchHold_LeftWrist.txt,260,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_260_StretchHold_RightWrist.txt,260,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_261_StretchHold_LeftWrist.txt,261,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_261_StretchHold_RightWrist.txt,261,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_262_StretchHold_LeftWrist.txt,262,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_262_StretchHold_RightWrist.txt,262,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_263_StretchHold_LeftWrist.txt,263,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_263_StretchHold_RightWrist.txt,263,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_264_StretchHold_LeftWrist.txt,264,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_264_StretchHold_RightWrist.txt,264,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_265_StretchHold_LeftWrist.txt,265,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_265_StretchHold_RightWrist.txt,265,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_266_StretchHold_LeftWrist.txt,266,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_266_StretchHold_RightWrist.txt,266,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_267_StretchHold_LeftWrist.txt,267,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_267_StretchHold_RightWrist.txt,267,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_268_StretchHold_LeftWrist.txt,268,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_268_StretchHold_RightWrist.txt,268,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_269_StretchHold_LeftWrist.txt,269,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_269_StretchHold_RightWrist.txt,269,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_270_StretchHold_LeftWrist.txt,270,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_270_StretchHold_RightWrist.txt,270,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_271_StretchHold_LeftWrist.txt,271,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_271_StretchHold_RightWrist.txt,271,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_272_StretchHold_LeftWrist.txt,272,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_272_StretchHold_RightWrist.txt,272,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_274_StretchHold_LeftWrist.txt,274,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_274_StretchHold_RightWrist.txt,274,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_275_StretchHold_LeftWrist.txt,275,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_275_StretchHold_RightWrist.txt,275,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_277_StretchHold_LeftWrist.txt,277,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_277_StretchHold_RightWrist.txt,277,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_278_StretchHold_LeftWrist.txt,278,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_278_StretchHold_RightWrist.txt,278,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_279_StretchHold_LeftWrist.txt,279,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_279_StretchHold_RightWrist.txt,279,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_281_StretchHold_LeftWrist.txt,281,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_281_StretchHold_RightWrist.txt,281,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_282_StretchHold_LeftWrist.txt,282,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_282_StretchHold_RightWrist.txt,282,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_283_StretchHold_LeftWrist.txt,283,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_283_StretchHold_RightWrist.txt,283,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_284_StretchHold_LeftWrist.txt,284,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_284_StretchHold_RightWrist.txt,284,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_285_StretchHold_LeftWrist.txt,285,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_285_StretchHold_RightWrist.txt,285,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_286_StretchHold_LeftWrist.txt,286,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_286_StretchHold_RightWrist.txt,286,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_289_StretchHold_LeftWrist.txt,289,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_289_StretchHold_RightWrist.txt,289,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_290_StretchHold_LeftWrist.txt,290,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_290_StretchHold_RightWrist.txt,290,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_292_StretchHold_LeftWrist.txt,292,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_292_StretchHold_RightWrist.txt,292,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_293_StretchHold_LeftWrist.txt,293,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_293_StretchHold_RightWrist.txt,293,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_294_StretchHold_LeftWrist.txt,294,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_294_StretchHold_RightWrist.txt,294,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_295_StretchHold_LeftWrist.txt,295,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_295_StretchHold_RightWrist.txt,295,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_296_StretchHold_LeftWrist.txt,296,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_296_StretchHold_RightWrist.txt,296,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_299_StretchHold_LeftWrist.txt,299,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_299_StretchHold_RightWrist.txt,299,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_300_StretchHold_LeftWrist.txt,300,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_300_StretchHold_RightWrist.txt,300,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_302_StretchHold_LeftWrist.txt,302,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_302_StretchHold_RightWrist.txt,302,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_303_StretchHold_LeftWrist.txt,303,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_303_StretchHold_RightWrist.txt,303,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_305_StretchHold_LeftWrist.txt,305,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_305_StretchHold_RightWrist.txt,305,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_306_StretchHold_LeftWrist.txt,306,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_306_StretchHold_RightWrist.txt,306,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_307_StretchHold_LeftWrist.txt,307,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_307_StretchHold_RightWrist.txt,307,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_308_StretchHold_LeftWrist.txt,308,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_308_StretchHold_RightWrist.txt,308,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_309_StretchHold_LeftWrist.txt,309,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_309_StretchHold_RightWrist.txt,309,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_311_StretchHold_LeftWrist.txt,311,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_311_StretchHold_RightWrist.txt,311,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_312_StretchHold_LeftWrist.txt,312,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_312_StretchHold_RightWrist.txt,312,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_313_StretchHold_LeftWrist.txt,313,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_313_StretchHold_RightWrist.txt,313,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_316_StretchHold_LeftWrist.txt,316,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_316_StretchHold_RightWrist.txt,316,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_319_StretchHold_LeftWrist.txt,319,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_319_StretchHold_RightWrist.txt,319,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_320_StretchHold_LeftWrist.txt,320,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_320_StretchHold_RightWrist.txt,320,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_322_StretchHold_LeftWrist.txt,322,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_322_StretchHold_RightWrist.txt,322,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_323_StretchHold_LeftWrist.txt,323,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_323_StretchHold_RightWrist.txt,323,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_324_StretchHold_LeftWrist.txt,324,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_324_StretchHold_RightWrist.txt,324,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_325_StretchHold_LeftWrist.txt,325,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_325_StretchHold_RightWrist.txt,325,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_327_StretchHold_LeftWrist.txt,327,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_327_StretchHold_RightWrist.txt,327,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_328_StretchHold_LeftWrist.txt,328,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_328_StretchHold_RightWrist.txt,328,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_329_StretchHold_LeftWrist.txt,329,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_329_StretchHold_RightWrist.txt,329,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+ET_330_StretchHold_LeftWrist.txt,330,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_330_StretchHold_RightWrist.txt,330,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_331_StretchHold_LeftWrist.txt,331,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_331_StretchHold_RightWrist.txt,331,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_332_StretchHold_LeftWrist.txt,332,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_332_StretchHold_RightWrist.txt,332,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_333_StretchHold_LeftWrist.txt,333,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_333_StretchHold_RightWrist.txt,333,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_335_StretchHold_LeftWrist.txt,335,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_335_StretchHold_RightWrist.txt,335,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_336_StretchHold_LeftWrist.txt,336,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_336_StretchHold_RightWrist.txt,336,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_337_StretchHold_LeftWrist.txt,337,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_337_StretchHold_RightWrist.txt,337,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_338_StretchHold_LeftWrist.txt,338,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_338_StretchHold_RightWrist.txt,338,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_339_StretchHold_LeftWrist.txt,339,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_339_StretchHold_RightWrist.txt,339,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_340_StretchHold_LeftWrist.txt,340,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_340_StretchHold_RightWrist.txt,340,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_341_StretchHold_LeftWrist.txt,341,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_341_StretchHold_RightWrist.txt,341,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_342_StretchHold_LeftWrist.txt,342,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_342_StretchHold_RightWrist.txt,342,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_343_StretchHold_LeftWrist.txt,343,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_343_StretchHold_RightWrist.txt,343,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_344_StretchHold_LeftWrist.txt,344,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_344_StretchHold_RightWrist.txt,344,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_345_StretchHold_LeftWrist.txt,345,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_345_StretchHold_RightWrist.txt,345,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_346_StretchHold_LeftWrist.txt,346,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_346_StretchHold_RightWrist.txt,346,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_347_StretchHold_LeftWrist.txt,347,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_347_StretchHold_RightWrist.txt,347,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_348_StretchHold_LeftWrist.txt,348,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_348_StretchHold_RightWrist.txt,348,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_349_StretchHold_LeftWrist.txt,349,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_349_StretchHold_RightWrist.txt,349,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_350_StretchHold_LeftWrist.txt,350,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_350_StretchHold_RightWrist.txt,350,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_351_StretchHold_LeftWrist.txt,351,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_351_StretchHold_RightWrist.txt,351,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_352_StretchHold_LeftWrist.txt,352,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_352_StretchHold_RightWrist.txt,352,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_353_StretchHold_LeftWrist.txt,353,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_353_StretchHold_RightWrist.txt,353,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_354_StretchHold_LeftWrist.txt,354,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_354_StretchHold_RightWrist.txt,354,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_355_StretchHold_LeftWrist.txt,355,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_355_StretchHold_RightWrist.txt,355,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_356_StretchHold_LeftWrist.txt,356,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_356_StretchHold_RightWrist.txt,356,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_357_StretchHold_LeftWrist.txt,357,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_357_StretchHold_RightWrist.txt,357,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_358_StretchHold_LeftWrist.txt,358,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_358_StretchHold_RightWrist.txt,358,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_360_StretchHold_LeftWrist.txt,360,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_360_StretchHold_RightWrist.txt,360,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_361_StretchHold_LeftWrist.txt,361,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_361_StretchHold_RightWrist.txt,361,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_362_StretchHold_LeftWrist.txt,362,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_362_StretchHold_RightWrist.txt,362,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_363_StretchHold_LeftWrist.txt,363,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_363_StretchHold_RightWrist.txt,363,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_364_StretchHold_LeftWrist.txt,364,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_364_StretchHold_RightWrist.txt,364,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_365_StretchHold_LeftWrist.txt,365,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_365_StretchHold_RightWrist.txt,365,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_366_StretchHold_LeftWrist.txt,366,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_366_StretchHold_RightWrist.txt,366,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_368_StretchHold_LeftWrist.txt,368,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_368_StretchHold_RightWrist.txt,368,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_369_StretchHold_LeftWrist.txt,369,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_369_StretchHold_RightWrist.txt,369,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_370_StretchHold_LeftWrist.txt,370,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_370_StretchHold_RightWrist.txt,370,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_371_StretchHold_LeftWrist.txt,371,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_371_StretchHold_RightWrist.txt,371,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_372_StretchHold_LeftWrist.txt,372,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_372_StretchHold_RightWrist.txt,372,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_374_StretchHold_LeftWrist.txt,374,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_374_StretchHold_RightWrist.txt,374,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_375_StretchHold_LeftWrist.txt,375,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_375_StretchHold_RightWrist.txt,375,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_376_StretchHold_LeftWrist.txt,376,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_376_StretchHold_RightWrist.txt,376,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_377_StretchHold_LeftWrist.txt,377,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_377_StretchHold_RightWrist.txt,377,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_378_StretchHold_LeftWrist.txt,378,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_378_StretchHold_RightWrist.txt,378,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_379_StretchHold_LeftWrist.txt,379,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_379_StretchHold_RightWrist.txt,379,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_380_StretchHold_LeftWrist.txt,380,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_380_StretchHold_RightWrist.txt,380,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_381_StretchHold_LeftWrist.txt,381,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_381_StretchHold_RightWrist.txt,381,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_382_StretchHold_LeftWrist.txt,382,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_382_StretchHold_RightWrist.txt,382,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_383_StretchHold_LeftWrist.txt,383,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_383_StretchHold_RightWrist.txt,383,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_384_StretchHold_LeftWrist.txt,384,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_384_StretchHold_RightWrist.txt,384,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_385_StretchHold_LeftWrist.txt,385,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_385_StretchHold_RightWrist.txt,385,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_386_StretchHold_LeftWrist.txt,386,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_386_StretchHold_RightWrist.txt,386,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_387_StretchHold_LeftWrist.txt,387,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_387_StretchHold_RightWrist.txt,387,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_388_StretchHold_LeftWrist.txt,388,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_388_StretchHold_RightWrist.txt,388,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_389_StretchHold_LeftWrist.txt,389,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_389_StretchHold_RightWrist.txt,389,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_390_StretchHold_LeftWrist.txt,390,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_390_StretchHold_RightWrist.txt,390,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_391_StretchHold_LeftWrist.txt,391,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_391_StretchHold_RightWrist.txt,391,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_392_StretchHold_LeftWrist.txt,392,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_392_StretchHold_RightWrist.txt,392,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_393_StretchHold_LeftWrist.txt,393,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_393_StretchHold_RightWrist.txt,393,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_394_StretchHold_LeftWrist.txt,394,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_394_StretchHold_RightWrist.txt,394,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_395_StretchHold_LeftWrist.txt,395,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_395_StretchHold_RightWrist.txt,395,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_396_StretchHold_LeftWrist.txt,396,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_396_StretchHold_RightWrist.txt,396,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_398_StretchHold_LeftWrist.txt,398,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_398_StretchHold_RightWrist.txt,398,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_400_StretchHold_LeftWrist.txt,400,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_400_StretchHold_RightWrist.txt,400,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_401_StretchHold_LeftWrist.txt,401,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_401_StretchHold_RightWrist.txt,401,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_402_StretchHold_LeftWrist.txt,402,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_402_StretchHold_RightWrist.txt,402,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_403_StretchHold_LeftWrist.txt,403,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_403_StretchHold_RightWrist.txt,403,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_405_StretchHold_LeftWrist.txt,405,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_405_StretchHold_RightWrist.txt,405,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_406_StretchHold_LeftWrist.txt,406,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_406_StretchHold_RightWrist.txt,406,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_407_StretchHold_LeftWrist.txt,407,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_407_StretchHold_RightWrist.txt,407,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_408_StretchHold_LeftWrist.txt,408,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_408_StretchHold_RightWrist.txt,408,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_409_StretchHold_LeftWrist.txt,409,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_409_StretchHold_RightWrist.txt,409,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_410_StretchHold_LeftWrist.txt,410,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_410_StretchHold_RightWrist.txt,410,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_411_StretchHold_LeftWrist.txt,411,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_411_StretchHold_RightWrist.txt,411,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_412_StretchHold_LeftWrist.txt,412,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_412_StretchHold_RightWrist.txt,412,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_413_StretchHold_LeftWrist.txt,413,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_413_StretchHold_RightWrist.txt,413,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_415_StretchHold_LeftWrist.txt,415,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_415_StretchHold_RightWrist.txt,415,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_416_StretchHold_LeftWrist.txt,416,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_416_StretchHold_RightWrist.txt,416,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_417_StretchHold_LeftWrist.txt,417,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_417_StretchHold_RightWrist.txt,417,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_418_StretchHold_LeftWrist.txt,418,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_418_StretchHold_RightWrist.txt,418,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_419_StretchHold_LeftWrist.txt,419,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_419_StretchHold_RightWrist.txt,419,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+N_420_StretchHold_LeftWrist.txt,420,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_420_StretchHold_RightWrist.txt,420,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_422_StretchHold_LeftWrist.txt,422,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_422_StretchHold_RightWrist.txt,422,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_423_StretchHold_LeftWrist.txt,423,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_423_StretchHold_RightWrist.txt,423,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_424_StretchHold_LeftWrist.txt,424,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_424_StretchHold_RightWrist.txt,424,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_425_StretchHold_LeftWrist.txt,425,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_425_StretchHold_RightWrist.txt,425,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_426_StretchHold_LeftWrist.txt,426,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_426_StretchHold_RightWrist.txt,426,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_427_StretchHold_LeftWrist.txt,427,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_427_StretchHold_RightWrist.txt,427,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_428_StretchHold_LeftWrist.txt,428,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_428_StretchHold_RightWrist.txt,428,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+ET_429_StretchHold_LeftWrist.txt,429,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_429_StretchHold_RightWrist.txt,429,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_430_StretchHold_LeftWrist.txt,430,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_430_StretchHold_RightWrist.txt,430,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_431_StretchHold_LeftWrist.txt,431,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_431_StretchHold_RightWrist.txt,431,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_433_StretchHold_LeftWrist.txt,433,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_433_StretchHold_RightWrist.txt,433,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_435_StretchHold_LeftWrist.txt,435,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_435_StretchHold_RightWrist.txt,435,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_436_StretchHold_LeftWrist.txt,436,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_436_StretchHold_RightWrist.txt,436,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_437_StretchHold_LeftWrist.txt,437,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_437_StretchHold_RightWrist.txt,437,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_440_StretchHold_LeftWrist.txt,440,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_440_StretchHold_RightWrist.txt,440,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_441_StretchHold_LeftWrist.txt,441,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_441_StretchHold_RightWrist.txt,441,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_442_StretchHold_LeftWrist.txt,442,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_442_StretchHold_RightWrist.txt,442,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_443_StretchHold_LeftWrist.txt,443,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_443_StretchHold_RightWrist.txt,443,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_444_StretchHold_LeftWrist.txt,444,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_444_StretchHold_RightWrist.txt,444,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+ET_445_StretchHold_LeftWrist.txt,445,ET,StretchHold,LeftWrist,1024,3,100.0,10.24,Essential Tremor
+ET_445_StretchHold_RightWrist.txt,445,ET,StretchHold,RightWrist,1024,3,100.0,10.24,Essential Tremor
+PD_446_StretchHold_LeftWrist.txt,446,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_446_StretchHold_RightWrist.txt,446,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_447_StretchHold_LeftWrist.txt,447,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_447_StretchHold_RightWrist.txt,447,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_448_StretchHold_LeftWrist.txt,448,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_448_StretchHold_RightWrist.txt,448,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_449_StretchHold_LeftWrist.txt,449,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_449_StretchHold_RightWrist.txt,449,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_452_StretchHold_LeftWrist.txt,452,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_452_StretchHold_RightWrist.txt,452,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_454_StretchHold_LeftWrist.txt,454,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_454_StretchHold_RightWrist.txt,454,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_455_StretchHold_LeftWrist.txt,455,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_455_StretchHold_RightWrist.txt,455,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_456_StretchHold_LeftWrist.txt,456,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_456_StretchHold_RightWrist.txt,456,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_457_StretchHold_LeftWrist.txt,457,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_457_StretchHold_RightWrist.txt,457,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_458_StretchHold_LeftWrist.txt,458,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_458_StretchHold_RightWrist.txt,458,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_459_StretchHold_LeftWrist.txt,459,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_459_StretchHold_RightWrist.txt,459,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_460_StretchHold_LeftWrist.txt,460,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_460_StretchHold_RightWrist.txt,460,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_461_StretchHold_LeftWrist.txt,461,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_461_StretchHold_RightWrist.txt,461,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_463_StretchHold_LeftWrist.txt,463,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_463_StretchHold_RightWrist.txt,463,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_464_StretchHold_LeftWrist.txt,464,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_464_StretchHold_RightWrist.txt,464,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_465_StretchHold_LeftWrist.txt,465,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_465_StretchHold_RightWrist.txt,465,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+N_466_StretchHold_LeftWrist.txt,466,N,StretchHold,LeftWrist,1024,3,100.0,10.24,Healthy
+N_466_StretchHold_RightWrist.txt,466,N,StretchHold,RightWrist,1024,3,100.0,10.24,Healthy
+PD_467_StretchHold_LeftWrist.txt,467,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_467_StretchHold_RightWrist.txt,467,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_468_StretchHold_LeftWrist.txt,468,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_468_StretchHold_RightWrist.txt,468,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
+PD_469_StretchHold_LeftWrist.txt,469,PD,StretchHold,LeftWrist,1024,3,100.0,10.24,Parkinson's
+PD_469_StretchHold_RightWrist.txt,469,PD,StretchHold,RightWrist,1024,3,100.0,10.24,Parkinson's
