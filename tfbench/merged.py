@@ -26,7 +26,8 @@ from collections import defaultdict
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, recall_score, roc_auc_score
+from sklearn.metrics import (f1_score, precision_recall_fscore_support,
+                             precision_score, recall_score, roc_auc_score)
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -92,14 +93,51 @@ def merge(local, new, method, ch=WRIST_2015):
 
 
 def report(y_true, y_prob, y_pred, groups, tag, n_boot=2000):
+    """Print one result line.
+
+    **Precision is printed alongside balanced accuracy, always.** Balanced
+    accuracy plus ``class_weight="balanced"`` deliberately trades precision for
+    recall so the minority class is not ignored -- which means a respectable
+    balanced accuracy can hide a precision collapse. Measured on this cohort:
+    bal-acc 0.730 on PD-vs-ET corresponds to an **ET precision of 0.219**, i.e.
+    78 % of ET calls are wrong. Reporting balanced accuracy alone overstates
+    what the model can do, so the two are emitted together.
+    """
     e = bootstrap_subject_ci(y_true, y_pred, groups, ["neg", "pos"],
                              n_boot=n_boot, seed=0)["pos"]
     maj = max(np.mean(y_true == 1), np.mean(y_true == 0))
+    prec = precision_score(y_true, y_pred, pos_label=1, zero_division=0)
+    rec = recall_score(y_true, y_pred, pos_label=1, zero_division=0)
     print(f"{tag:>46} n={len(y_true):>3} pos={int(y_true.sum()):>3} "
           f"| bal-acc {bal_acc(y_true, y_pred):.3f} | AUC {roc_auc_score(y_true, y_prob):.3f} "
+          f"| P {prec:.3f} R {rec:.3f} "
           f"| F1 {f1_score(y_true, y_pred):.3f} [{e.lo:.2f},{e.hi:.2f}] | maj {maj:.3f}",
           flush=True)
     return bal_acc(y_true, y_pred)
+
+
+def per_class_report(y_true, y_pred, names=("N", "PD", "ET"), tag=""):
+    """Precision / recall / F1 / support per class, plus the confusion matrix.
+
+    The clinically meaningful view: "when the model says ET, how often is it
+    ET?" On this data the dominant error is PD -> ET, not N -> ET, so the model
+    confuses the two tremor types rather than tremor with health.
+    """
+    labels = list(range(len(names)))
+    P, R, F, S = precision_recall_fscore_support(y_true, y_pred, labels=labels,
+                                                 zero_division=0)
+    if tag:
+        print(f"\n{tag}")
+    print(f"  {'class':>6}{'precision':>11}{'recall':>9}{'F1':>8}{'support':>9}{'prevalence':>12}")
+    for i, c in enumerate(names):
+        print(f"  {c:>6}{P[i]:>11.3f}{R[i]:>9.3f}{F[i]:>8.3f}{S[i]:>9}"
+              f"{S[i]/max(len(y_true),1):>12.3f}")
+    print(f"  {'macro':>6}{P.mean():>11.3f}{R.mean():>9.3f}{F.mean():>8.3f}{len(y_true):>9}")
+    from sklearn.metrics import confusion_matrix
+    print(f"  confusion (rows=true, cols=pred): "
+          f"{confusion_matrix(y_true, y_pred, labels=labels).tolist()}")
+    return {"precision": P.tolist(), "recall": R.tolist(), "f1": F.tolist(),
+            "support": S.tolist()}
 
 
 def external_validate(train_X, train_y, test_X, test_y, test_g, tag):

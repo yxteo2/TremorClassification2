@@ -176,6 +176,133 @@ The complete flag reference is in **`references/cli-reference.md`**.
 - Keep changes ONNX-export-friendly: the deployment path is C++ ONNX Runtime, so prefer ops that
   trace cleanly and keep train / export / inference preprocessing identical.
 
+## Reporting metrics — precision is not optional
+
+**Never lead with balanced accuracy on a minority class.** With
+`class_weight="balanced"` the classifier deliberately trades precision for
+recall so the ~10 %-prevalence ET class is not ignored. Balanced accuracy
+rewards that trade; precision exposes what it costs. Measured on this cohort:
+
+| headline | what it hides |
+|---|---|
+| PD-vs-ET bal-acc **0.730** | **ET precision 0.219** — 32 ET calls, 7 correct |
+| max+mean frequency only | **ET precision 0.093** |
+| PADS StretchHold (best anywhere) | ET precision 0.339, recall 0.679 |
+
+The dominant error is **PD → ET**, not N → ET: the model confuses the two tremor
+types, not tremor with health. `tfbench.merged.report` now prints P and R
+alongside bal-acc, and `tfbench.merged.per_class_report` gives the full
+per-class table — use it for any 3-class result.
+
+Raw accuracy is worse than useless here. Majority baselines: **0.833** (2015
+PD-vs-ET), **0.908** (PADS PD-vs-ET). A model can beat balanced chance and still
+sit below the majority baseline on raw accuracy.
+
+## Statistical discipline (learned the hard way in this repo)
+
+Three results were reported and then retracted in a single session. All three
+would have been caught by the checks below, all of which are cheap.
+
+1. **Paired CI belongs in the same run as the point estimate.** For any "B beats
+   A" claim, bootstrap the *difference* on the same resampled subjects. Two
+   independent CIs are not a comparison. `tfbench.benchmark.rank_methods` does
+   this.
+2. **Correct for multiplicity, and say how many tests.** A 198-test screen makes
+   p=0.00035 non-significant (Bonferroni 2.5e-4, BH q=0.070). `rank_methods`
+   prints `*` (uncorrected CI) and `BONF-PASS`/`bonf-fail` separately — they are
+   different tests and must not be merged.
+3. **`n_boot` must resolve the threshold.** At `n_boot=1000` the smallest
+   non-zero p is 0.001; a comparison read p=0.0040 (would pass α=0.00455) and at
+   20 000 draws was p=0.0083 (fails). Use ≥20 000 when close.
+4. **Check a second condition before writing anything down.** The headline
+   handedness effect was OUT-only and *reversed sign* at WING. REST/WING cost
+   nothing to run.
+5. **In-CV threshold tuning can HURT at this n.** It makes the best config
+   significantly worse (0.730 → 0.624, paired CI [−0.21, −0.01]). Tuning helps
+   only where 0.5 is genuinely misplaced. Always run tuning-off as a control.
+
+## Cross-dataset rules
+
+* **Device-identity probe before any pooling**, on the minority class only,
+  judged on **|AUC − 0.5|**. An AUC of 0.000 is *maximally* separable with
+  LOO-inverted labels, not "safe" — that mistake was made here.
+* **PADS cannot be training data.** Confirmed twice, before and after the label
+  fix: pooling costs ET-F1 0.538 → 0.350 and the identity probe is 1.000.
+* **PD-vs-ET does not transfer between cohorts**, even task-matched
+  (rest→rest). External AUC 0.387–0.424, consistently *below* chance, because
+  the cohorts disagree on the **direction** of the effect: 2015 has PD slower
+  than ET at REST (5.47 vs 6.15 Hz, p=0.042), PADS has PD *faster* (6.91 vs
+  5.90 Hz, p<0.0001).
+* **N-vs-Tremor does transfer**: 2015-trained → PADS StretchHold, bal-acc 0.736,
+  AUC 0.783.
+* The best condition is **cohort-specific**: REST for 2015, StretchHold for
+  PADS. Do not generalise a condition recommendation across cohorts.
+
+## Dataset gotchas (each cost real time)
+
+* **PADS labels.** Diagnoses are clinical free text; substring matching put 13
+  non-ET patients into ET ("etiology", "asymmetric", "Retrocollis",
+  "hypokinetic") and 21 parkinsonian mimics into PD. Use **exact** matching:
+  `Healthy` / `Parkinson's` / `Essential Tremor` → **79/276/28**, which matches
+  Varghese 2024. If ET reads 41, the filter has regressed.
+* **PADS task tokens differ from PADS's own script.** Files contain `Relaxed`
+  and `Entrainment`, not `Relaxed1`/`Relaxed2`. Match the task field **exactly**
+  — `Relaxed` as a substring also catches `RelaxedTask`, a different condition.
+* **PADS task durations differ**: Relaxed 2048 samples, StretchHold 1024.
+  Control for it before comparing tasks.
+* **NewData (2025) is unsegmented.** ~38 s `Free_Form` exports with an *empty*
+  Annotations table; whole-recording analysis leaves only **9.9 %** of power in
+  the tremor band vs 76.5 % (2015) and 81.2 % (PADS). `load_2025(segment=True)`
+  is the default; any 10 s window works, so this is not a selection artifact.
+* **NewData is ET-only (6 subjects)** — no classification metric exists for it
+  alone, and any device cue is perfectly confounded with the ET label.
+
+## Cohort combinability
+
+Run `python -m tfbench.combinability` before pooling. Both must hold:
+frequency-distribution equivalence within ±1 Hz **and** a passing device probe.
+2015 + NewData fails at both conditions, for opposite reasons (REST:
+frequencies differ, p=0.017; OUT: device-separable). Merging moves the ET class
+from 38 % to 50 % of patients below the PD median — it becomes bimodal,
+straddling PD.
+
+**Adding NewData ET has no measurable effect** (paired CI spans zero for both
+stft512 and welch, with opposite signs). The often-quoted merged 0.740/ET-F1
+0.557 is scored on a *different patient set*; on the same 2015 patients it is
+0.728/0.480.
+
+## Signal-processing facts (verified, do not re-derive)
+
+* **Power vs amplitude.** Four transforms returned |S| not |S|², so every
+  power-weighted descriptor used amplitude weights. Verify any new transform
+  against Parseval: doubling the signal must **quadruple** reported power.
+* **Only Welch is Parseval-exact.** Integrated-power / true-power ranges
+  0.15–1.4e4 across the 12 transforms, so `total_power` is comparable *within* a
+  method only.
+* **Bin width matters.** VMD and the S-transform have non-uniform frequency
+  grids; weight by power × bin width or mean/median frequency is biased.
+* **The quaternion → angular-velocity conversion is faithful** — verified
+  against the raw gyroscope stream in the 2025 h5 files (identical to three
+  decimals). There is no ω tilt to correct; de-tilting makes domain shift
+  *worse* (probe 0.629 → 1.000).
+* **Plain HHT is noise-dominated** (EMD puts broadband noise in IMF1). Drop
+  IMF1: a clean 6 Hz tone is recovered at 6.00 Hz instead of the band edge.
+* **`lower_arm` alone beats every sensor combination** at both OUT and REST.
+  Adding sensors dilutes: 30 features against 16 ET subjects overfits.
+* **Condition is worth ~0.2 balanced accuracy; method choice ~0.04**, and the
+  method effect is only resolvable at n≈28 ET. Spend effort on condition and
+  cohort, not transforms.
+
+## Current best results
+
+| axis | config | metric |
+|---|---|---|
+| N vs Tremor | 2015 OUT, merged, → PADS external | internal 0.814, **external 0.736 / AUC 0.783** |
+| PD vs ET | 2015 REST, lower_arm, stft512, thr 0.5 | bal-acc 0.730, **ET precision 0.219** |
+
+Nine-plus feature families have now landed within CI on PD-vs-ET. Treat a new
+feature family as unlikely to help unless it survives a paired CI.
+
 ## Known-unfixed bugs (as of this skill revision)
 
 - `tremor/quaternion_data.py`: the `candidates` list contains the **same path twice**, so the
