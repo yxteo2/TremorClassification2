@@ -45,6 +45,21 @@ def select_task_epoch(x, fs=100.0, win_s=10.0, hop_s=0.5, f_lo=3.0, f_hi=15.0,
     FRACTION -- a ratio, so it selects the most tremor-dominated segment rather
     than simply the most energetic one (which would pick the set-up movement).
 
+    .. warning::
+       **This rule is label-dependent and must not be used now that the cohort
+       has healthy controls.** It selects on tremor-band content, which exists
+       for PD and ET but not for HC -- for a control it picks whichever window
+       happens to have the highest in-band noise ratio. The selection criterion
+       therefore behaves differently per class. That was harmless when the 2025
+       cohort was ET-only; with 31 HC and 34 PD it is a systematic bias, and it
+       is the leading suspect for the below-chance PD-vs-ET AUC (0.196 at OUT)
+       measured on this cohort.
+
+       Use ``select_steady_epoch`` instead, which is tremor-blind. It was
+       validated against this rule when the bug was found in the unsegmented
+       data: in-band recovery 0.722 vs 0.714, i.e. equivalent, without keying on
+       the quantity being measured.
+
     Returns the selected slice of ``x``.
     """
     from scipy.signal import welch as _welch
@@ -65,8 +80,58 @@ def select_task_epoch(x, fs=100.0, win_s=10.0, hop_s=0.5, f_lo=3.0, f_hi=15.0,
     return x[:, best_i:best_i + n]
 
 
-def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
-              mode="angular_velocity", sides=("right", "left"), segment=True,
+def select_steady_epoch(x, g, fs=100.0, win_s=10.0, hop_s=0.5, channels=(3, 4, 5)):
+    """Pick the window where POSTURE is steadiest. Tremor-blind, so unbiased
+    across classes.
+
+    Scores each window by the variability of the body-frame gravity direction --
+    how still the limb is being held -- and never looks at the tremor band. A
+    healthy control and a tremor patient are therefore selected on the same
+    criterion, which :func:`select_task_epoch` cannot claim.
+
+    Args:
+        x: ``(channels, T)`` angular velocity.
+        g: ``(channels, T)`` body-frame gravity for the same recording, from
+           ``process_quaternion_data(..., mode="gravity")``.
+    """
+    x = np.asarray(x); g = np.asarray(g)
+    n = int(win_s * fs); hop = max(int(hop_s * fs), 1)
+    if x.shape[1] <= n:
+        return x
+    ch = [c for c in channels if c < g.shape[0]] or list(range(g.shape[0]))
+    g = g[:, :x.shape[1]] if g.shape[1] >= x.shape[1] else g
+    best, best_i = np.inf, 0
+    for i in range(0, x.shape[1] - n + 1, hop):
+        seg = g[ch, i:i + n]
+        if seg.shape[1] < n:
+            break
+        d = float(np.mean(np.std(seg, axis=1)))
+        if d < best:
+            best, best_i = d, i
+    return x[:, best_i:best_i + n]
+
+
+#: folder name -> class label, matching tremor.data (N=0, PD=1, ET=2).
+#: HC (healthy control) is the 2025 cohort's name for N.
+CLASS_LABELS = {"HC": 0, "N": 0, "PD": 1, "ET": 2}
+
+
+def load_2025_all(root="NewData", classes=("HC", "PD", "ET"), **kw):
+    """Load every class of the 2025 cohort as one N/PD/ET recording list.
+
+    The cohort was ET-only when first integrated, which made any device cue
+    perfectly confounded with the ET label and blocked pooling. With HC and PD
+    present it is self-contained: cohort membership no longer predicts the
+    class, so it can be trained and evaluated on its own.
+    """
+    recs = []
+    for c in classes:
+        recs.extend(load_2025(root=root, cls=c, label=CLASS_LABELS[c], **kw))
+    return recs
+
+
+def load_2025(root="NewData", cls="ET", label=None, conditions=("OUT",), fs=FS_DST,
+              mode="angular_velocity", sides=("right", "left"), segment="steady",
               win_s=10.0):
     """Load the 2025 cohort, aligned to the 2015 channel order and rate.
 
@@ -74,7 +139,13 @@ def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
     the same log_map / gravity representations used on the 2015 data are
     available here.
 
-    ``segment`` defaults to **True**. These exports are ~38 s ``Free_Form``
+    ``segment`` is ``"steady"`` (default), ``"tremor"`` or ``False``.
+    ``"steady"`` picks the steadiest-posture window and is **tremor-blind**, so
+    the selection criterion is identical for controls and patients.
+    ``"tremor"`` is the old max-in-band rule -- label-dependent, retained only to
+    reproduce superseded numbers (see :func:`select_task_epoch`).
+
+    These exports are ~38 s ``Free_Form``
     captures with an empty Annotations table, and using the whole recording
     leaves only 9.9 % of power in the 3-15 Hz tremor band (vs 76.5 % for the
     2015 cohort and 81.2 % for PADS) because set-up and settling motion
@@ -85,6 +156,8 @@ def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
     doubles a subject's recordings without adding a subject, which matters for
     anything that averages per patient.
     """
+    if label is None:
+        label = CLASS_LABELS[cls]
     recs = []
     for subj_dir in sorted(glob.glob(os.path.join(root, cls, "*/"))):
         sid = re.search(r"_(%s_\d+)_" % cls, subj_dir)
@@ -106,8 +179,16 @@ def load_2025(root="NewData", cls="ET", label=2, conditions=("OUT",), fs=FS_DST,
                                             n_sensors=3)
             except Exception:
                 continue
-            if segment:
+            if segment == "tremor" or segment is True:
                 x = select_task_epoch(x, fs=fs, win_s=win_s)
+            elif segment:                      # "steady" -- tremor-blind default
+                try:
+                    gq = process_quaternion_data(q.astype(np.float32), fs=fs,
+                                                 mode="gravity",
+                                                 convention="xyzw", n_sensors=3)
+                    x = select_steady_epoch(x, gq, fs=fs, win_s=win_s)
+                except Exception:
+                    x = select_task_epoch(x, fs=fs, win_s=win_s)
             recs.append(Recording(x=x, y=label, subject=f"NEW_{sid}",
                                   path=f, condition=cond))
     return recs
