@@ -45,20 +45,21 @@ def select_task_epoch(x, fs=100.0, win_s=10.0, hop_s=0.5, f_lo=3.0, f_hi=15.0,
     FRACTION -- a ratio, so it selects the most tremor-dominated segment rather
     than simply the most energetic one (which would pick the set-up movement).
 
-    .. warning::
-       **This rule is label-dependent and must not be used now that the cohort
-       has healthy controls.** It selects on tremor-band content, which exists
-       for PD and ET but not for HC -- for a control it picks whichever window
-       happens to have the highest in-band noise ratio. The selection criterion
-       therefore behaves differently per class. That was harmless when the 2025
-       cohort was ET-only; with 31 HC and 34 PD it is a systematic bias, and it
-       is the leading suspect for the below-chance PD-vs-ET AUC (0.196 at OUT)
-       measured on this cohort.
+    .. note::
+       This selects on tremor-band content, so it behaves differently for
+       controls (who have none) than for patients. That looked like a
+       label-dependent bias once the cohort gained 31 HC, and the class effect
+       is measurable -- in-band fraction at OUT is HC 0.536 / PD 0.730 / ET 0.714
+       under this rule against HC 0.473 / PD 0.642 / ET 0.722 under the
+       tremor-blind ``select_steady_epoch``.
 
-       Use ``select_steady_epoch`` instead, which is tremor-blind. It was
-       validated against this rule when the bug was found in the unsegmented
-       data: in-band recovery 0.722 vs 0.714, i.e. equivalent, without keying on
-       the quantity being measured.
+       **It is not leakage.** The rule never sees a label and is applied
+       identically at train and test time, and at deployment on an unlabelled
+       recording. "Find the tremor if there is one" is the intended behaviour.
+       Tested directly: switching to the tremor-blind rule makes results WORSE
+       (N-vs-Tremor 0.787 -> 0.714 at OUT, 0.640 -> 0.587 at REST) and does NOT
+       fix the below-chance PD-vs-ET AUC, which therefore has another cause --
+       most likely just 6 ET subjects.
 
     Returns the selected slice of ``x``.
     """
@@ -131,7 +132,7 @@ def load_2025_all(root="NewData", classes=("HC", "PD", "ET"), **kw):
 
 
 def load_2025(root="NewData", cls="ET", label=None, conditions=("OUT",), fs=FS_DST,
-              mode="angular_velocity", sides=("right", "left"), segment="steady",
+              mode="angular_velocity", sides=("right", "left"), segment="tremor",
               win_s=10.0):
     """Load the 2025 cohort, aligned to the 2015 channel order and rate.
 
@@ -139,11 +140,12 @@ def load_2025(root="NewData", cls="ET", label=None, conditions=("OUT",), fs=FS_D
     the same log_map / gravity representations used on the 2015 data are
     available here.
 
-    ``segment`` is ``"steady"`` (default), ``"tremor"`` or ``False``.
-    ``"steady"`` picks the steadiest-posture window and is **tremor-blind**, so
-    the selection criterion is identical for controls and patients.
-    ``"tremor"`` is the old max-in-band rule -- label-dependent, retained only to
-    reproduce superseded numbers (see :func:`select_task_epoch`).
+    ``segment`` is ``"tremor"`` (default), ``"steady"`` or ``False``.
+    ``"tremor"`` picks the most tremor-dominated window; ``"steady"`` the
+    steadiest-posture window. Measured on the full 2025 cohort, ``"tremor"`` is
+    better on both axes (N-vs-Tremor 0.787 vs 0.714 at OUT) -- see
+    :func:`select_task_epoch` for why the label-dependence concern turned out
+    not to be disqualifying.
 
     These exports are ~38 s ``Free_Form``
     captures with an empty Annotations table, and using the whole recording

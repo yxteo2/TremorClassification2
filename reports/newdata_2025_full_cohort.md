@@ -31,6 +31,39 @@ comparable to the 2015 cohort. The new controls are usable.
 conditions. With 6 ET some instability is expected, but a systematic inversion
 is not.
 
+## The segmenter hypothesis — tested and REFUTED
+
+I proposed that `select_task_epoch` caused the inversion: it picks the window
+with the highest tremor-band power fraction, which controls do not have, so the
+rule behaves differently per class. The class effect is real and measurable
+(in-band fraction at OUT: HC 0.536 / PD 0.730 / ET 0.714 under this rule vs
+HC 0.473 / PD 0.642 / ET 0.722 under a tremor-blind alternative).
+
+**But switching to the tremor-blind rule does not fix the inversion, and makes
+everything else worse:**
+
+| condition | axis | `tremor` rule | `steady` rule |
+|---|---|---|---|
+| OUT | N-vs-Tremor | **0.787** (AUC 0.829) | 0.714 (AUC 0.745) |
+| OUT | PD-vs-ET | 0.388 (AUC 0.196) | 0.449 (AUC **0.384**) |
+| REST | N-vs-Tremor | **0.640** (AUC 0.670) | 0.587 (AUC 0.602) |
+| REST | PD-vs-ET | 0.487 (AUC 0.273) | 0.280 (AUC **0.167**) |
+
+PD-vs-ET stays below chance under both rules, and at REST the tremor-blind rule
+is *worse* (AUC 0.167, ET precision 0.000 — it never correctly identifies an ET
+patient). N-vs-Tremor drops under the blind rule in both conditions.
+
+**The concern was also overstated.** Selecting on tremor content is not leakage:
+the rule never sees a label, is applied identically at train and test, and would
+run the same way on an unlabelled recording at deployment. "Find the tremor if
+there is one" is the intended behaviour, not a bug. The default therefore stays
+`segment="tremor"`; `select_steady_epoch` remains available.
+
+**So the inversion is unexplained.** The most likely remaining cause is simply
+**6 ET subjects** against 23–25 PD — below the n=8 point where the PADS learning
+curve was still climbing steeply. Nothing about PD-vs-ET on this cohort should
+be reported until there are more ET.
+
 ## The likely cause is our own preprocessing
 
 `select_task_epoch` chose the window with the **highest tremor-band power
@@ -61,9 +94,8 @@ This rule was already validated when the unsegmented-data bug was found:
 in-band recovery 0.722 (steady) vs 0.714 (tremor), i.e. equivalent, without
 keying on the quantity being measured.
 
-**All NewData results produced before this change used the biased rule** and
-should be re-run — including the pooled 2015+NewData numbers and the
-combinability check.
+Since the default is unchanged after testing, **earlier NewData results stand**
+— no re-run is needed.
 
 ## Status
 
