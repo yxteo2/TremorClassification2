@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score, recall_score
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import DataLoader
 
@@ -120,14 +120,20 @@ def bal_acc(y, pred):
                   + recall_score(y, pred, pos_label=0, zero_division=0))
 
 
+def prec(y, pred):
+    """Precision on the positive (minority) class. Reported with bal-acc."""
+    return precision_score(y, pred, pos_label=1, zero_division=0)
+
+
 def compare(recs, methods, archs, axis="PD_vs_ET", seeds=(0, 1), n_splits=5,
             **train_kw):
     """Grid over (method x architecture x seed). Returns a results dict."""
     res = {}
-    print(f"{'method':>15}{'arch':>16}{'bal-acc mean':>14}{'sd':>7}{'seeds':>7}")
+    print(f"{'method':>15}{'arch':>16}{'bal-acc mean':>14}{'sd':>7}"
+          f"{'prec mean':>11}{'seeds':>7}")
     for meth in methods:
         for a in archs:
-            vals, store = [], []
+            vals, store, precs = [], [], []
             for s in seeds:
                 try:
                     Pp, yp, pats = run_cv(recs, meth, a, axis=axis,
@@ -137,8 +143,9 @@ def compare(recs, methods, archs, axis="PD_vs_ET", seeds=(0, 1), n_splits=5,
                     print(f"{meth:>15}{a:>16}  FAILED {type(e).__name__}: {str(e)[:40]}")
                     break
                 vals.append(bal_acc(yp, Pp.argmax(1))); store.append((Pp, yp, pats))
+                precs.append(prec(yp, Pp.argmax(1)))
             if vals:
-                res[(meth, a)] = {"bal_acc": vals, "runs": store}
+                res[(meth, a)] = {"bal_acc": vals, "precision": precs, "runs": store}
                 print(f"{meth:>15}{a:>16}{np.mean(vals):>14.3f}{np.std(vals):>7.3f}"
-                      f"{len(vals):>7}", flush=True)
+                      f"{np.mean(precs):>11.3f}{len(vals):>7}", flush=True)
     return res

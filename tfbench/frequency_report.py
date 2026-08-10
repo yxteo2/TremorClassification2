@@ -3,7 +3,8 @@
 Generates the three-part frequency report:
   A. median max_freq and mean_freq per class
   B. PD-vs-ET direction, effect size and significance
-  C. classification from those TWO features alone
+  C. classification from those TWO features alone -- with PRECISION, since
+     balanced accuracy alone hides what class_weight="balanced" costs
 
 All cohorts go through the identical path: Welch PSD (the only Parseval-exact
 transform in ``tfbench.transforms``), 3-15 Hz, wrist-equivalent sensor
@@ -20,8 +21,8 @@ from collections import defaultdict
 import numpy as np
 from scipy.stats import mannwhitneyu
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (accuracy_score, f1_score, recall_score,
-                             roc_auc_score)
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score, roc_auc_score)
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -83,6 +84,8 @@ def _evaluate(X, y, g):
     return dict(acc=accuracy_score(y, pred),
                 maj=max(np.mean(y == 1), np.mean(y == 0)), bal=bal,
                 auc=roc_auc_score(y, prob), f1=f1_score(y, pred),
+                prec=precision_score(y, pred, zero_division=0),
+                rec=recall_score(y, pred, pos_label=1, zero_division=0),
                 lo=e.lo, hi=e.hi)
 
 
@@ -115,8 +118,8 @@ def report(data_root="Data"):
                   f"{d:>12}{eff:>+9.3f}{p:>9.4f}{' *' if p < 0.05 else ''}", flush=True)
 
     print("\n### C. Classification from max+mean frequency ALONE")
-    print(f"{'cohort':>9}{'condition':>13}{'axis':>13}{'n':>6}{'acc':>7}{'maj':>7}"
-          f"{'bal-acc':>9}{'AUC':>7}{'F1 [95% CI]':>20}")
+    print(f"{'cohort':>9}{'condition':>13}{'axis':>13}{'n':>6}{'maj':>7}"
+          f"{'bal-acc':>9}{'AUC':>7}{'prec':>7}{'rec':>7}{'F1 [95% CI]':>20}")
     for (coh, cond), (V, y, g) in S.items():
         for axis, (Xa, ya, ga) in (
                 ("N-vs-Tremor", (V, (y != 0).astype(int), g)),
@@ -125,9 +128,9 @@ def report(data_root="Data"):
                 continue
             m = _evaluate(Xa, ya, ga)
             f1_ci = "{:.3f} [{:.2f},{:.2f}]".format(m["f1"], m["lo"], m["hi"])
-            print(f"{coh:>9}{cond:>13}{axis:>13}{len(ya):>6}{m['acc']:>7.3f}"
-                  f"{m['maj']:>7.3f}{m['bal']:>9.3f}{m['auc']:>7.3f}{f1_ci:>20}",
-                  flush=True)
+            print(f"{coh:>9}{cond:>13}{axis:>13}{len(ya):>6}"
+                  f"{m['maj']:>7.3f}{m['bal']:>9.3f}{m['auc']:>7.3f}"
+                  f"{m['prec']:>7.3f}{m['rec']:>7.3f}{f1_ci:>20}", flush=True)
     return S
 
 

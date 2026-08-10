@@ -23,7 +23,7 @@ from collections import defaultdict
 import numpy as np
 from scipy.stats import mannwhitneyu
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import recall_score, roc_auc_score
+from sklearn.metrics import precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -117,6 +117,15 @@ def _bal(y, p):
                   + recall_score(y, p, pos_label=0, zero_division=0))
 
 
+def _prec(y, p):
+    """Precision on the positive (minority) class -- ET for PD-vs-ET.
+
+    Reported next to balanced accuracy everywhere, because the two can diverge
+    sharply: bal-acc 0.730 on this cohort corresponds to ET precision 0.219.
+    """
+    return precision_score(y, p, pos_label=1, zero_division=0)
+
+
 def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0,
                  correct_for_multiplicity=True):
     """Per-method LOSO, with a paired bootstrap CI against ``reference``.
@@ -139,13 +148,14 @@ def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0
 
     ref = preds.get(reference)
     print(f"\n=== method ranking: {axis} ===  (paired vs '{reference}')")
-    print(f"{'method':>15}{'bal-acc':>9}{'diff':>8}{'95% CI of diff':>21}{'p(<=0)':>9}")
+    print(f"{'method':>15}{'bal-acc':>9}{'prec':>7}{'diff':>8}"
+          f"{'95% CI of diff':>21}{'p(<=0)':>9}")
     out = []
     for m in sorted(preds, key=lambda k: -_bal(ys[k], preds[k])):
         y, p = ys[m], preds[m]
         bal = _bal(y, p)
         if ref is None or m == reference:
-            print(f"{m:>15}{bal:>9.3f}{'—':>8}{'—':>21}{'—':>9}")
+            print(f"{m:>15}{bal:>9.3f}{_prec(y, p):>7.3f}{'—':>8}{'—':>21}{'—':>9}")
             out.append((m, bal, np.nan, np.nan, np.nan)); continue
         # Bootstrap the BALANCED accuracy difference. Using raw accuracy here
         # would be the classic trap on this axis: with 75 PD / 15 ET a model
@@ -169,7 +179,7 @@ def rank_methods(tables, axis="PD_vs_ET", reference="welch", n_boot=3000, seed=0
         if correct_for_multiplicity:
             alpha = 0.05 / max(len(preds) - 1, 1)
             star += "  BONF-PASS" if pv < alpha else ("  bonf-fail" if lo > 0 else "")
-        print(f"{m:>15}{bal:>9.3f}{d.mean():>+8.3f}   [{lo:>+.3f}, {hi:>+.3f}]"
-              f"{pv:>9.4f}{star}")
+        print(f"{m:>15}{bal:>9.3f}{_prec(y, p):>7.3f}{d.mean():>+8.3f}"
+              f"   [{lo:>+.3f}, {hi:>+.3f}]{pv:>9.4f}{star}")
         out.append((m, bal, d.mean(), lo, hi))
     return out
