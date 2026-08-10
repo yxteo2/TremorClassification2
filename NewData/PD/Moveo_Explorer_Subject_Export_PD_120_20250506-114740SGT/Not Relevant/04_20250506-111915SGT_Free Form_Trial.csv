@@ -1,0 +1,18 @@
+"CSV.5 | Subject Group","Demo"
+"Subject Public ID","PD 120"
+"Subject First Name","Foong"
+"Subject Last Name","Hoon Wah"
+"Subject Date of Birth","1954-04-10"
+"Record Date/Time","20250506-111915SGT"
+"Condition","Free Form"
+"File Name","20250506-111915_Free_Form_PD_120.h5"
+"Trial Notes",""
+"Analysis Log","Error::Unable to find still period in distal monitor recording (10871) Elbow/Right angles will be unavailable.
+:::Error::Unable to find still period in proximal monitor recording (10833) Wrist/Left angles will be unavailable.
+:::Error::Unable to find still period in proximal monitor recording (10871) Wrist/Right angles will be unavailable.
+:::Error::Unable to find still period in distal monitor recording (10833) Elbow/Left angles will be unavailable.
+"
+"Analysis Version","2"
+,,,,,"Iteration #"
+"Measure","Normative Mean","Normative StDev","Mean","StDev",
+"Duration (s)","","","31.08","0.00",
