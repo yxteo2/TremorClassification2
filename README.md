@@ -1,5 +1,24 @@
 # Tremor Classification — N / PD / ET from wearable IMU
 
+## Start here
+
+```bash
+jupyter notebook START_HERE.ipynb
+```
+
+One notebook, top to bottom: loads and verifies all three cohorts, reproduces
+the frequency tables, the best PD-vs-ET model, and the externally validated
+N-vs-Tremor result. Executed with outputs committed, so the numbers are
+readable without running anything.
+
+Deeper dives live in `tfbench/`:
+`01_signal_processing_benchmark` (12 TF methods),
+`02_deep_model_comparison` (architectures),
+`03_cohort_comparison` (2015 vs NewData vs PADS).
+
+**Read balanced accuracy and precision together.** Majority baselines are 0.833
+(2015 PD-vs-ET) and 0.908 (PADS), so raw accuracy misleads.
+
 Classifies Normal, Parkinson's and Essential Tremor from arm-worn IMU
 quaternion recordings, via two diagnostic axes: **N vs Tremor** (screening) and
 **PD vs ET** (differential).
