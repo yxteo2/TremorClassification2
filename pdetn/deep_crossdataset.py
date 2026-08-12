@@ -39,12 +39,19 @@ def remap(recs, mapping):
 
 
 def _ds(recs, target_length, augment, f_max=15.0, tfd_method="stft",
-        nperseg=256, noverlap=192):
+        nperseg=256, noverlap=192, oversample_to=None, spec_augment=False):
+    """Dataset for the TF models.
+
+    ``oversample_to`` balances classes at the DATA level (train split only --
+    never pass it for validation or test). With 16 ET against 75 PD, focal loss
+    alone leaves the minority so rare that the network collapses to predicting
+    the majority: measured, 2 of 3 seeds predicted zero ET patients.
+    """
     return TremorDataset(
         recs, target_length=target_length, fs=100.0, f_max=f_max,
         tfd_method=tfd_method, nperseg=nperseg, nfft=nperseg, noverlap=noverlap,
-        normalize="per_recording", augment=augment, oversample_to=None,
-        length_mode="truncate",
+        normalize="per_recording", augment=augment, oversample_to=oversample_to,
+        spec_augment_on=spec_augment, length_mode="truncate",
     )
 
 
@@ -52,7 +59,8 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
                  epochs=60, patience=12, focal_gamma=1.5, device=DEVICE,
                  lr=1e-3, weight_decay=1e-4, hidden=128, dropout=0.4,
                  tfd_method="stft", nperseg=256, noverlap=192, seed=0,
-                 init_state=None, arch="tremor_bilstm"):
+                 init_state=None, arch="tremor_bilstm", oversample_to=None,
+                 spec_augment=False):
     """Train a model on TF images. THE canonical training loop for this repo.
 
     ``arch`` is any name in ``tremor.models.MODELS`` (tremor_bilstm, restcn,
@@ -65,7 +73,9 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
     """
     torch.manual_seed(seed)
     tfd = dict(tfd_method=tfd_method, nperseg=nperseg, noverlap=noverlap)
-    tr = _ds(train_recs, target_length, True, **tfd)
+    # oversampling and spec-augment apply to TRAIN only
+    tr = _ds(train_recs, target_length, True, oversample_to=oversample_to,
+             spec_augment=spec_augment, **tfd)
     vl = _ds(val_recs, target_length, False, **tfd)
     # drop_last avoids a size-1 final batch, which breaks BatchNorm in train mode
     tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
