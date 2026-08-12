@@ -60,7 +60,8 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
                  lr=1e-3, weight_decay=1e-4, hidden=128, dropout=0.4,
                  tfd_method="stft", nperseg=256, noverlap=192, seed=0,
                  init_state=None, arch="tremor_bilstm", oversample_to=None,
-                 spec_augment=False):
+                 spec_augment=False, pretrained=True, freeze_backbone=True,
+                 resize_to=96):
     """Train a model on TF images. THE canonical training loop for this repo.
 
     ``arch`` is any name in ``tremor.models.MODELS`` (tremor_bilstm, restcn,
@@ -81,9 +82,20 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
     tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
     vloader = DataLoader(vl, batch_size=16)
     sx, _ = tr[0]
+    # freeze_backbone/pretrained only affect the transfer models (ast, resnet18).
+    # With freeze_backbone=True the pretrained feature extractor is frozen and
+    # only the channel adapter + classification head train -- the low-parameter
+    # regime, which is the only one that has any chance at 16 ET subjects.
     model = build_model(arch, input_size=sx.shape[0], num_classes=num_classes,
                         target_T=sx.shape[1], hidden=hidden, dropout=dropout,
-                        n_input_channels=sx.shape[0]).to(device)
+                        n_input_channels=sx.shape[0], pretrained=pretrained,
+                        freeze_backbone=freeze_backbone,
+                        resize_to=resize_to).to(device)
+    n_all = sum(q.numel() for q in model.parameters())
+    n_tr = sum(q.numel() for q in model.parameters() if q.requires_grad)
+    if arch in ("ast", "resnet18"):
+        print(f"      [{arch}] trainable {n_tr:,} / {n_all:,} params "
+              f"({100*n_tr/max(n_all,1):.1f}%)", flush=True)
     if init_state is not None:
         # load everything whose shape matches (the head may differ in width)
         cur = model.state_dict()
