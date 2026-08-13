@@ -148,3 +148,45 @@ class TCNBiLSTM(nn.Module):
         z = self.pool(self.tcn(z)).reshape(b, t, -1)   # (B, T, tcn_ch)
         out, _ = self.rnn(z)
         return self.head(out.mean(1))
+
+
+class AxisFusionNet(nn.Module):
+    """(3, F, T) per-axis spectrograms -> TCN fuses x/y/z -> BiLSTM over frequency.
+
+    Every model tried before this one collapsed the three angular-velocity axes
+    into a single spectrum by averaging, discarding per-axis structure. That is
+    a real loss: `pdetn/quaternion_tf.py` showed cross-axis phase carries orbit
+    geometry (circularity, handedness) that no per-axis power average can see.
+
+    Pipeline:
+      1. stack x, y, z spectrograms -> (B, 3, F, T)
+      2. a small dilated conv **across the axis dimension** at each (f, t) cell
+         fuses the three components into `fuse_ch` channels -- this is the
+         "TCN sums the xyz components" step
+      3. average over time (tremor is quasi-stationary; a time-axis BiLSTM was
+         measured at chance while a frequency-axis one reached 0.913)
+      4. BiLSTM over FREQUENCY on the fused channels, then classify
+
+    Kept in the 9-35 k parameter band, where the frequency BiLSTM peaked.
+    """
+
+    def __init__(self, n_freq, n_axes=3, num_classes=2, fuse_ch=8,
+                 rnn_hidden=32, dropout=0.3):
+        super().__init__()
+        # fuse across axes: treat the 3 axes as the conv "length" dimension
+        self.fuse = nn.Sequential(
+            nn.Conv1d(1, fuse_ch, 3, padding=1), nn.BatchNorm1d(fuse_ch), nn.ReLU(),
+            nn.Conv1d(fuse_ch, fuse_ch, 3, padding=2, dilation=2),
+            nn.BatchNorm1d(fuse_ch), nn.ReLU(),
+            nn.AdaptiveAvgPool1d(1))
+        self.rnn = nn.LSTM(fuse_ch, rnn_hidden, batch_first=True, bidirectional=True)
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(rnn_hidden * 2, num_classes))
+
+    def forward(self, x):
+        b, a, f, t = x.shape
+        z = x.mean(-1)                              # (B, A, F) -- average time
+        z = z.permute(0, 2, 1).reshape(b * f, 1, a)  # each (sample, freq): seq over axes
+        z = self.fuse(z).reshape(b, f, -1)          # (B, F, fuse_ch)
+        out, _ = self.rnn(z)                        # over FREQUENCY
+        return self.head(out.mean(1))

@@ -222,3 +222,59 @@ Precision 0.667 is 6 correct out of 9 ET calls. One patient moving gives 0.556
 or 0.778 — precision is quantised in steps of ~0.1. It is not a hyperparameter
 problem. 28 ET from PADS `DrinkGlas` would make precision *measurable*; no
 tuning substitutes for that.
+
+# Per-axis (x/y/z) fusion — tested, does not help
+
+Every model above collapsed the three angular-velocity axes into one spectrum by
+averaging. That discards per-axis structure, and `pdetn/quaternion_tf.py` showed
+cross-axis phase carries orbit geometry no power average can see. So:
+`AxisFusionNet` stacks the per-axis spectrograms into `(B, 3, F, T)`, runs a
+dilated conv **across the axis dimension** to fuse x/y/z at each (f, t), then
+the frequency BiLSTM on the fused channels.
+
+NewData DRINK, 23 PD / 6 ET, 3 seeds:
+
+| model | params | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| AxisFusion 8/32 | 11,146 | 0.645 | 0.659 | 0.667 | 0.333 |
+| AxisFusion 16/32 | 13,842 | 0.707 | 0.761 | 0.600 | 0.500 |
+| AxisFusion 8/64 | 38,410 | 0.641 | 0.594 | 0.375 | 0.500 |
+| **BiLSTM freq, axes AVERAGED** | 9,090 | **0.790** | **0.942** | **0.667** | 0.667 |
+
+Worse on every metric at comparable parameter counts. Keeping the axes separate
+triples the input dimensionality, and at 6 ET that costs more than the
+cross-axis information gains — the same failure mode as the multi-sensor and
+temporal feature sets. Averaging the axes is not throwing information away for
+free; it is a rotation-invariant reduction the model would otherwise have to
+learn.
+
+# Class weighting on an imbalanced set — both directions measured
+
+DRINK is 23 PD vs 6 ET, a 3.8:1 imbalance, so class weighting is the standard
+answer. It is not free here:
+
+| model | class_weight | bal-acc | AUC | **precision** | **recall** |
+|---|---|---|---|---|---|
+| BiLSTM freq (averaged) | **ON** | **0.913** | 0.870 | 0.600 | **1.000** |
+| BiLSTM freq (averaged) | OFF | 0.790 | **0.942** | **0.667** | 0.667 |
+| AxisFusion 16/32 | **ON** | 0.728 | 0.754 | **0.750** | 0.500 |
+| AxisFusion 16/32 | OFF | 0.707 | 0.761 | 0.600 | 0.500 |
+
+**It is a trade, not an improvement, and the direction depends on the metric:**
+
+* On the **frequency BiLSTM**, weighting buys recall (0.667 → 1.000) and
+  balanced accuracy (0.790 → 0.913) at the cost of precision (0.667 → 0.600)
+  and AUC (0.942 → 0.870).
+* On **AxisFusion** it goes the other way — weighting *raises* precision
+  (0.600 → 0.750) at equal recall.
+
+So "always use class weights when imbalanced" is right as a default but wrong as
+a rule here: it must be swept and reported, because it moves precision and
+recall in opposite directions and the correct setting depends on which one the
+application needs. Both are now reported side by side rather than one being
+silently chosen.
+
+**If recall matters most** (screening — do not miss an ET patient): weighting
+ON, bal-acc 0.913 / recall 1.000.
+**If precision matters most** (the stated concern): weighting OFF on the
+frequency BiLSTM, precision 0.667 / AUC 0.942.
