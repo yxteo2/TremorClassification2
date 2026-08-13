@@ -13,7 +13,8 @@ Scored on the 151 2015 patients, so the numbers are comparable to the
 | **logreg, 10 descriptors** | **0.821** | **0.905** | **0.887** | 0.789 | **0.835 [0.77, 0.89]** |
 | MLP on descriptors h=16 | 0.810 | 0.889 | 0.867 | 0.800 | 0.832 [0.76, 0.89] |
 | MLP on descriptors h=32 | 0.777 | 0.881 | 0.828 | 0.800 | 0.814 [0.75, 0.87] |
-| BiLSTM over frequency h=16/32/64 | *running* | | | | |
+| BiLSTM over frequency h=16 | 0.784 | 0.862 | **0.887** | 0.700 | 0.783 [0.71, 0.85] |
+| BiLSTM over frequency h=32/64 | *pending* | | | | |
 
 **The MLP does not beat logistic regression even with 207 patients**, and
 degrades with width (h=16 → h=32 loses 0.033). Its CI overlaps the baseline's
@@ -31,9 +32,20 @@ Two readings, and the data does not yet separate them:
 * 207 patients is still small for a learned representation, and the ceiling is
   further out than this.
 
-The BiLSTM-over-frequency result will discriminate between them: it was the
-architecture that beat the linear model on PD-vs-ET DRINK (AUC 0.870–0.942 vs
-0.812), so if it also fails here the first reading is the likely one.
+**The BiLSTM result discriminates between them, and it favours the first.**
+The frequency BiLSTM was the one architecture that beat the linear model on
+PD-vs-ET DRINK (AUC 0.870–0.942 vs 0.812). Here, with seven times the patients,
+it loses: 0.784 vs 0.821, AUC 0.862 vs 0.905.
+
+Its **precision is identical** (0.887) — the gap is entirely recall (0.700 vs
+0.789). So it is not finding a different or worse decision surface; it is
+finding the same one and calling fewer positives.
+
+That an architecture which *does* find non-linear structure on the hard axis
+finds none here suggests the 10 descriptors already capture what is
+discriminable for N-vs-Tremor. This axis appears to be feature-limited rather
+than model-limited — the opposite conclusion to PD-vs-ET DRINK, where the model
+mattered and the features did not.
 
 **Standing best N-vs-Tremor: merged OUT, logreg on 10 descriptors — bal-acc
 0.821, AUC 0.905, precision 0.887, F1 0.835 [0.77, 0.89].**
