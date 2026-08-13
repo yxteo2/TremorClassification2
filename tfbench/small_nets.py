@@ -272,3 +272,32 @@ def evaluate(recs, axis="PD_vs_ET", class_weight=False, model_fn=None,
             "f1": f1_score(y, pred, zero_division=0),
             "n": len(y), "n_pos": int(y.sum()), "prob": prob, "y": y,
             "patients": g}
+
+
+class SpectrumTCN(nn.Module):
+    """Dilated TCN over the FREQUENCY axis of a 1-D spectrum.
+
+    The convolutional counterpart to :class:`SpectrumBiLSTM`. Dilation lets a
+    small stack see the whole 3-15 Hz band without pooling it away: with
+    kernel 3 and dilations 1/2/4/8 the receptive field is 31 bins, roughly the
+    full spectrum here.
+
+    Included because the recurrent and convolutional families can disagree --
+    on PD-vs-ET DRINK the frequency BiLSTM beat the linear model while a
+    TCN+BiLSTM hybrid over time did not.
+    """
+
+    def __init__(self, n_bins, num_classes=2, ch=16, dropout=0.3,
+                 dilations=(1, 2, 4, 8)):
+        super().__init__()
+        layers, c_in = [], 1
+        for d in dilations:
+            layers += [nn.Conv1d(c_in, ch, 3, padding=d, dilation=d),
+                       nn.BatchNorm1d(ch), nn.ReLU(), nn.Dropout(dropout)]
+            c_in = ch
+        self.tcn = nn.Sequential(*layers)
+        self.head = nn.Sequential(nn.AdaptiveAvgPool1d(1), nn.Flatten(),
+                                  nn.Dropout(dropout), nn.Linear(ch, num_classes))
+
+    def forward(self, x):
+        return self.head(self.tcn(x.unsqueeze(1)))
