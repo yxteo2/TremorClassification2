@@ -278,3 +278,49 @@ silently chosen.
 ON, bal-acc 0.913 / recall 1.000.
 **If precision matters most** (the stated concern): weighting OFF on the
 frequency BiLSTM, precision 0.667 / AUC 0.942.
+
+# Crop + noise augmentation, and why a held-out test set is unaffordable at n=16
+
+`tfbench/augment.py` provides `holdout_split()` (patient-level, made before any
+augmentation so no crop of a test patient can reach training) and `augment()`
+(random time-crops plus optional relative noise).
+
+Two design rules it enforces:
+
+* **Augment every class, not just ET.** Augmenting only the minority makes
+  "looks like a crop" a cue for ET; the model can learn that instead of tremor,
+  and an un-augmented test set will not reveal it. Imbalance is handled with
+  class weights.
+* **Crops are not new patients.** Several crops of one recording are highly
+  correlated — they add within-patient variation, not between-patient
+  variability, which is what 16 ET actually limits.
+
+2015 REST, hold out 10 ET / 10 PD / 10 N patients, 5 random splits, PD-vs-ET:
+
+| training data | train ET recs | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| no augmentation (baseline) | 11 | 0.500 | 0.436 | 0.533 | 0.220 |
+| crop ×4, all classes | 56 | 0.500 | 0.458 | 0.513 | 0.180 |
+| crop ×4 + noise 0.05, all | 56 | 0.510 | 0.444 | 0.567 | 0.180 |
+| crop ×8 + noise 0.05, all | 101 | 0.500 | 0.440 | 0.533 | 0.160 |
+| crop ×4, ET only (leaky) | 56 | 0.500 | 0.444 | 0.487 | 0.200 |
+
+**Augmentation does nothing** — 5× and 9× more samples leave AUC at 0.44–0.46.
+
+**The baseline is the real finding: 0.500, at chance.** LOSO on the same data
+and model gives **0.730**. The only difference is the split: LOSO trains on
+15 ET, this holdout trains on **6**.
+
+So the training-set ET count is the binding constraint, measured directly rather
+than argued: **15 ET → 0.730, 6 ET → chance**, and no amount of cropping
+recovers it. Crops multiply samples of the same six people; the model lacks
+between-patient variability.
+
+**Consequence for study design.** A held-out test set is the right way to report
+a final number, but it is unaffordable at 16 ET — holding out 10 leaves 6 to
+train on and the model collapses. Keep LOSO at this n. A 10-ET holdout becomes
+affordable around 30+ ET, which PADS `DrinkGlas` (28 ET) would nearly provide.
+
+The leaky ET-only variant did not inflate here, but only because every condition
+is at chance — with nothing learnable there is no cue to exploit. The
+all-classes rule still stands for when the model works.
