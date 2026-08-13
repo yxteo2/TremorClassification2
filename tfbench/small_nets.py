@@ -190,3 +190,85 @@ class AxisFusionNet(nn.Module):
         z = self.fuse(z).reshape(b, f, -1)          # (B, F, fuse_ch)
         out, _ = self.rnn(z)                        # over FREQUENCY
         return self.head(out.mean(1))
+
+
+# --------------------------------------------------------------------------- #
+# Runner -- so results are reproducible without a scratch script
+# --------------------------------------------------------------------------- #
+def spectrum_table(recs, ch=slice(3, 6), fs=100.0, f_lo=3.0, f_hi=15.0,
+                   nperseg=512):
+    """(patients, F) normalised power spectrum, axes averaged.
+
+    Averaging the axes is a rotation-invariant reduction, not a free loss --
+    keeping them separate (``AxisFusionNet``) measured worse at this n.
+    """
+    from collections import defaultdict
+    from scipy.signal import welch
+    rows, lab = defaultdict(list), {}
+    for r in recs:
+        x = r.x[ch] if r.x.shape[0] > 3 else r.x
+        f, P = welch(x, fs=fs, nperseg=min(nperseg, x.shape[-1]), axis=-1)
+        P = P.mean(0)
+        k = (f >= f_lo) & (f <= f_hi)
+        s = P[k]
+        rows[r.subject].append(s / (s.sum() + 1e-20))
+        lab[r.subject] = r.y
+    pats = sorted(rows)
+    return (np.nan_to_num(np.array([np.mean(rows[p], 0) for p in pats])),
+            np.array([lab[p] for p in pats]), np.array(pats))
+
+
+def loso_nn(X, y, groups, model_fn, seeds=(0, 1, 2), epochs=150,
+            class_weight=False, **kw):
+    """Patient-level LOSO with a small net; probability averaged over seeds.
+
+    The scaler is fit on the TRAIN split of each fold only. ``class_weight``
+    defaults False: on the frequency BiLSTM it costs precision (0.667 -> 0.600)
+    and AUC (0.942 -> 0.870) while buying recall -- sweep both and report both,
+    do not assume.
+    """
+    from sklearn.model_selection import LeaveOneGroupOut
+    prob = np.zeros(len(y))
+    for tr, te in LeaveOneGroupOut().split(X, y, groups):
+        mu = X[tr].mean(0, keepdims=True)
+        sd = X[tr].std(0, keepdims=True) + 1e-8
+        prob[te] = np.mean([fit_predict(model_fn, (X[tr] - mu) / sd, y[tr],
+                                        (X[te] - mu) / sd, seed=s, epochs=epochs,
+                                        class_weight=class_weight, **kw)
+                            for s in seeds], 0)
+    return prob
+
+
+def best_model(n_bins, num_classes=2):
+    """The configuration that measured best: frequency BiLSTM, hidden 32.
+
+    bal-acc 0.913 / recall 1.000 with class weighting, or bal-acc 0.790 /
+    AUC 0.942 / precision 0.667 without. 9,090 parameters -- the capacity
+    optimum; h=128 and the 11-86 M pretrained backbones are both far past it.
+    """
+    return SpectrumBiLSTM(n_bins, num_classes, hidden=32)
+
+
+def evaluate(recs, axis="PD_vs_ET", class_weight=False, model_fn=None,
+             seeds=(0, 1, 2), epochs=150, ch=slice(3, 6)):
+    """End-to-end: recordings -> spectra -> LOSO -> metrics dict."""
+    from sklearn.metrics import (f1_score, precision_score, recall_score,
+                                 roc_auc_score)
+    X, y3, g = spectrum_table(recs, ch=ch)
+    if axis == "PD_vs_ET":
+        m = y3 != 0
+        X, y, g = X[m], (y3[m] == 2).astype(int), g[m]
+    else:
+        y = (y3 != 0).astype(int)
+    fn = model_fn or (lambda: best_model(X.shape[1]))
+    prob = loso_nn(X, y, g, fn, seeds=seeds, epochs=epochs,
+                   class_weight=class_weight)
+    pred = (prob >= 0.5).astype(int)
+    bal = 0.5 * (recall_score(y, pred, pos_label=1, zero_division=0)
+                 + recall_score(y, pred, pos_label=0, zero_division=0))
+    return {"bal_acc": bal, "auc": roc_auc_score(y, prob),
+            "precision": precision_score(y, pred, zero_division=0),
+            "recall": recall_score(y, pred, zero_division=0),
+            "f1": f1_score(y, pred, zero_division=0),
+            "n": len(y), "n_pos": int(y.sum()), "prob": prob, "y": y,
+            "patients": g}

@@ -303,6 +303,55 @@ stft512 and welch, with opposite signs). The often-quoted merged 0.740/ET-F1
 Nine-plus feature families have now landed within CI on PD-vs-ET. Treat a new
 feature family as unlikely to help unless it survives a paired CI.
 
+## Deep learning — what actually works here
+
+Ten architectures tested on PD-vs-ET. The variable that mattered was never
+capacity; it was **what the model is asked to read**.
+
+| model | params | AUC | note |
+|---|---|---|---|
+| **BiLSTM over FREQUENCY, time-averaged spectrum, h=32** | **9,090** | **0.870–0.942** | best; `tfbench.small_nets.best_model` |
+| MLP on the 10 descriptors, h=16 | 362 | 0.928 | best precision |
+| 1D-CNN over the spectrum | 626 | 0.862 | |
+| logreg on 10 descriptors | 11 | 0.812 | the bar to beat |
+| BiLSTM over TIME on a spectrogram | ~1e5 | 0.517 | chance |
+| ResNet18 / WideResNet / ViT (frozen) | 11–86 M | 0.47–0.54 | chance |
+| TCN(freq)+BiLSTM(time) | 1.6–15 k | 0.73–0.76 | worse |
+| per-axis x/y/z fusion | 11–38 k | 0.59–0.76 | worse than averaging axes |
+
+Rules that fall out of this, all measured:
+
+* **Frequency axis, not time.** Tremor is quasi-stationary over a 10 s window,
+  so a sequence model over time has little to model. The same BiLSTM family
+  goes from chance (time) to best-in-project (frequency).
+* **Capacity has an optimum, ~9–35 k.** h=8 → 0.851, h=32 → 0.913, h=128 →
+  0.830. Both the ~1e5 spectrogram BiLSTM and the 11–86 M backbones are past it.
+* **Feed features, not raw spectrograms.** Feature *learning* is what fails at
+  this n, not neural networks.
+* **Average the x/y/z axes.** That is a rotation-invariant reduction, not a free
+  loss; keeping them separate triples input dimensionality and measures worse.
+* **Class weighting is a trade.** On the frequency BiLSTM it buys recall
+  (0.667 → 1.000) and costs precision (0.667 → 0.600) and AUC (0.942 → 0.870).
+  Sweep it and report both; do not assume "imbalanced ⇒ use weights".
+* **torch threading destroys these models.** Tiny tensors mean thread sync
+  dominates: `torch.set_num_threads(1)` turns 30+ minutes into ~2.
+
+## Task choice beats everything else
+
+ET is a **kinetic** tremor. On the 2025 cohort, PD-vs-ET by task:
+
+| task | bal-acc | AUC | ET precision |
+|---|---|---|---|
+| **DRINK** | 0.790 | 0.812 | **0.667** |
+| **FINGER_NOSE** | 0.708 | **0.826** | 0.400 |
+| POUR / PRON_SUP / TAP | 0.42–0.57 | 0.44–0.53 | ≤0.23 |
+| REST / OUT | 0.39–0.49 | 0.20–0.27 | ≤0.18 |
+
+Every earlier attempt varied the *method* on rest/postural recordings and
+failed. Varying the *task* produced the largest jump in the project. Caveat:
+**6 ET**, no paired CI, no correction across 7 tasks, no replication cohort yet
+— PADS `DrinkGlas`/`TouchNose` (938 files each, 28 ET) is the decisive test.
+
 ## Known-unfixed bugs (as of this skill revision)
 
 - `tremor/quaternion_data.py`: the `candidates` list contains the **same path twice**, so the
