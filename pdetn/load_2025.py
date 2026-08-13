@@ -15,7 +15,19 @@ from tremor.data import Recording
 from tremor.quaternion import process_quaternion_data
 
 SENSOR_ORDER = ["7257", "10871", "10468"]          # hand, lower_arm, upper_arm
-ACTION = {"01": "REST", "08": "REST", "02": "OUT", "09": "OUT"}
+#: Action code -> task. 01-07 are the RIGHT upper limb, 08-14 the LEFT.
+#: REST and OUT have 2015 counterparts; the other five are 2025-only and were
+#: unusable while the cohort was ET-only (no class to discriminate against).
+#: With 31 HC and 34 PD they are testable -- and FINGER_NOSE and POUR are the
+#: classic clinical kinetic-tremor manoeuvres for ET.
+ACTION = {"01": "REST",        "08": "REST",
+          "02": "OUT",         "09": "OUT",
+          "03": "DRINK",       "10": "DRINK",
+          "04": "FINGER_NOSE", "11": "FINGER_NOSE",
+          "05": "POUR",        "12": "POUR",
+          "06": "TAP",         "13": "TAP",
+          "07": "PRON_SUP",    "14": "PRON_SUP"}
+ALL_TASKS_2025 = ["REST", "OUT", "DRINK", "FINGER_NOSE", "POUR", "TAP", "PRON_SUP"]
 FS_SRC, FS_DST = 128.0, 100.0
 
 def _load_h5(path, sensors=SENSOR_ORDER):
