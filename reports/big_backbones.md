@@ -21,16 +21,23 @@ random weights — a frozen random backbone is a random-projection baseline.
 
 | model | weights | bal-acc | AUC | precision | recall |
 |---|---|---|---|---|---|
-| resnet18 | random | 0.525 | 0.522 | 0.217 | 0.833 |
-| wide_resnet50_2 | random | 0.486 | 0.467 | 0.201 | 0.667 |
-| **logreg, 10 descriptors** | — | **0.790** | **0.812** | **0.667** | 0.667 |
+| resnet18 (11.2 M) | random | 0.525 | 0.522 | 0.217 | 0.833 |
+| wide_resnet50_2 (66.8 M) | random | 0.486 | 0.467 | 0.201 | 0.667 |
+| vit_b_16 (85.8 M) | random | 0.549 | 0.540 | 0.231 | 0.750 |
+| **logreg, 10 descriptors (11 params)** | — | **0.790** | **0.812** | **0.667** | 0.667 |
+| **MLP h=16 on descriptors (~700)** | — | 0.728 | **0.942** | **0.750** | 0.500 |
 
-(ViT at 224×224 is slow on CPU; run locally.)
+**All three backbones sit at chance** (AUC 0.467–0.540) on the one task where
+the classical model reaches 0.812 and a ~700-parameter MLP reaches 0.942.
+Ranking them by size — resnet18 0.522, wide_resnet50_2 0.467, vit_b_16 0.540 —
+shows no relationship with capacity at all: 85.8 M parameters buys the same
+chance performance as 11.2 M.
 
-**Both backbones sit at chance on the one task where the classical model
-reaches AUC 0.812.** Wider is worse than narrower — wide_resnet50_2 (66.8 M)
-underperforms resnet18 (11.2 M), which is the same ordering seen everywhere
-else in this project.
+The contrast with `reports/small_networks.md` is the point. A 700-parameter MLP
+on 10 descriptors reaches AUC 0.942 on this same task and split. The difference
+is not capacity, architecture family, or attention — it is **what the model is
+asked to learn from**. Given descriptors, a tiny network wins; given raw
+spectrograms, an 85 M-parameter transformer cannot get off chance.
 
 ## What this does and does not establish
 
