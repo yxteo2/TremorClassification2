@@ -80,3 +80,27 @@ def fit_predict(model_fn, Xtr, ytr, Xte, epochs=300, lr=3e-3, wd=1e-3,
     m.eval()
     with torch.no_grad():
         return torch.softmax(m(Xte_t), 1).cpu().numpy()[:, 1]
+
+
+class SpectrumBiLSTM(nn.Module):
+    """BiLSTM reading the power spectrum as a sequence over FREQUENCY.
+
+    The repo's `tremor_bilstm` runs over the TIME axis of a full spectrogram and
+    sits at chance on PD-vs-ET. This runs over the **frequency** axis of a 1-D
+    spectrum instead: the sequence is "power at 3 Hz, 3.2 Hz, ..., 15 Hz", so
+    the recurrence models how spectral shape unfolds across frequency -- the
+    structure the descriptors summarise by hand.
+
+    Sized to match `MLPHead` (hundreds of parameters), not the ~1e5 of the
+    spectrogram BiLSTM.
+    """
+
+    def __init__(self, n_bins, num_classes=2, hidden=8, dropout=0.3):
+        super().__init__()
+        self.rnn = nn.LSTM(1, hidden, batch_first=True, bidirectional=True)
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(hidden * 2, num_classes))
+
+    def forward(self, x):
+        out, _ = self.rnn(x.unsqueeze(-1))     # (B, n_bins, 2*hidden)
+        return self.head(out.mean(1))          # average over frequency
