@@ -32,7 +32,8 @@ DRINK, PD-vs-ET, 19 PD / 6 ET (patients with both limbs recorded):
 | BiLSTM, limbs averaged | 0.671 | **0.886** | 0.500 | 0.500 |
 | BiLSTM, limbs concatenated | 0.557 | 0.877 | 0.500 | 0.167 |
 | TCN, limbs concatenated | 0.478 | 0.763 | 0.200 | 0.167 |
-| BilateralAttention d=32/64 | *pending — slow on CPU* | | | |
+| BilateralAttention d=32 N=2 (19 k) | 0.531 | 0.500 | 0.333 | 0.167 |
+| BilateralAttention d=64 N=3 (79 k) | 0.447 | 0.456 | 0.000 | 0.000 |
 
 **The right limb carries the signal and the left is at chance.** That is a large
 effect and it validates the premise: limb identity matters, and treating the two
@@ -59,4 +60,24 @@ well-motivated next step.
   `Tremor More Affected Hand` — with it, limbs could be ordered by severity
   rather than by anatomical side, which is what the asymmetry argument actually
   calls for.
-* Whether attention beats simple averaging is still unmeasured.
+## The attention encoder fails at this n
+
+Both configurations sit at or below chance (AUC 0.500 and 0.456), and the larger
+is worse -- the same capacity ordering seen throughout this project. A
+19 k-parameter transformer over 25 patients with 6 ET has nothing to fit, and
+the paper's own hyperparameter search reportedly favoured small models
+(d=32-64, N=2-3) even on its full cohort.
+
+**What survives is the asymmetry itself, not the architecture.** The left/right
+gap is large and real, and the methods that exploit it best here are the
+simplest: right-limb-only for balanced accuracy and precision (0.724 / 0.750),
+limb-averaging for ranking (AUC 0.886). Both beat every fusion mechanism tried --
+concatenation, TCN, and interleaved attention.
+
+That is the useful transfer from the paper: **the premise (limb relationship is
+diagnostic) holds; the mechanism (transformer fusion) needs a cohort this data
+does not have.** The paper's design would be worth revisiting on PADS, which has
+both wrists for 469 patients.
+
+* Whether attention would beat averaging **at adequate n** remains untested here
+  and is the open question the architecture deserves.
