@@ -301,3 +301,67 @@ class SpectrumTCN(nn.Module):
 
     def forward(self, x):
         return self.head(self.tcn(x.unsqueeze(1)))
+
+
+class BilateralAttention(nn.Module):
+    """Interleaved self-attention over LEFT and RIGHT limb spectra.
+
+    Follows the interleaved-encoder idea (Vaswani-style blocks over a
+    concatenated two-limb sequence with learned modality embeddings), adapted
+    in one respect: the paper interleaves along **time**, this interleaves
+    along **frequency**.
+
+    That change is forced by what was measured on this data. Tremor is
+    quasi-stationary over a 10 s window: a BiLSTM over the time axis of a
+    spectrogram sits at chance (bal-acc 0.513) while the same family over the
+    frequency axis reaches 0.913. Attention over time would be attending to an
+    axis with little structure; attention over frequency attends to spectral
+    shape, which is where the discriminative information demonstrably is.
+
+    Rationale for going bilateral at all: PD signs typically begin unilaterally
+    and stay more severe on that side, so the left-right *relationship* carries
+    information a single-limb model discards. NewData records both limbs per
+    subject (action codes 01-07 right, 08-14 left).
+
+    Sequence layout, with F frequency bins per limb::
+
+        H0 = [proj(X_L) + pos + m_L]  ||  [proj(X_R) + pos + m_R]    (2F, d)
+
+    Self-attention over the 2F sequence gives a 2F x 2F map whose diagonal
+    blocks are within-limb and whose off-diagonal blocks are left-right
+    interactions -- the same interactions an explicit dual-stream
+    cross-attention would compute, with one tied set of projection weights
+    instead of four.
+    """
+
+    def __init__(self, n_bins, num_classes=2, d=32, n_heads=4, n_blocks=2,
+                 ff=64, dropout=0.2):
+        super().__init__()
+        self.proj = nn.Linear(1, d)
+        self.pos = nn.Parameter(self._sinusoidal(n_bins, d), requires_grad=False)
+        self.mod = nn.Parameter(torch.randn(2, d) * 0.02)   # learned L / R tags
+        block = nn.TransformerEncoderLayer(
+            d_model=d, nhead=n_heads, dim_feedforward=ff, dropout=dropout,
+            batch_first=True, norm_first=False)
+        self.enc = nn.TransformerEncoder(block, num_layers=n_blocks)
+        self.head = nn.Sequential(nn.Dropout(dropout), nn.Linear(d, num_classes))
+
+    @staticmethod
+    def _sinusoidal(n, d):
+        pos = torch.arange(n).float().unsqueeze(1)
+        i = torch.arange(0, d, 2).float()
+        ang = pos / torch.pow(10000, i / d)
+        pe = torch.zeros(n, d)
+        pe[:, 0::2] = torch.sin(ang)
+        pe[:, 1::2] = torch.cos(ang[:, :pe[:, 1::2].shape[1]])
+        return pe
+
+    def forward(self, x):
+        """x: (B, 2*F) -- left spectrum concatenated with right."""
+        b, twoF = x.shape
+        f = twoF // 2
+        xl, xr = x[:, :f].unsqueeze(-1), x[:, f:].unsqueeze(-1)
+        hl = self.proj(xl) + self.pos[:f] + self.mod[0]
+        hr = self.proj(xr) + self.pos[:f] + self.mod[1]
+        h = torch.cat([hl, hr], dim=1)          # (B, 2F, d)
+        return self.head(self.enc(h).mean(1))   # pool over all 2F positions
