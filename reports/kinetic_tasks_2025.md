@@ -73,3 +73,47 @@ varied the *method* on rest/postural recordings.
 This varied the **task**, and produced the largest jump seen. If it holds, the
 lesson is that the binding constraint was never only the ET count — it was
 measuring ET during conditions that do not elicit ET tremor.
+
+# Combining the two kinetic tasks — does not help
+
+DRINK and FINGER_NOSE are recorded on the same subjects, so they can be
+combined. 55 patients present in both (22 PD / 6 ET), frequency BiLSTM h=32,
+class weighting off:
+
+| features | bins | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| **DRINK alone** | 61 | 0.682 | **0.902** | 0.500 | 0.500 |
+| FINGER_NOSE alone | 61 | 0.492 | 0.523 | 0.200 | 0.167 |
+| concatenated spectra | 122 | **0.742** | 0.667 | 0.500 | 0.667 |
+| mean spectrum of both | 61 | 0.576 | 0.697 | 0.333 | 0.333 |
+| ensemble, mean of probabilities | — | 0.621 | 0.841 | 0.500 | 0.333 |
+| ensemble, max of probabilities | — | 0.614 | 0.795 | 0.333 | 0.500 |
+
+**Nothing beats DRINK alone on AUC (0.902).** Concatenation gets the best
+balanced accuracy (0.742) but at AUC 0.667 — it is finding a better threshold,
+not a better ranking. Doubling the input to 122 bins against 6 ET is the usual
+overfit.
+
+## A model/task interaction worth recording
+
+FINGER_NOSE reached **AUC 0.826 with logistic regression on 10 descriptors**
+but only **0.523 with the frequency BiLSTM** — chance. DRINK is the reverse
+direction but milder (0.812 logreg, 0.902 BiLSTM).
+
+So "the kinetic tasks work" is too coarse. What holds is:
+
+* **DRINK works with both** model families (AUC 0.812 logreg, 0.902 BiLSTM).
+* **FINGER_NOSE works only with the descriptors**, not the sequence model.
+
+That the two disagree at n=6 is itself a warning about how thin this is. Any
+claim should name the task *and* the model, and DRINK is the only cell that
+holds up across both.
+
+## Standing position
+
+Best single configuration remains **DRINK + frequency BiLSTM h=32**, AUC
+0.870–0.942 depending on split and class weighting, on **6 ET subjects**.
+Combining tasks, pooling cohorts, larger models, per-axis fusion and temporal
+features have all now been measured and none improve it. **PADS `DrinkGlas`
+(28 ET) is the only remaining lever that changes the evidence rather than the
+model.**
