@@ -60,7 +60,7 @@ def train_one(train_recs, val_recs, n_classes, target_length, tfd, arch,
               epochs=40, patience=10, lr=1e-3, focal_gamma=1.5, seed=0,
               hidden=128, dropout=0.4, device=DEVICE, oversample_to=None,
               spec_augment=False, pretrained=True, freeze_backbone=True,
-              resize_to=96, batch_size=16):
+              resize_to=96, batch_size=16, augment=True):
     """Train one model. Delegates to the single canonical loop in
     ``pdetn.deep_crossdataset.train_bilstm`` -- this module used to carry an
     independent copy, so a fix to early stopping or the loss had to be made
@@ -73,6 +73,7 @@ def train_one(train_recs, val_recs, n_classes, target_length, tfd, arch,
                         oversample_to=oversample_to, spec_augment=spec_augment,
                         pretrained=pretrained, freeze_backbone=freeze_backbone,
                         resize_to=resize_to, batch_size=batch_size,
+                        augment=augment,
                         tfd_method=tfd["tfd_method"], **kw)
 
 

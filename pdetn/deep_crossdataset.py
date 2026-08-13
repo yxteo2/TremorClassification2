@@ -61,7 +61,7 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
                  tfd_method="stft", nperseg=256, noverlap=192, seed=0,
                  init_state=None, arch="tremor_bilstm", oversample_to=None,
                  spec_augment=False, pretrained=True, freeze_backbone=True,
-                 resize_to=96, batch_size=16):
+                 resize_to=96, batch_size=16, augment=True):
     """Train a model on TF images. THE canonical training loop for this repo.
 
     ``arch`` is any name in ``tremor.models.MODELS`` (tremor_bilstm, restcn,
@@ -75,7 +75,10 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
     torch.manual_seed(seed)
     tfd = dict(tfd_method=tfd_method, nperseg=nperseg, noverlap=noverlap)
     # oversampling and spec-augment apply to TRAIN only
-    tr = _ds(train_recs, target_length, True, oversample_to=oversample_to,
+    # augment=True gives a RANDOM crop window each epoch (TremorDataset
+    # _fit_mode -> "random" when length_mode="truncate"). This was hardcoded
+    # True, so every deep result was augmented with no ablation available.
+    tr = _ds(train_recs, target_length, augment, oversample_to=oversample_to,
              spec_augment=spec_augment, **tfd)
     vl = _ds(val_recs, target_length, False, **tfd)
     # drop_last avoids a size-1 final batch, which breaks BatchNorm in train mode

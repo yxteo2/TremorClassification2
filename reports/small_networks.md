@@ -324,3 +324,40 @@ affordable around 30+ ET, which PADS `DrinkGlas` (28 ET) would nearly provide.
 The leaky ET-only variant did not inflate here, but only because every condition
 is at chance — with nothing learnable there is no cue to exploit. The
 all-classes rule still stands for when the model works.
+
+# Random-crop augmentation is INERT on NewData — the segmenter removes the slack
+
+`augment` was hardcoded `True` in `train_bilstm`, so every deep result in this
+project was produced with random-crop augmentation on and no ablation was
+possible. It is now a parameter. Ablating it on NewData DRINK, frequency
+BiLSTM path, 3 seeds:
+
+| augment (random crop) | SpecAugment | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| **ON** (previous behaviour) | off | 0.605 | 0.643 | 0.278 | 0.833 |
+| **OFF** | off | **0.605** | **0.643** | **0.278** | **0.833** |
+| ON | on | 0.511 | 0.551 | 0.211 | 0.833 |
+
+**ON and OFF are bit-identical** — same means, same standard deviations. The
+reason is in the run header: `lengths 1000-1000, target 1000`.
+
+`select_task_epoch` already crops every NewData recording to a fixed
+`win_s=10.0` × 100 Hz = **1000 samples**. Target length therefore equals actual
+length, `fit_length` is a no-op, and every "random crop" returns the same
+window. Crop augmentation has been **absent, not merely ineffective**, in every
+deep result on this cohort.
+
+SpecAugment is worse than nothing (0.605 → 0.511) and should stay off.
+
+## Where cropping could actually do something
+
+* **2015**: lengths 1124–4118 against a target of 1491 — roughly 50+ distinct
+  crop positions per recording. Real slack; untested in the deep path.
+* **NewData**: have `select_task_epoch` return a longer window (e.g. 20 s) and
+  let `TremorDataset` crop 10 s from it, restoring the slack the segmenter
+  removes. Two-line change.
+
+The motivating intuition — that trimming discards signal which cropping could
+recover — is sound. It just does not apply where it was assumed: on NewData the
+trimming happens *before* the dataset sees the recording, so there is nothing
+left to vary.
