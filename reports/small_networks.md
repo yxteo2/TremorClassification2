@@ -180,3 +180,45 @@ parameters.**
 
 Still **6 ET subjects**, so all of this is a lead. PADS `DrinkGlas` (28 ET) is
 the test that matters.
+
+# Improving ET precision
+
+Precision 0.600 at recall 1.000 means the model over-calls ET: 10 calls, 6
+correct. Two levers.
+
+| setting (BiLSTM freq h=32) | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|
+| class_weight ON | **0.913** | 0.870 | 0.600 | **1.000** |
+| **class_weight OFF** | 0.790 | **0.942** | **0.667** | 0.667 |
+| cw OFF + wd=1e-2 | 0.768 | 0.790 | 0.571 | 0.667 |
+
+Class weighting was doing exactly what it is designed to: buying recall with
+precision. Removing it raises AUC 0.870 → **0.942** and precision to 0.667.
+Legitimate change, no test-set involvement.
+
+## Threshold sweep — diagnostic ONLY, not a result
+
+| threshold | bal-acc | precision | recall | ET calls |
+|---|---|---|---|---|
+| 0.3 | 0.873 | 0.714 | 0.833 | 7 |
+| 0.5 | 0.790 | 0.667 | 0.667 | 6 |
+| 0.6 | 0.728 | 0.750 | 0.500 | 4 |
+| 0.8 | 0.583 | 1.000 | 0.167 | 1 |
+
+**These thresholds were chosen by looking at test-set predictions.** Quoting
+"precision 0.714" from this table would be selection on the test set. The table
+shows what the ranking could support; it is not a reportable operating point.
+Selecting the threshold honestly means doing it inside the training folds, and
+that was measured to be significantly *worse* at this n (0.730 → 0.624, paired
+CI excluding zero — `reports/threshold_tuning_rest.md`). The honest operating
+point stays 0.5.
+
+**Honest best: class_weight OFF, threshold 0.5 — precision 0.667, recall 0.667,
+AUC 0.942, bal-acc 0.790.**
+
+## Why precision cannot be tuned at this n
+
+Precision 0.667 is 6 correct out of 9 ET calls. One patient moving gives 0.556
+or 0.778 — precision is quantised in steps of ~0.1. It is not a hyperparameter
+problem. 28 ET from PADS `DrinkGlas` would make precision *measurable*; no
+tuning substitutes for that.
