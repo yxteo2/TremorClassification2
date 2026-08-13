@@ -66,3 +66,34 @@ so the extra patients help even though the domains differ.
   reporting.
 * **PD-vs-ET: do not merge.** 2015 REST alone (0.730 / precision 0.393) remains
   best; NewData's contribution on this axis is negative.
+
+# Domain correction works — and does not help
+
+If merging fails because of device shift, removing the shift should fix it.
+Per-cohort standardisation (z-score features within each cohort before pooling)
+does remove it:
+
+| | device probe on ET |
+|---|---|
+| raw | AUC 0.688 (\|dev\| 0.188) |
+| **per-cohort z-score** | **AUC 0.490 (\|dev\| 0.010)** |
+
+The cohorts become statistically inseparable. Performance does not follow:
+
+| model (REST, PD-vs-ET) | ET | bal-acc | AUC | precision |
+|---|---|---|---|---|
+| **2015 only** | 16 | **0.730** | **0.729** | **0.393** |
+| plain merge, scored on 2015 | 16 | 0.648 | 0.720 | 0.310 |
+| per-cohort z-score, scored on 2015 | 16 | 0.639 | 0.721 | 0.278 |
+| per-cohort z-score, scored on all | 22 | 0.630 | 0.667 | 0.283 |
+
+**So merging does not fail because of domain shift.** The shift was removed
+completely and nothing changed. That rules out the technical explanation and
+leaves the substantive one: the 6 NewData ET patients do not carry usable
+PD-vs-ET information — consistent with NewData's own internal PD-vs-ET sitting
+at chance (AUC 0.273 at REST). Adding uninformative ET dilutes rather than
+strengthens.
+
+Merging has now been measured five ways — plain, ET-only, all-three-cohort,
+full-cohort, and domain-corrected — and is negative for PD-vs-ET every time.
+More ET helps only if the ET are discriminable to begin with.
