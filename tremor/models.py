@@ -499,6 +499,89 @@ class ResNet18Pretrained(nn.Module):
         return self.backbone(x)
 
 
+class TorchvisionBackbone(nn.Module):
+    """Any torchvision classifier adapted to (B, F, T) tremor spectrograms.
+
+    Generalises :class:`ResNet18Pretrained` to wide_resnet50_2, vit_b_16 and
+    friends: the same channel adapter + resize front-end, then a swapped
+    classification head.
+
+    ViT needs ``resize_to=224`` -- its patch embedding is fixed at 224x224 and
+    it will not accept the 96x96 the ResNets use.
+
+    .. note::
+       Bigger backbones do NOT address the constraint here. The gap is domain,
+       not capacity: ImageNet is natural images, tremor is a 3-15 Hz
+       oscillation, and a wider frozen embedding means a LARGER head against the
+       same 16 (or 6) ET subjects. Measured on 2015 REST PD-vs-ET, frozen
+       resnet18 with random weights trains 1,722 parameters and still sits at
+       chance (AUC 0.446), while logistic regression on 10 descriptors reaches
+       0.729. Test the smallest backbone first.
+    """
+
+    #: name -> (constructor attr, weights enum attr, head attribute path)
+    SPECS = {
+        "resnet18":        ("resnet18",        "ResNet18_Weights",       "fc"),
+        "resnet50":        ("resnet50",        "ResNet50_Weights",       "fc"),
+        "wide_resnet50_2": ("wide_resnet50_2", "Wide_ResNet50_2_Weights", "fc"),
+        "vit_b_16":        ("vit_b_16",        "ViT_B_16_Weights",       "heads"),
+    }
+
+    def __init__(self, input_size: int, num_classes: int = 3,
+                 n_input_channels: int = 9, resize_to: int = 96,
+                 pretrained: bool = True, freeze_backbone: bool = True,
+                 dropout: float = 0.4, backbone: str = "resnet18"):
+        super().__init__()
+        try:
+            import torchvision.models as tvm
+        except ImportError as e:
+            raise ImportError("needs torchvision: pip install torchvision") from e
+        if backbone not in self.SPECS:
+            raise ValueError(f"unknown backbone {backbone!r}; "
+                             f"available: {sorted(self.SPECS)}")
+        if input_size % n_input_channels != 0:
+            raise ValueError(f"input_size={input_size} not divisible by "
+                             f"n_input_channels={n_input_channels}")
+        ctor, wenum, head = self.SPECS[backbone]
+        if backbone.startswith("vit") and resize_to != 224:
+            resize_to = 224          # ViT patch embedding is fixed at 224
+
+        self.n_input_channels = n_input_channels
+        self.bins_per_channel = input_size // n_input_channels
+        self.resize_to = resize_to
+        self.channel_adapter = nn.Conv2d(n_input_channels, 3, kernel_size=1)
+
+        weights = getattr(tvm, wenum).DEFAULT if pretrained else None
+        self.backbone = getattr(tvm, ctor)(weights=weights)
+        if freeze_backbone:
+            for q in self.backbone.parameters():
+                q.requires_grad = False
+        if head == "fc":
+            in_f = self.backbone.fc.in_features
+            self.backbone.fc = nn.Sequential(nn.Dropout(dropout),
+                                             nn.Linear(in_f, num_classes))
+        else:                                     # ViT: heads is a Sequential
+            in_f = self.backbone.heads.head.in_features
+            self.backbone.heads = nn.Sequential(nn.Dropout(dropout),
+                                                nn.Linear(in_f, num_classes))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        b, f, t = x.shape
+        x = x.view(b, self.n_input_channels, self.bins_per_channel, t)
+        x = self.channel_adapter(x)
+        x = torch.nn.functional.interpolate(
+            x, size=(self.resize_to, self.resize_to),
+            mode="bilinear", align_corners=False)
+        return self.backbone(x)
+
+
+def _tv(name):
+    def make(**kw):
+        kw.pop("backbone", None)
+        return TorchvisionBackbone(backbone=name, **kw)
+    return make
+
+
 # ---------------------------------------------------------------------
 # Registry / factory
 # ---------------------------------------------------------------------
@@ -512,6 +595,9 @@ MODELS: dict[str, Callable[..., nn.Module]] = {
     "restcn": ResTCN,
     "ast": CustomAST,
     "resnet18": ResNet18Pretrained,
+    "resnet50": _tv("resnet50"),
+    "wide_resnet50_2": _tv("wide_resnet50_2"),
+    "vit_b_16": _tv("vit_b_16"),
 }
 
 
@@ -529,9 +615,11 @@ def build_model(
 ) -> nn.Module:
     """Instantiate a model by registry name with sensible defaults.
 
-    ``pretrained`` and ``freeze_backbone`` only affect the
-    transfer-learning models (``ast``, ``resnet18``). ``n_input_channels``
-    + ``resize_to`` only affect ``resnet18``.
+    ``pretrained`` and ``freeze_backbone`` only affect the transfer models
+    (``ast``, ``resnet18``, ``resnet50``, ``wide_resnet50_2``, ``vit_b_16``).
+    ``n_input_channels`` + ``resize_to`` affect the torchvision backbones;
+    ``vit_b_16`` forces ``resize_to=224`` regardless, since its patch embedding
+    is fixed at that size.
     """
     if name not in MODELS:
         raise ValueError(
@@ -550,7 +638,7 @@ def build_model(
         return cls(input_size=input_size, num_classes=num_classes,
                    input_tdim=target_T, pretrained=pretrained,
                    freeze_backbone=freeze_backbone)
-    if name == "resnet18":
+    if name in ("resnet18", "resnet50", "wide_resnet50_2", "vit_b_16"):
         return cls(input_size=input_size, num_classes=num_classes,
                    n_input_channels=n_input_channels, resize_to=resize_to,
                    pretrained=pretrained, freeze_backbone=freeze_backbone,
