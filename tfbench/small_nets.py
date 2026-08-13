@@ -104,3 +104,47 @@ class SpectrumBiLSTM(nn.Module):
     def forward(self, x):
         out, _ = self.rnn(x.unsqueeze(-1))     # (B, n_bins, 2*hidden)
         return self.head(out.mean(1))          # average over frequency
+
+
+class TCNBiLSTM(nn.Module):
+    """TCN over FREQUENCY per time frame, then BiLSTM over TIME.
+
+    Motivated by two measured results on this data:
+
+    * a BiLSTM over the **time** axis of a raw spectrogram sits at chance
+      (bal-acc 0.513) -- tremor is quasi-stationary, so there is little for a
+      sequence model to find along time in the raw bins;
+    * a BiLSTM over the **frequency** axis of a time-averaged spectrum reaches
+      0.851 -- the spectral shape is where the signal lives.
+
+    So: extract spectral shape first, then aggregate over time. A dilated 1-D
+    conv stack runs across frequency **independently at each frame**, producing
+    one embedding per time step; the BiLSTM then summarises how that embedding
+    evolves. Time-averaging (what `SpectrumBiLSTM` does implicitly) is thrown
+    away only if the temporal evolution carries something -- this architecture
+    can learn to ignore it.
+
+    Input ``(B, F, T)``. Kept small: a few thousand parameters.
+    """
+
+    def __init__(self, n_freq, num_classes=2, tcn_ch=8, rnn_hidden=8,
+                 dropout=0.3, dilations=(1, 2, 4)):
+        super().__init__()
+        layers, c_in = [], 1
+        for d in dilations:
+            layers += [nn.Conv1d(c_in, tcn_ch, 3, padding=d, dilation=d),
+                       nn.BatchNorm1d(tcn_ch), nn.ReLU()]
+            c_in = tcn_ch
+        self.tcn = nn.Sequential(*layers)          # over the FREQUENCY axis
+        self.pool = nn.AdaptiveAvgPool1d(1)        # one embedding per frame
+        self.rnn = nn.LSTM(tcn_ch, rnn_hidden, batch_first=True, bidirectional=True)
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(rnn_hidden * 2, num_classes))
+
+    def forward(self, x):
+        b, f, t = x.shape
+        # every (sample, frame) pair becomes one sequence over frequency
+        z = x.permute(0, 2, 1).reshape(b * t, 1, f)
+        z = self.pool(self.tcn(z)).reshape(b, t, -1)   # (B, T, tcn_ch)
+        out, _ = self.rnn(z)
+        return self.head(out.mean(1))

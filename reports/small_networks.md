@@ -113,3 +113,70 @@ These nets are tiny, so **torch thread contention dominates**: the first run
 took 30+ minutes and did not finish. With `torch.set_num_threads(1)` the same
 sweep completes in 460 s (2015) and 112 s (DRINK). Always set it for
 sub-1000-parameter models.
+
+# Hidden-size sweep and the TCN+BiLSTM hybrid
+
+## Capacity sweep — BiLSTM over frequency peaks at h=32–64
+
+NewData DRINK, 23 PD / 6 ET, 3 seeds. **Full-batch training throughout**: every
+gradient step uses all 28 training patients, so there is no mini-batch size to
+enlarge.
+
+| model | params | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| BiLSTM freq h=8 | 738 | 0.851 | 0.848 | 0.625 | 0.833 |
+| BiLSTM freq h=16 | 2,498 | 0.830 | 0.899 | 0.556 | 0.833 |
+| **BiLSTM freq h=32** | 9,090 | **0.913** | 0.870 | 0.600 | **1.000** |
+| **BiLSTM freq h=64** | 34,562 | **0.913** | 0.884 | 0.600 | **1.000** |
+| BiLSTM freq h=128 | 134,658 | 0.830 | 0.848 | 0.556 | 0.833 |
+| MLP desc h=16 | 362 | 0.728 | **0.928** | **0.750** | 0.500 |
+| MLP desc h=32 | 978 | 0.728 | 0.920 | 0.750 | 0.500 |
+| MLP desc h=64 | 2,978 | 0.645 | 0.884 | 0.667 | 0.333 |
+| MLP desc h=128 | 10,050 | 0.623 | 0.884 | 0.500 | 0.333 |
+
+**bal-acc 0.913 with recall 1.000** — h=32 and h=64 catch all six ET patients.
+Best in the project.
+
+Two clean patterns:
+
+* **The BiLSTM has an optimum, not a monotone trend.** 8 → 32 improves, 128
+  collapses back to 0.830. There is a capacity sweet spot around 9–35 k
+  parameters; the earlier ~1e5-parameter spectrogram BiLSTM and the 11–86 M
+  backbones were both far past it.
+* **The MLP degrades monotonically** with width (0.728 → 0.623). It has only 10
+  inputs, so extra hidden units add parameters without adding information.
+
+## The TCN+BiLSTM hybrid does NOT help
+
+Idea: TCN over **frequency** at each time frame, BiLSTM over **time** to
+aggregate — keeping the time axis rather than averaging it away.
+
+| model | params | bal-acc | AUC | precision | recall |
+|---|---|---|---|---|---|
+| TCN+BiLSTM 8/8 | 1,666 | 0.518 | 0.761 | 0.250 | 0.167 |
+| TCN+BiLSTM 16/16 | 6,146 | 0.518 | 0.732 | 0.250 | 0.167 |
+| TCN+BiLSTM 16/32 | 14,658 | 0.623 | 0.725 | 0.500 | 0.333 |
+| **BiLSTM over freq (time-averaged)** | 9,090 | **0.913** | **0.870** | 0.600 | **1.000** |
+
+Worse on every metric. AUC 0.725–0.761 is above chance, so the architecture is
+learning *something*, but balanced accuracy near 0.52 with recall 0.167 means it
+barely calls ET at all.
+
+**Why, most likely:** retaining the time axis is what hurts. Tremor in a 10 s
+window is quasi-stationary — the earlier measurements already showed that
+time-averaged descriptors work and a time-axis BiLSTM sits at chance. The hybrid
+must *learn* to ignore temporal variation, and with 6 ET subjects it has no
+budget to learn that. Averaging over time hands it the same invariance for free.
+
+A caveat on this specific implementation: frames were normalised per-frame
+(`P / P.sum(0)`), which discards per-frame amplitude. If amplitude modulation
+over time matters, this test would not see it.
+
+## Bottom line
+
+Best configuration: **BiLSTM over the frequency axis of a time-averaged
+spectrum, h=32 — bal-acc 0.913, AUC 0.870, precision 0.600, recall 1.000, 9,090
+parameters.**
+
+Still **6 ET subjects**, so all of this is a lead. PADS `DrinkGlas` (28 ET) is
+the test that matters.
