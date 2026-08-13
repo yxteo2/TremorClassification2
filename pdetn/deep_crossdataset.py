@@ -61,7 +61,7 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
                  tfd_method="stft", nperseg=256, noverlap=192, seed=0,
                  init_state=None, arch="tremor_bilstm", oversample_to=None,
                  spec_augment=False, pretrained=True, freeze_backbone=True,
-                 resize_to=96):
+                 resize_to=96, batch_size=16):
     """Train a model on TF images. THE canonical training loop for this repo.
 
     ``arch`` is any name in ``tremor.models.MODELS`` (tremor_bilstm, restcn,
@@ -79,8 +79,13 @@ def train_bilstm(train_recs, val_recs, num_classes, target_length,
              spec_augment=spec_augment, **tfd)
     vl = _ds(val_recs, target_length, False, **tfd)
     # drop_last avoids a size-1 final batch, which breaks BatchNorm in train mode
-    tl = DataLoader(tr, batch_size=16, shuffle=True, drop_last=len(tr) > 16)
-    vloader = DataLoader(vl, batch_size=16)
+    # batch_size matters more than usual here. With ~18 % ET, a batch of 16
+    # holds ~3 ET and often 0-1, which makes BatchNorm statistics and the
+    # gradient direction very noisy for the minority class. Larger batches give
+    # more reliable minority representation per step.
+    tl = DataLoader(tr, batch_size=batch_size, shuffle=True,
+                    drop_last=len(tr) > batch_size)
+    vloader = DataLoader(vl, batch_size=max(batch_size, 16))
     sx, _ = tr[0]
     # freeze_backbone/pretrained only affect the transfer models (ast, resnet18).
     # With freeze_backbone=True the pretrained feature extractor is frozen and
