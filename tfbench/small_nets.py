@@ -486,3 +486,108 @@ class BilateralAttention(nn.Module):
         hr = self.proj(xr) + self.pos[:f] + self.mod[1]
         h = torch.cat([hl, hr], dim=1)          # (B, 2F, d)
         return self.head(self.enc(h).mean(1))   # pool over all 2F positions
+
+
+class ResidualTCN(nn.Module):
+    """A TCN with actual residual blocks, over the frequency axis.
+
+    :class:`SpectrumTCN` is a plain dilated conv stack with no residual
+    connections, so it is a deep feedforward net rather than a TCN in the
+    Bai-Kolter-Koltun sense. Residual connections are the part of that design
+    that makes depth trainable, and their absence is a plausible reason the TCN
+    trailed the 1-D CNN despite having a larger receptive field.
+
+    Each block is (dilated conv -> BN -> ReLU -> dropout) twice, plus a 1x1
+    projection shortcut when the channel count changes.
+    """
+
+    def __init__(self, n_bins, num_classes=3, ch=16, dropout=0.2,
+                 dilations=(1, 2, 4)):
+        super().__init__()
+        blocks, c_in = [], 1
+        for d in dilations:
+            blocks.append(nn.ModuleDict({
+                "body": nn.Sequential(
+                    nn.Conv1d(c_in, ch, 3, padding=d, dilation=d),
+                    nn.BatchNorm1d(ch), nn.ReLU(), nn.Dropout(dropout),
+                    nn.Conv1d(ch, ch, 3, padding=d, dilation=d),
+                    nn.BatchNorm1d(ch), nn.ReLU(), nn.Dropout(dropout)),
+                "skip": (nn.Identity() if c_in == ch else nn.Conv1d(c_in, ch, 1)),
+            }))
+            c_in = ch
+        self.blocks = nn.ModuleList(blocks)
+        self.head = nn.Sequential(nn.AdaptiveAvgPool1d(1), nn.Flatten(),
+                                  nn.Dropout(dropout), nn.Linear(ch, num_classes))
+
+    def trunk(self, x):
+        z = x.unsqueeze(1)
+        for b in self.blocks:
+            z = torch.relu(b["body"](z) + b["skip"](z))
+        return z
+
+    def forward(self, x):
+        return self.head(self.trunk(x))
+
+
+class AttnPoolBiLSTM(nn.Module):
+    """BiLSTM over frequency with ATTENTION pooling instead of a mean.
+
+    :class:`SpectrumBiLSTM` averages hidden states over all frequency bins,
+    weighting the 3 Hz bin exactly as much as the bin at the tremor peak. Tremor
+    information is concentrated in a 1-2 Hz neighbourhood of that peak, so a
+    learned weighting is the matched read-out: the network chooses which bins to
+    listen to rather than being forced to average them.
+
+    Costs one extra (2H -> 1) linear layer over `SpectrumBiLSTM`.
+    """
+
+    def __init__(self, n_bins, num_classes=3, hidden=32, dropout=0.3):
+        super().__init__()
+        self.rnn = nn.LSTM(1, hidden, batch_first=True, bidirectional=True)
+        self.attn = nn.Linear(hidden * 2, 1)
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(hidden * 2, num_classes))
+
+    def forward(self, x):
+        out, _ = self.rnn(x.unsqueeze(-1))             # (B, F, 2H)
+        w = torch.softmax(self.attn(out), dim=1)       # (B, F, 1) over frequency
+        return self.head((out * w).sum(1))
+
+
+class DescriptorFusion(nn.Module):
+    """A spectrum backbone with hand-computed descriptors joined at the head.
+
+    The repo's two model families have never been combined. Logistic regression
+    on 10 descriptors and a small net on the raw spectrum score comparably,
+    which leaves open that each holds something the other does not: the
+    descriptors state peak location, bandwidth and harmonic structure
+    explicitly, while the network sees the whole spectral shape.
+
+    Input is ``[spectrum | descriptors]`` concatenated on the feature axis. The
+    backbone reads the spectrum slice through ``feat_fn``; the descriptor slice
+    goes through a small MLP and is concatenated to the pooled representation
+    before the classifier.
+    """
+
+    def __init__(self, backbone, feat_fn, n_spec, n_desc, feat_dim,
+                 num_classes=3, hidden=16, dropout=0.3):
+        super().__init__()
+        self.n_spec, self.backbone, self.feat_fn = n_spec, backbone, feat_fn
+        self.desc = nn.Sequential(nn.Linear(n_desc, hidden), nn.ReLU(),
+                                  nn.Dropout(dropout))
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(feat_dim + hidden, num_classes))
+
+    def forward(self, x):
+        s, d = x[:, :self.n_spec], x[:, self.n_spec:]
+        return self.head(torch.cat([self.feat_fn(self.backbone, s),
+                                    self.desc(d)], dim=1))
+
+
+#: Feature extractors that strip the classifier off each backbone family, for
+#: use as ``DescriptorFusion(feat_fn=...)``. Each returns (B, feat_dim).
+TRUNKS = {
+    "cnn":    (lambda m, s: m.conv(s.unsqueeze(1)).flatten(1)),
+    "tcn":    (lambda m, s: m.trunk(s).mean(-1)),
+    "bilstm": (lambda m, s: m.rnn(s.unsqueeze(-1))[0].mean(1)),
+}
