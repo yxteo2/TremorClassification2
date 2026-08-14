@@ -103,3 +103,93 @@ straining. It also explains, in one mechanism, why 1 k-parameter models beat
 
 Reproduce: `scratch/improve.py`, `scratch/improve2.py`, `scratch/improve3.py`
 (gitignored; models in `tfbench.small_nets`).
+
+## Round 3: architecture fixes, fusion, ensembling
+
+5 capping draws, 16 log-bins, cap 90/class.
+
+| config | pooled F1 | LOCO F1 | LOCO pET |
+|---|---|---|---|
+| **FUSION cnn+desc** | 0.557 +/- 0.008 | **0.515 +/- 0.004** | 0.287 +/- 0.026 |
+| **ResidualTCN** | 0.571 +/- 0.012 | 0.510 +/- 0.007 | **0.352 +/- 0.098** |
+| ENSEMBLE CNN+TCN+BiLSTM | 0.545 +/- 0.015 | 0.509 +/- 0.009 | 0.259 +/- 0.027 |
+| Spectrum1DCNN 32-bin | 0.553 +/- 0.012 | 0.506 +/- 0.008 | 0.227 +/- 0.023 |
+| FUSION rtcn+desc | 0.570 +/- 0.020 | 0.501 +/- 0.007 | 0.249 +/- 0.019 |
+| SpectrumTCN 16-bin | 0.537 +/- 0.012 | 0.500 +/- 0.009 | 0.269 +/- 0.017 |
+| ENSEMBLE + logreg | 0.543 +/- 0.012 | 0.496 +/- 0.010 | 0.215 +/- 0.034 |
+| FUSION bilstm+desc | 0.527 +/- 0.017 | 0.482 +/- 0.007 | 0.202 +/- 0.013 |
+| logreg desc only | 0.555 +/- 0.017 | 0.480 +/- 0.008 | 0.170 +/- 0.005 |
+| AttnPoolBiLSTM | 0.506 +/- 0.020 | 0.468 +/- 0.010 | 0.161 +/- 0.008 |
+| SpectrumBiLSTM | 0.492 +/- 0.028 | 0.456 +/- 0.007 | 0.166 +/- 0.017 |
+
+### Residual connections were a real omission
+
+`SpectrumTCN` had no residual connections -- a dilated conv stack, not a TCN.
+Adding them (`ResidualTCN`) took LOCO F1 0.500 -> 0.510 and ET precision
+0.269 -> 0.352. The precision figure carries sd 0.098, far wider than anything
+else in the table, so it is unstable and should not be quoted without more
+draws.
+
+### Descriptors still hold information the network does not extract
+
+`DescriptorFusion(CNN)` reaches LOCO F1 0.515 +/- 0.004 -- the best measured,
+with the tightest error bar -- against 0.494 for the CNN alone and 0.480 for
+logistic regression on descriptors alone. At 404 patients the network is still
+not recovering, from the raw spectrum, what peak location / bandwidth /
+harmonic descriptors state explicitly.
+
+### The two winners do not combine
+
+`FUSION rtcn+desc` (0.501) is worse than ResidualTCN alone (0.510) and worse
+than `FUSION cnn+desc` (0.515). Fusion helps the CNN (+0.021) and the BiLSTM
+(+0.026) but hurts the ResidualTCN (-0.009).
+
+Read together: the ResidualTCN's advantage **is** better feature extraction
+rather than access to different information, so bolting descriptors onto it
+adds parameters without adding signal. The plain CNN has extraction capacity to
+spare and benefits.
+
+### Attention pooling: small but real
+
+`AttnPoolBiLSTM` 0.468 +/- 0.010 against `SpectrumBiLSTM` 0.456 +/- 0.007.
+Mean-pooling over frequency weights the 3 Hz bin as heavily as the tremor peak;
+letting the model choose is worth ~0.012. BiLSTM remains the weakest family.
+
+## ResNet18 revisited on the merged cohort
+
+The earlier verdict came from 58 patients with RANDOM weights. Re-tested from
+scratch at n=404, 3 capping draws (ImageNet weights remain proxy-blocked, so
+transfer learning is still untested):
+
+| model | input | params | pooled F1 | LOCO F1 | LOCO pET |
+|---|---|---|---|---|---|
+| ResNet18 scratch | 2-D spectrogram | 11 172 k | 0.552 +/- 0.010 | 0.466 +/- 0.021 | 0.287 +/- 0.039 |
+| Small2DCNN | 2-D spectrogram | 1 k | 0.575 +/- 0.011 | 0.432 +/- 0.009 | 0.147 +/- 0.009 |
+| SpectrumTCN 16-bin | 1-D spectrum | 3 k | 0.527 +/- 0.015 | 0.472 +/- 0.006 | 0.229 +/- 0.011 |
+| Spectrum1DCNN 32-bin | 1-D spectrum | 1 k | 0.553 +/- 0.012 | **0.506 +/- 0.008** | 0.227 +/- 0.023 |
+
+**ResNet trades macro F1 for ET precision.** Its LOCO F1 (0.466) is clearly
+below the 1 k 1-D CNN's (0.506), but its ET precision (0.287) is the higher of
+the two. A first single-draw run put that precision at 0.341; over 3 draws it
+regressed to 0.287 +/- 0.039, so part of the initial figure was draw luck.
+
+`Small2DCNN` gets the identical 2-D input and collapses (0.432 / 0.147), so the
+effect is not "2-D input is better" -- it is specific to the depth / residual /
+BatchNorm stack with minibatch training. That is the one result in this session
+that cuts against the smaller-is-better trend, and it is worth stating plainly
+rather than smoothing over.
+
+## Session summary
+
+LOCO macro F1 **0.435 -> 0.515**, ET precision **0.226 -> 0.287** (or 0.352
+unstable). Ranked by contribution:
+
+1. coarse binning of the spectrum (61 -> 16/32)
+2. descriptor fusion (+0.021 over the CNN alone)
+3. residual connections in the TCN (+0.010, and +0.083 ET precision)
+4. log-scaling
+5. cosine LR decay
+6. attention pooling for the BiLSTM (+0.012)
+
+Refuted along the way: mixup, and the decision-boundary explanation of the
+cross-cohort gap.
