@@ -425,3 +425,43 @@ Tested because a published paper reports window-level metrics. 2 s windows at
 patient-level on N-vs-Tremor (0.774 vs 0.815 on 2015; 0.673 vs 0.714 on
 NewData). Averaging to patients denoises more than correlated rows inflate. Do
 not use "they report window-level" as an explanation for a performance gap.
+
+### Precision is not comparable across differently-composed test sets
+
+A cap sweep appeared to show ET precision falling monotonically as PADS was
+added (0.282 -> 0.156). It was an artifact: capping PADS also shrank the PADS
+LOCO test fold from 7.3 % ET to 31.8 % ET, and precision tracks prevalence.
+With the test cohort held FIXED the trend reverses on 2015 (0.150 -> 0.226) and
+is mild on NewData (0.167 -> 0.118).
+
+Always report per-class precision alongside the test set's class prevalence, or
+as lift = precision / prevalence. Never compare precision across configurations
+that change the test composition.
+
+### Do not apply per-cohort distribution alignment to spectrum features
+
+`spectrum_table` (sum-normalised, axis-averaged spectra) is already
+scale-invariant and rotation-invariant, and the cohort-identity probe sits at
+|acc - majority| = 0.003-0.035 with NO alignment. Per-cohort z-score, rank, and
+CORAL all RAISE it to 0.24-0.48, because centring each cohort on its own class
+mixture (PADS is 72 % PD, 2015 is balanced) injects a class-dependent shift that
+becomes the cohort signature. There is no domain shift left to correct.
+
+### Merge on the postural task, not REST
+
+Cross-cohort LOCO: postural (2015 OUT / NewData OUT / PADS StretchHold) reaches
+macroF1 0.451 / precET 0.282; rest (REST / REST / Relaxed) reaches 0.399 /
+0.209. At REST alignment methods help and at postural they hurt -- rest tremor
+is weak, so cohort differences dominate there -- but REST never becomes
+competitive.
+
+### Merging buys robustness, not peak accuracy
+
+For each held-out cohort, training on both other cohorts beats the AVERAGE
+single source (+0.016 macroF1) but never the BEST single source (0.433 vs
+0.436). The best single source cannot be known in advance without target
+labels, so merging is still the right default -- but do not claim it improves
+peak performance.
+
+Clean external validation worth knowing: train on 2015 alone, test on PADS ->
+ET precision 0.479, macroF1 0.476, with no PADS in training.
