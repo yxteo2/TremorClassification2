@@ -261,3 +261,52 @@ property. The meaningful ET figures are 2015 (0.447) and PADS (0.524).
 This is the same conclusion reached from the other direction in
 `merge_design.md`: NewData should be a training cohort, not an evaluation one,
 until it has more ET subjects.
+
+## Round 4: per-class precision under LOCO, and two more refutations
+
+16 log-bins, cap 90/class, 5 capping draws. LOCO figures are the mean over the
+three held-out cohorts.
+
+| config | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| ResidualTCN ch=8 | 0.628 | 0.582 | 0.227 | 0.479 | 0.465 |
+| **ResidualTCN ch=16** | 0.663 | 0.589 | **0.352** | **0.535** | 0.510 |
+| ResidualTCN ch=32 | 0.660 | 0.587 | 0.193 | 0.480 | 0.476 |
+| ResidualTCN ch=16 attn | 0.658 | 0.597 | 0.272 | 0.509 | 0.501 |
+| **FUSION cnn+desc** | **0.716** | **0.601** | 0.287 | **0.535** | **0.515** |
+| ENS fusion+rtcn | 0.686 | 0.586 | 0.305 | 0.526 | 0.510 |
+| ENS fusion+rtcn+cnn | 0.697 | 0.595 | 0.286 | 0.526 | 0.513 |
+
+Standard deviations, macroP / precET: ResidualTCN ch=16 **0.033 / 0.098**,
+FUSION **0.010 / 0.026**. The two tie on mean macro precision; only one of them
+is stable.
+
+### Attention pooling does NOT transfer to the ResidualTCN
+
+macroP 0.535 -> 0.509 and precET 0.352 -> 0.272 with `pool="attn"`. It was worth
++0.012 to the BiLSTM, so the transfer was expected and did not happen.
+
+Read with the round-3 result that descriptor fusion also *hurts* the
+ResidualTCN while helping the CNN, both point the same way: the residual TCN's
+dilated stack already localises the tremor peak and already extracts what the
+descriptors state. Additions that help weaker extractors are dead weight on it.
+
+### Capacity optimum is sharp
+
+ch=8 -> 0.479, ch=16 -> 0.535, ch=32 -> 0.480 macro precision. Halving or
+doubling the width costs ~0.055. The ResidualTCN won its round-3 row at the one
+setting that happens to be best, untuned.
+
+### Ensembling helps within-site but not across-site
+
+Under LOCO the ensemble reaches 0.526 macroP against fusion's 0.535 -- no gain.
+Under the mixed-cohort protocol the same ensemble reaches macroF1 0.576 against
+0.559/0.561 for its members -- a real gain. Ensembles buy within-site robustness,
+not cross-site transfer.
+
+### PD precision is what domain shift destroys
+
+Under LOCO precN (0.63-0.72) exceeds precPD (0.58-0.60). Pooled and mixed, the
+ordering flips (precPD 0.66-0.70 > precN 0.59-0.67). The middle class is the one
+that does not survive being evaluated on an unseen cohort, which matches the
+earlier observation that sequence models dissolve PD into N and ET.
