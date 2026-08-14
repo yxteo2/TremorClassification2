@@ -274,6 +274,79 @@ def evaluate(recs, axis="PD_vs_ET", class_weight=False, model_fn=None,
             "patients": g}
 
 
+class BilateralAttention(nn.Module):
+    """Interleaved self-attention over the LEFT and RIGHT limb spectra.
+
+    Model-only reimplementation of the bilateral encoder described in the
+    literature (both wrists, one token stream, a learned modality embedding
+    marking which limb each token came from, then a transformer encoder and a
+    pooled classification head). Two deliberate departures from the source:
+
+    * tokens run along **frequency**, not time. On this data a time-axis
+      sequence model measured at chance (bal-acc 0.513) while the same model
+      over frequency reached 0.913 -- tremor is quasi-stationary, so the time
+      axis carries little and the frequency axis carries the shape.
+    * it is sized for ~1e4 parameters, the band where every model on this
+      cohort peaked, rather than the ~1e6+ of the published encoder.
+
+    Interleaving matters because tremor asymmetry is diagnostic: PD tremor is
+    classically unilateral at onset, ET more symmetric. A model that sees both
+    limbs in one attention field can compare them directly, which two
+    independent single-limb models cannot.
+
+    Input ``(B, 2*F)`` -- left spectrum concatenated with right.
+    """
+
+    def __init__(self, n_bins, num_classes=2, d_model=32, n_heads=4,
+                 n_layers=2, dropout=0.3):
+        super().__init__()
+        self.n_bins = n_bins
+        self.proj = nn.Linear(1, d_model)
+        self.pos = nn.Parameter(torch.zeros(n_bins, d_model))    # frequency position
+        self.mod = nn.Parameter(torch.zeros(2, d_model))         # limb identity
+        layer = nn.TransformerEncoderLayer(d_model, n_heads, d_model * 2,
+                                           dropout, batch_first=True)
+        self.enc = nn.TransformerEncoder(layer, n_layers)
+        self.head = nn.Sequential(nn.Dropout(dropout),
+                                  nn.Linear(d_model, num_classes))
+
+    def forward(self, x):
+        f = self.n_bins
+        hl = self.proj(x[:, :f].unsqueeze(-1)) + self.pos + self.mod[0]
+        hr = self.proj(x[:, f:].unsqueeze(-1)) + self.pos + self.mod[1]
+        h = torch.cat([hl, hr], dim=1)          # one interleaved token stream
+        return self.head(self.enc(h).mean(1))
+
+
+def bilateral_table(recs, side_of, ch=slice(3, 6), fs=100.0, f_lo=3.0,
+                    f_hi=15.0, nperseg=512):
+    """(patients, 2*F) left|right spectra, for :class:`BilateralAttention`.
+
+    ``side_of(rec) -> "left" | "right" | None``. A patient missing one limb is
+    dropped rather than zero-filled: a zero spectrum is not "no tremor", it is
+    an out-of-distribution input, and with 6 ET subjects one such row moves the
+    metric.
+    """
+    from collections import defaultdict
+    from scipy.signal import welch
+    rows, lab = defaultdict(lambda: {"left": [], "right": []}), {}
+    for r in recs:
+        s = side_of(r)
+        if s is None:
+            continue
+        x = r.x[ch] if r.x.shape[0] > 3 else r.x
+        f, P = welch(x, fs=fs, nperseg=min(nperseg, x.shape[-1]), axis=-1)
+        P = P.mean(0)
+        k = (f >= f_lo) & (f <= f_hi)
+        v = P[k]
+        rows[r.subject][s].append(v / (v.sum() + 1e-20))
+        lab[r.subject] = r.y
+    pats = [p for p in sorted(rows) if rows[p]["left"] and rows[p]["right"]]
+    X = np.array([np.concatenate([np.mean(rows[p]["left"], 0),
+                                  np.mean(rows[p]["right"], 0)]) for p in pats])
+    return (np.nan_to_num(X), np.array([lab[p] for p in pats]), np.array(pats))
+
+
 class SpectrumTCN(nn.Module):
     """Dilated TCN over the FREQUENCY axis of a 1-D spectrum.
 
