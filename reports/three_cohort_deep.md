@@ -80,12 +80,80 @@ logistic regression there.
   input. On the *binary* PD-vs-ET DRINK axis the frequency BiLSTM reached 0.913;
   on 3-class pooled it is the worst model tested. The gap is the middle class.
 
-## Caveat
+## Verification -- and a reversal
 
-The numbers above come from one fold split (`random_state=0`). Stability across
-5 splits and a leave-one-cohort-out generalisation test are in
-`scratch/threedeep_verify.py`; this repo has retracted three findings that
-looked this clean at one split.
+The table above is one fold split. Repeating over 5 splits, and adding a
+leave-one-cohort-out test, changes the conclusion.
 
-Reproduce: `scratch/threedeep.py` (gitignored; models in
-`tfbench.small_nets`, runner `kfold_proba`).
+### Stability over 5 fold-splits (pooled)
+
+| model | precET | macroF1 |
+|---|---|---|
+| logreg | 0.244 +/- 0.029 | 0.472 +/- 0.014 |
+| MLPHead h=16 | 0.308 +/- 0.051 | 0.508 +/- 0.022 |
+| **Spectrum1DCNN** | **0.378 +/- 0.017** | **0.574 +/- 0.008** |
+| SpectrumTCN ch=16 | 0.313 +/- 0.009 | 0.484 +/- 0.016 |
+| SpectrumBiLSTM h=32 | 0.311 +/- 0.032 | 0.496 +/- 0.025 |
+
+**Correction.** The single-split table showed BiLSTM h=32 at macro F1 0.470
+against logreg's 0.479, and that was reported here as "BiLSTM loses to logistic
+regression". Over 5 splits it does not: 0.496 +/- 0.025 against 0.472 +/- 0.014,
+with ET precision 0.311 against 0.244. Both BiLSTM and TCN beat the linear
+baseline, modestly. The claim is withdrawn.
+
+The CNN's pooled win is real and tight -- 0.574 +/- 0.008, roughly seven
+standard deviations above logreg.
+
+### Leave-one-cohort-out: train on two cohorts, test on the third
+
+| model | held-out | precET | recET | macroF1 |
+|---|---|---|---|---|
+| logreg | 2015 | 0.179 | 0.467 | 0.442 |
+| logreg | NewData | 0.158 | 0.500 | 0.420 |
+| logreg | PADS | 0.333 | 0.321 | 0.443 |
+| MLPHead h=16 | 2015 | 0.242 | 0.533 | 0.517 |
+| MLPHead h=16 | NewData | 0.111 | 0.167 | 0.342 |
+| MLPHead h=16 | PADS | 0.286 | 0.143 | 0.442 |
+| Spectrum1DCNN | 2015 | 0.214 | 0.400 | 0.540 |
+| Spectrum1DCNN | NewData | **0.000** | **0.000** | 0.279 |
+| Spectrum1DCNN | PADS | 0.467 | 0.250 | 0.456 |
+| SpectrumTCN ch=16 | 2015 | 0.172 | 0.333 | 0.451 |
+| SpectrumTCN ch=16 | NewData | 0.118 | 0.333 | 0.311 |
+| SpectrumTCN ch=16 | PADS | 0.667 | 0.143 | 0.425 |
+| SpectrumBiLSTM h=32 | 2015 | 0.186 | 0.533 | 0.470 |
+| SpectrumBiLSTM h=32 | NewData | 0.053 | 0.167 | 0.265 |
+| SpectrumBiLSTM h=32 | PADS | 0.267 | 0.286 | 0.363 |
+
+Mean held-out macro F1:
+
+| model | mean LOCO macroF1 | pooled macroF1 | gap |
+|---|---|---|---|
+| logreg | **0.435** | 0.472 | -0.037 |
+| MLPHead h=16 | 0.434 | 0.508 | -0.074 |
+| Spectrum1DCNN | 0.425 | 0.574 | **-0.149** |
+| SpectrumTCN ch=16 | 0.396 | 0.484 | -0.088 |
+| SpectrumBiLSTM h=32 | 0.366 | 0.496 | -0.130 |
+
+**The CNN's +0.102 pooled advantage over logreg becomes -0.010 under LOCO.** The
+ranking inverts: logreg and MLPHead lead, the CNN is third, and the two sequence
+models are last. On an unseen NewData the CNN predicts *zero* ET patients
+(precision 0.000, recall 0.000) while logreg reaches 0.420 -- its best cohort.
+
+The size of the pooled-to-LOCO gap tracks model capacity almost monotonically
+(-0.037 logreg, -0.074 MLP, -0.088 TCN, -0.130 BiLSTM, -0.149 CNN). That is the
+signature of within-cohort specialisation, not of a better tremor
+representation.
+
+## Bottom line
+
+* Pooled k-fold on merged cohorts **overstates deep models**, because PADS
+  patients appear in both train and test. Report LOCO.
+* Under LOCO no model beats logistic regression on average. The deep gain at
+  n=355 is cohort fitting.
+* For the 3-class problem the sequence models (TCN, BiLSTM) are the worst
+  choice: best pooled-to-LOCO collapse *and* lowest held-out score.
+* The merge remains worth doing for **n** (49 ET vs 15), but as training data,
+  with LOCO as the evaluation.
+
+Reproduce: `scratch/threedeep.py`, `scratch/threedeep_verify.py` (gitignored;
+models in `tfbench.small_nets`, runners `kfold_proba` / `fit_predict_proba`).

@@ -362,3 +362,66 @@ failed. Varying the *task* produced the largest jump in the project. Caveat:
   `train.py` when bandpass is used.
 - `_seed_everything` drives split seed and init seed together — variance cannot be attributed to one
   or the other.
+
+### Merged-cohort evaluation: report leave-one-cohort-out, not pooled k-fold
+
+Measured on 2015 + NewData + PADS (n=355, 49 ET, PADS capped at 60/class),
+frequency-axis spectra, class weights on:
+
+| model | pooled macroF1 | mean LOCO macroF1 | gap |
+|---|---|---|---|
+| logreg | 0.472 +/- 0.014 | **0.435** | -0.037 |
+| MLPHead h=16 (1k) | 0.508 +/- 0.022 | 0.434 | -0.074 |
+| Spectrum1DCNN (1k) | **0.574 +/- 0.008** | 0.425 | -0.149 |
+| SpectrumTCN (3k) | 0.484 +/- 0.016 | 0.396 | -0.088 |
+| SpectrumBiLSTM h=32 (9k) | 0.496 +/- 0.025 | 0.366 | -0.130 |
+
+Pooled k-fold puts PADS patients in both train and test, and PADS is 42 % of
+the pool with the cleanest ET. Every deep model's advantage is cohort fitting:
+the pooled-to-LOCO gap grows with capacity, and under LOCO **no model beats
+logistic regression on average**. Spectrum1DCNN predicts ZERO ET on an unseen
+NewData (precision 0.000, recall 0.000) while logreg gets macroF1 0.420 there.
+
+Do not quote a pooled merged-cohort number without the LOCO number beside it.
+
+### Do not judge a model on one fold split
+
+Single split said "BiLSTM h=32 (0.470) loses to logreg (0.479)". Over 5 splits
+BiLSTM is 0.496 +/- 0.025 against logreg 0.472 +/- 0.014 -- the opposite
+conclusion. Split-to-split sd on macroF1 here is 0.008-0.025; differences below
+~0.05 need repeated splits before they mean anything.
+
+### Bilateral limb asymmetry is the only feature that moves PD-vs-ET
+
+On PADS StretchHold (n=304, 28 ET), four unsigned between-limb dissimilarity
+descriptors (`tfbench.small_nets.asym_feats`) reach AUC 0.730 where the
+single-limb spectrum sits at 0.527 and 122 concatenated bilateral bins reach
+0.605. Paired subject bootstrap dAUC +0.183 [+0.031, +0.343]; permutation null
+p = 0.000; null on N-vs-Tremor (+0.032 [-0.041, +0.104]), which is the correct
+axis-specificity.
+
+Two caveats that are easy to get wrong:
+* PADS has a handedness bias (ET 0.179 left-dominant vs PD 0.388), so the
+  SIGNED log-ratio features can read side rather than asymmetry. Dropping them
+  raises AUC to 0.730. Use the 4 unsigned features.
+* `concat+asym` (128 dim, AUC 0.554) is WORSE than `asym` alone (6 dim, 0.709).
+  At 28 positives, 122 uninformative dims bury 6 informative ones. This is also
+  the mechanistic reason a bilateral transformer over 2F frequency tokens
+  should not be expected to help at this n.
+
+### Contrastive / InfoNCE losses are contraindicated here
+
+Contrastive learning builds invariance to whatever the positive pairs declare
+to be nuisance. Every natural choice on this data deletes a measured biomarker:
+amplitude scaling removes tremor amplitude; time warping removes tremor
+frequency (the primary PD/ET discriminator); left-vs-right-wrist positives
+remove the asymmetry finding above; same-patient-different-task positives learn
+patient identity, i.e. device and session.
+
+### Window-level metrics do not inflate results on this data
+
+Tested because a published paper reports window-level metrics. 2 s windows at
+50 % overlap, patient-grouped folds both ways: window-level is LOWER than
+patient-level on N-vs-Tremor (0.774 vs 0.815 on 2015; 0.673 vs 0.714 on
+NewData). Averaging to patients denoises more than correlated rows inflate. Do
+not use "they report window-level" as an explanation for a performance gap.
