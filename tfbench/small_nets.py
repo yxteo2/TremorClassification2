@@ -303,6 +303,46 @@ def bilateral_table(recs, side_of, ch=slice(3, 6), fs=100.0, f_lo=3.0,
     return (np.nan_to_num(X), np.array([lab[p] for p in pats]), np.array(pats))
 
 
+#: Names of the six left-right asymmetry descriptors, in column order.
+ASYM_NAMES = ("corr", "cos", "peak_df", "log_peak_ratio", "log_power_ratio", "l1")
+
+
+def asym_feats(Xb):
+    """Explicit left-right interaction from a ``bilateral_table`` matrix.
+
+    This is the hand-coded counterpart to what :class:`BilateralAttention`
+    would have to learn: six numbers describing how the two limbs' spectra
+    differ, rather than a 2F-token attention map over them.
+
+    The clinical premise is real -- PD signs begin unilaterally and stay more
+    severe on that side, while ET is typically more symmetric -- and it is
+    cheap to state directly:
+
+    ``corr``            correlation of the two mean-centred spectral shapes
+    ``cos``             cosine similarity of the raw shapes
+    ``peak_df``         |peak-bin difference| between limbs
+    ``log_peak_ratio``  log ratio of peak heights
+    ``log_power_ratio`` log ratio of total in-band power
+    ``l1``              L1 distance between the two shapes
+
+    Takes ``(patients, 2F)`` as produced by :func:`bilateral_table`; returns
+    ``(patients, 6)``.
+    """
+    f = Xb.shape[1] // 2
+    L, R = Xb[:, :f], Xb[:, f:]
+    eps = 1e-12
+    Lc, Rc = L - L.mean(1, keepdims=True), R - R.mean(1, keepdims=True)
+    corr = ((Lc * Rc).sum(1)
+            / (np.linalg.norm(Lc, axis=1) * np.linalg.norm(Rc, axis=1) + eps))
+    cos = ((L * R).sum(1)
+           / (np.linalg.norm(L, axis=1) * np.linalg.norm(R, axis=1) + eps))
+    pk = np.abs(L.argmax(1) - R.argmax(1)).astype(float)
+    hi = np.log((L.max(1) + eps) / (R.max(1) + eps))
+    pw = np.log((L.sum(1) + eps) / (R.sum(1) + eps))
+    l1 = np.abs(L - R).sum(1)
+    return np.column_stack([corr, cos, pk, hi, pw, l1])
+
+
 class SpectrumTCN(nn.Module):
     """Dilated TCN over the FREQUENCY axis of a 1-D spectrum.
 
