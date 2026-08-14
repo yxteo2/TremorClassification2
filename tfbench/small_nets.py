@@ -502,8 +502,9 @@ class ResidualTCN(nn.Module):
     """
 
     def __init__(self, n_bins, num_classes=3, ch=16, dropout=0.2,
-                 dilations=(1, 2, 4)):
+                 dilations=(1, 2, 4), pool="avg"):
         super().__init__()
+        self.pool_kind = pool
         blocks, c_in = [], 1
         for d in dilations:
             blocks.append(nn.ModuleDict({
@@ -516,8 +517,18 @@ class ResidualTCN(nn.Module):
             }))
             c_in = ch
         self.blocks = nn.ModuleList(blocks)
-        self.head = nn.Sequential(nn.AdaptiveAvgPool1d(1), nn.Flatten(),
-                                  nn.Dropout(dropout), nn.Linear(ch, num_classes))
+        # attention pooling over FREQUENCY, as in AttnPoolBiLSTM: average
+        # pooling weights the 3 Hz bin as heavily as the tremor peak, and a
+        # learned weighting was worth +0.012 to the BiLSTM.
+        self.attn = nn.Conv1d(ch, 1, 1) if pool == "attn" else None
+        self.drop = nn.Dropout(dropout)
+        self.fc = nn.Linear(ch, num_classes)
+
+    def _pool(self, z):
+        if self.attn is None:
+            return z.mean(-1)
+        w = torch.softmax(self.attn(z), dim=-1)      # (B, 1, F)
+        return (z * w).sum(-1)
 
     def trunk(self, x):
         z = x.unsqueeze(1)
@@ -526,7 +537,7 @@ class ResidualTCN(nn.Module):
         return z
 
     def forward(self, x):
-        return self.head(self.trunk(x))
+        return self.fc(self.drop(self._pool(self.trunk(x))))
 
 
 class AttnPoolBiLSTM(nn.Module):
