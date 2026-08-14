@@ -193,3 +193,71 @@ unstable). Ranked by contribution:
 
 Refuted along the way: mixup, and the decision-boundary explanation of the
 cross-cohort gap.
+
+## Mixed-cohort protocol: all three sources in train, validation and test
+
+A different question from LOCO, and an easier one. Splits are stratified jointly
+on **cohort x class**, so 2015, NewData and PADS all appear in train, val and
+test. LOCO answers "will this transfer to a new clinic?"; this answers "how well
+does it do at sites it was trained on?" Both belong in a paper; only LOCO
+supports a generalisation claim.
+
+Also changed here: the validation split does real work. Training keeps the
+parameters from the epoch of lowest validation loss instead of running a fixed
+200 epochs, so these numbers are not directly comparable to earlier rounds even
+setting the protocol aside.
+
+Cohort x class composition (patients, PADS capped at 90/class):
+
+| | N | PD | ET | total |
+|---|---|---|---|---|
+| 2015 | 61 | 75 | 15 | 151 |
+| NewData | 27 | 23 | 6 | 56 |
+| PADS | 79 | 90 | 28 | 197 |
+| **TOTAL** | 167 | 188 | 49 | 404 |
+
+### Test-set precision, 10 random splits
+
+| model | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| logreg spectrum | 0.603 +/- 0.056 | 0.655 +/- 0.057 | 0.345 +/- 0.078 | 0.535 +/- 0.052 | 0.532 +/- 0.049 |
+| logreg descriptors | 0.666 +/- 0.041 | 0.689 +/- 0.062 | 0.343 +/- 0.082 | 0.566 +/- 0.042 | 0.559 +/- 0.047 |
+| Spectrum1DCNN 32 | 0.621 +/- 0.043 | 0.646 +/- 0.057 | 0.376 +/- 0.128 | 0.548 +/- 0.059 | 0.547 +/- 0.064 |
+| SpectrumTCN 16 | 0.579 +/- 0.030 | 0.696 +/- 0.075 | 0.407 +/- 0.120 | 0.561 +/- 0.050 | 0.530 +/- 0.054 |
+| ResidualTCN 16 | 0.579 +/- 0.024 | 0.686 +/- 0.066 | **0.496 +/- 0.154** | **0.587 +/- 0.070** | 0.561 +/- 0.064 |
+| SpectrumBiLSTM 32 | 0.618 +/- 0.057 | 0.641 +/- 0.054 | 0.398 +/- 0.098 | 0.552 +/- 0.048 | 0.555 +/- 0.049 |
+| FUSION cnn+desc | 0.620 +/- 0.044 | 0.627 +/- 0.053 | 0.426 +/- 0.105 | 0.558 +/- 0.045 | 0.559 +/- 0.044 |
+| **ENS fusion+rtcn** | 0.606 +/- 0.048 | 0.667 +/- 0.064 | 0.475 +/- 0.113 | 0.583 +/- 0.046 | **0.576 +/- 0.041** |
+
+`ResidualTCN` has the higher mean macro precision but carries sd 0.070 against
+the ensemble's 0.046, and sd 0.154 on ET precision against 0.113. The two are
+indistinguishable on the mean; the ensemble is the safer choice.
+
+**Ensembling helps here but did not under LOCO** (0.576 against 0.559 / 0.561
+for its members; under LOCO it matched but never beat them).
+
+ET precision roughly doubles versus LOCO (0.287 -> ~0.48). That is the protocol,
+not the model.
+
+### Per-cohort precision within the mixed test set
+
+| model | cohort | precN | precPD | precET | macroP |
+|---|---|---|---|---|---|
+| logreg spectrum | 2015 | 0.612 | 0.694 | 0.276 | 0.527 |
+| logreg spectrum | NewData | 0.685 | 0.615 | *0.100* | 0.467 |
+| logreg spectrum | PADS | 0.585 | 0.654 | 0.433 | 0.557 |
+| FUSION cnn+desc | 2015 | 0.676 | 0.762 | 0.376 | 0.605 |
+| FUSION cnn+desc | NewData | 0.627 | 0.610 | *0.100* | 0.446 |
+| FUSION cnn+desc | PADS | 0.574 | 0.545 | 0.486 | 0.535 |
+| ENS fusion+rtcn | 2015 | 0.650 | 0.743 | 0.447 | 0.613 |
+| ENS fusion+rtcn | NewData | 0.639 | 0.662 | *0.100* | 0.467 |
+| ENS fusion+rtcn | PADS | 0.573 | 0.610 | 0.524 | 0.569 |
+
+**The NewData ET column is an artifact -- do not report it.** NewData has 6 ET
+patients, so a 20 % test split holds ~1.2 of them. An identical 0.100 across
+three structurally different models is the signature of one patient, not a model
+property. The meaningful ET figures are 2015 (0.447) and PADS (0.524).
+
+This is the same conclusion reached from the other direction in
+`merge_design.md`: NewData should be a training cohort, not an evaluation one,
+until it has more ET subjects.
