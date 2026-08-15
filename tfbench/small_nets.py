@@ -602,3 +602,84 @@ TRUNKS = {
     "tcn":    (lambda m, s: m.trunk(s).mean(-1)),
     "bilstm": (lambda m, s: m.rnn(s.unsqueeze(-1))[0].mean(1)),
 }
+
+
+class SpectrumResNet1D(nn.Module):
+    """Residual 1-D CNN over the FREQUENCY axis -- the combination of what won.
+
+    Three things have independently helped on this data, and this is the model
+    that has all three at once:
+
+    * a **1-D** view over frequency beat every 2-D spectrogram model
+      (`Spectrum1DCNN` LOCO 0.506 against `Small2DCNN` 0.432);
+    * **residual connections** turned the plain dilated stack into the best
+      single model (`SpectrumTCN` 0.500 -> `ResidualTCN` 0.510, ET precision
+      0.269 -> 0.352);
+    * **ResNet18's** depth/BatchNorm/minibatch recipe gave the best ET precision
+      of any 2-D model (0.287) despite the 2-D input being the wrong view.
+
+    Structure: stem conv, then `n_blocks` basic residual blocks with stride-2
+    downsampling on the frequency axis, then global pooling. Kept in the
+    1e4-parameter band where every model on this cohort has peaked, rather than
+    ResNet18's 11 M.
+    """
+
+    def __init__(self, n_bins, num_classes=3, ch=16, n_blocks=3, dropout=0.2,
+                 pool="avg"):
+        super().__init__()
+        self.stem = nn.Sequential(nn.Conv1d(1, ch, 5, padding=2),
+                                  nn.BatchNorm1d(ch), nn.ReLU())
+        blocks = []
+        c = ch
+        for i in range(n_blocks):
+            co = c * 2 if i else c
+            stride = 2 if i else 1
+            blocks.append(nn.ModuleDict({
+                "body": nn.Sequential(
+                    nn.Conv1d(c, co, 3, stride=stride, padding=1),
+                    nn.BatchNorm1d(co), nn.ReLU(), nn.Dropout(dropout),
+                    nn.Conv1d(co, co, 3, padding=1), nn.BatchNorm1d(co)),
+                "skip": (nn.Identity() if (stride == 1 and c == co)
+                         else nn.Sequential(nn.Conv1d(c, co, 1, stride=stride),
+                                            nn.BatchNorm1d(co))),
+            }))
+            c = co
+        self.blocks = nn.ModuleList(blocks)
+        self.attn = nn.Conv1d(c, 1, 1) if pool == "attn" else None
+        self.drop = nn.Dropout(dropout)
+        self.fc = nn.Linear(c, num_classes)
+
+    def forward(self, x):
+        z = self.stem(x.unsqueeze(1))
+        for b in self.blocks:
+            z = torch.relu(b["body"](z) + b["skip"](z))
+        if self.attn is None:
+            z = z.mean(-1)
+        else:
+            z = (z * torch.softmax(self.attn(z), dim=-1)).sum(-1)
+        return self.fc(self.drop(z))
+
+
+class MultiTaskSpectrum(nn.Module):
+    """Backbone with an auxiliary REGRESSION head on the tremor peak frequency.
+
+    The classification signal is 404 labels; the spectrum additionally contains
+    a continuous, physically meaningful target -- where the tremor peak sits --
+    that needs no extra annotation. Predicting it as an auxiliary task gives the
+    shared trunk a denser gradient than three class labels alone, which is the
+    standard argument for multi-task learning in the small-label regime.
+
+    ``forward`` returns (logits, peak_prediction); the trainer weights the
+    auxiliary MSE by ``aux_weight``.
+    """
+
+    def __init__(self, backbone, feat_fn, feat_dim, num_classes=3, dropout=0.2):
+        super().__init__()
+        self.backbone, self.feat_fn = backbone, feat_fn
+        self.cls = nn.Sequential(nn.Dropout(dropout),
+                                 nn.Linear(feat_dim, num_classes))
+        self.aux = nn.Linear(feat_dim, 1)
+
+    def forward(self, x):
+        h = self.feat_fn(self.backbone, x)
+        return self.cls(h), self.aux(h).squeeze(-1)
