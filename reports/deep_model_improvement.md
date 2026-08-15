@@ -399,3 +399,70 @@ Minibatch training hurts the ResidualTCN at every batch size and helps FUSION
 slightly. There is no general effect, so the earlier attribution of ResNet18's
 ET precision to depth / residuals / BatchNorm **stands** -- the confound was
 worth checking and turned out not to be one.
+
+## Round 7: the transform sweep -- HHT does not help, but Welch was the wrong default
+
+Every deep model in this session was fed **Welch** spectra. That choice was made
+in Stage 1 under a different pipeline (10 descriptors + logistic regression,
+2015 only, 15 ET) and never revisited after log-scaling, binning, the residual
+TCN or prior tuning.
+
+All eight transforms resampled onto a common 3-15 Hz grid, normalised, log-scaled
+and binned to 16 -- identical treatment, only the transform differs.
+`ENS fusion+rtcn` with validation-tuned priors, 10 splits.
+
+| transform | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| **multitaper** | 0.653 | 0.661 | 0.624 | **0.646** | 0.581 |
+| **wavelet_packet** | 0.621 | 0.657 | 0.649 | 0.642 | **0.592** |
+| **cwt** | 0.658 | 0.613 | **0.653** | 0.641 | 0.589 |
+| stft512 | 0.667 | 0.622 | 0.576 | 0.622 | 0.587 |
+| sst | 0.656 | 0.618 | 0.552 | 0.608 | 0.565 |
+| welch (the default in use) | 0.656 | 0.637 | 0.519 | 0.604 | 0.574 |
+| hht | 0.656 | 0.615 | 0.519 | 0.597 | 0.562 |
+| hht_imf2plus | 0.659 | 0.637 | 0.423 | 0.573 | 0.547 |
+
+### HHT: tested because Stage 1 pointed at it, and it does not replicate
+
+`hht_imf2plus` was the only Stage-1 method to beat chance on PD-vs-ET (0.640
+against Welch's 0.513). Here it is the **worst** of the eight (macroP 0.573) and
+has by far the widest variance (precET sd 0.272). Plain `hht` is also below
+Welch. The Stage-1 result was measured on 15 ET subjects and before the
+power-scaling fix; at 49 ET with the current pipeline it does not survive.
+
+### Welch was the weakest sensible choice
+
+Three transforms beat it by +0.037 to +0.042 macro precision, and CWT lifts ET
+precision 0.519 -> 0.653. Per-config sd is 0.047-0.079, the same regime in
+which the augmentation claim collapsed under a paired test, so a paired
+comparison is required before adopting any of them.
+
+### Dropping PADS: definitively no
+
+| training cohorts | precN | precPD | precET | macroP |
+|---|---|---|---|---|
+| all three (welch) | 0.656 | 0.637 | **0.519** | 0.604 |
+| 2015 + NewData (welch) | 0.667 | 0.666 | **0.065** | 0.466 |
+| 2015 + NewData (hht_imf2plus) | 0.661 | 0.687 | 0.147 | 0.498 |
+
+ET precision collapses from 0.519 to **0.065**. At 21 ET patients the class is
+essentially unlearnable, and PADS is carrying the ET signal outright. This is
+the same conclusion `merge_design.md` reached with logistic regression, and it
+holds with a much stronger model.
+
+## Round 6B: the 1-D ResNet does not compose
+
+`SpectrumResNet1D` was built to combine the three things that independently
+helped -- the 1-D frequency view, residual connections, and the ResNet
+depth/BatchNorm recipe.
+
+| config | precET | macroP | macroF1 |
+|---|---|---|---|
+| ResidualTCN (reference) | 0.496 | **0.587** | 0.561 |
+| ResNet1D bins=16 ch=16 blk=3 | 0.467 | 0.571 | 0.555 |
+| ResNet1D bins=32 ch=16 blk=3 | 0.350 | 0.524 | 0.515 |
+| ResNet1D bins=32 ch=8 blk=4 | 0.367 | 0.551 | 0.524 |
+
+All three settings land below the ResidualTCN. Stacking the winning ingredients
+did not produce a better model -- stride-2 downsampling over a 16-bin axis
+discards most of the resolution the coarse binning had already chosen.
