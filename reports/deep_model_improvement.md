@@ -356,3 +356,46 @@ rule can.
 
 The unpaired gap (0.015) is well inside the per-config sd (~0.06), so this needs
 the paired comparison on matched splits before it is quotable.
+
+## Round 5b: two retractions
+
+### The augmentation gain does not survive a paired test
+
+The unpaired table showed `priors + augment` (macroP 0.647) above `priors`
+alone (0.632). Paired on the same 10 splits:
+
+| metric | paired diff | 95 % CI |
+|---|---|---|
+| precN | +0.025 | [+0.000, +0.049] * |
+| precPD | -0.006 | [-0.040, +0.025] |
+| precET | +0.028 | [-0.046, +0.094] |
+| macroP | +0.016 | [-0.009, +0.039] |
+| macroF1 | +0.007 | [-0.019, +0.036] |
+
+**"priors + augment is the best configuration" is withdrawn.** The honest best
+is prior tuning alone: macroP 0.632, precET 0.612. Spectrum augmentation does
+nothing reliable in either direction, which also removes the "augmentation
+distorts calibration and prior tuning absorbs it" story built on top of it.
+
+### Two-stage does not fix PD dissolution
+
+`TWO-STAGE fusion` (N-vs-Tremor, then a dedicated PD-vs-ET model on predicted
+tremor) reaches macroP 0.568 against 0.583 for the flat 3-class head. Giving the
+hard axis its own model does not help: PD is not suffering from shared capacity,
+it is genuinely less separable.
+
+## Round 6: the optimiser regime does not explain ResNet18
+
+| config | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| ResidualTCN full-batch | 0.579 | 0.686 | 0.496 | **0.587** | 0.561 |
+| ResidualTCN minibatch 16 | 0.593 | 0.653 | 0.455 | 0.567 | 0.559 |
+| ResidualTCN minibatch 32 | 0.587 | 0.663 | 0.467 | 0.573 | 0.559 |
+| ResidualTCN minibatch 64 | 0.596 | 0.672 | 0.460 | 0.576 | 0.566 |
+| FUSION full-batch | 0.620 | 0.627 | 0.426 | 0.558 | 0.559 |
+| FUSION minibatch 32 | 0.627 | 0.638 | 0.435 | **0.567** | 0.561 |
+
+Minibatch training hurts the ResidualTCN at every batch size and helps FUSION
+slightly. There is no general effect, so the earlier attribution of ResNet18's
+ET precision to depth / residuals / BatchNorm **stands** -- the confound was
+worth checking and turned out not to be one.
