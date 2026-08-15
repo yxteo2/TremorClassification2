@@ -310,3 +310,49 @@ Under LOCO precN (0.63-0.72) exceeds precPD (0.58-0.60). Pooled and mixed, the
 ordering flips (precPD 0.66-0.70 > precN 0.59-0.67). The middle class is the one
 that does not survive being evaluated on an unseen cohort, which matches the
 earlier observation that sequence models dissolve PD into N and ET.
+
+## Round 5: the decision rule was the biggest single lever
+
+Mixed-cohort protocol, 10 splits, `ENS fusion+rtcn` throughout.
+
+| config | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| baseline | 0.606 | 0.667 | 0.475 | 0.583 | 0.576 |
+| **+ val-tuned priors** | 0.638 | 0.645 | **0.612** | **0.632** | 0.585 |
+| + spectrum augment x2 | 0.605 | 0.656 | 0.439 | 0.567 | 0.562 |
+| + rich descriptors (10 -> 34) | 0.599 | 0.680 | 0.473 | 0.584 | 0.573 |
+| **+ priors + augment** | 0.663 | 0.639 | **0.640** | **0.647** | 0.592 |
+
+### Tuning the decision rule beats every architecture change so far
+
+ET precision 0.475 -> 0.612, macro precision 0.583 -> 0.632, from per-class
+logit offsets fitted on the VALIDATION split and applied unchanged to test.
+Every model here trains with balanced class weights -- which deliberately buys
+ET recall at precision's expense -- and then predicts plain argmax. Nothing had
+ever corrected that.
+
+Two things to state honestly about it:
+
+* macro F1 moves only 0.576 -> 0.585. This is largely **converting recall into
+  precision**, not making the model better. That is the right trade when
+  precision is the target metric, but it should not be described as a modelling
+  gain.
+* precET sd widens from 0.113 to 0.177 -- the tuned offset is itself variable
+  across splits, because it is fitted on ~15 validation ET patients.
+
+### Rich descriptors do nothing
+
+10 -> 34 descriptors: macroP 0.583 -> 0.584. The extra biomarker and
+regularity features carry nothing the original 10 do not, matching the dilution
+seen when 122 spectral dimensions buried 6 asymmetry features.
+
+### Augmentation only works with a tuned decision rule
+
+Spectrum augmentation (+/-1 bin circular shift, ~0.37 Hz jitter, plus
+multiplicative noise) **hurts alone** (0.583 -> 0.567) but **helps on top of
+prior tuning** (0.632 -> 0.647). The reading is that augmentation distorts
+probability calibration, which plain argmax cannot absorb and a tuned decision
+rule can.
+
+The unpaired gap (0.015) is well inside the per-config sd (~0.06), so this needs
+the paired comparison on matched splits before it is quotable.
