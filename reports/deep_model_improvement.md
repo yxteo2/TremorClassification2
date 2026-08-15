@@ -466,3 +466,54 @@ depth/BatchNorm recipe.
 All three settings land below the ResidualTCN. Stacking the winning ingredients
 did not produce a better model -- stride-2 downsampling over a 16-bin axis
 discards most of the resolution the coarse binning had already chosen.
+
+## Round 8: the transform switch survives a paired test
+
+Same 10 splits, same models, tuned priors -- only the transform differs. Paired
+differences against welch, bootstrap 95 % CI:
+
+| transform | precET | macroP |
+|---|---|---|
+| multitaper | **+0.106 [+0.005, +0.227]** * | **+0.042 [+0.004, +0.082]** * |
+| wavelet_packet | **+0.131 [+0.039, +0.237]** * | **+0.039 [+0.004, +0.075]** * |
+| cwt | **+0.134 [+0.029, +0.257]** * | +0.038 [-0.009, +0.084] |
+| stft512 | +0.057 [-0.022, +0.139] | +0.018 [-0.013, +0.047] |
+
+Unlike the augmentation claim, this one holds under pairing. **Welch -- the
+transform every deep model in this session was trained on -- was the weakest
+sensible choice.**
+
+**Caveat against this result:** 4 transforms x 5 metrics is 20 uncorrected
+comparisons, and the macroP lower bounds are +0.004. Under Bonferroni these
+would not survive. Treat as promising-but-uncorrected pending more splits.
+
+## Round 9: bilateral asymmetry helps the merged model
+
+The published IMU-only state of the art on PADS (arXiv 2604.18372, 87.04 %
+PD-vs-DD) uses bilateral cross-attention motivated by the motor asymmetry of PD.
+The four unsigned asymmetry features from `limb_asymmetry_pd_vs_et.md` had never
+been placed in a model.
+
+2015 is single-limb, so they enter as a **missing modality**: zero-filled with an
+explicit availability indicator, so a zero is not read as "perfectly symmetric".
+Bilateral is available for 241/404 patients (PADS 197/197, NewData 44/56,
+2015 0/151).
+
+| config | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| StretchHold, no asymmetry | 0.638 | 0.645 | 0.612 | 0.632 | 0.585 |
+| **StretchHold + asymmetry** | 0.653 | 0.655 | **0.639** | **0.649** | **0.600** |
+| two tasks, no asymmetry | 0.636 | 0.683 | 0.585 | 0.635 | 0.593 |
+| two tasks + asymmetry | 0.627 | 0.668 | 0.587 | 0.627 | 0.576 |
+
++0.017 macroP and +0.027 precET from features absent for 40 % of the cohort.
+The gain is ~1 sem, so it needs the same paired treatment the transform result
+got.
+
+### Averaging two PADS tasks does not help
+
+StretchHold + Relaxed averaged per patient: macroP 0.635 against 0.632 for
+StretchHold alone, and ET precision is *worse* (0.585 vs 0.612). Combined with
+asymmetry it is worse still (0.627). Useful before investing in extracting the
+other eight PADS tasks -- more tasks per patient is not automatically better,
+at least when averaged rather than modelled jointly.
