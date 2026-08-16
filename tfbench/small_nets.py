@@ -683,3 +683,160 @@ class MultiTaskSpectrum(nn.Module):
     def forward(self, x):
         h = self.feat_fn(self.backbone, x)
         return self.cls(h), self.aux(h).squeeze(-1)
+
+
+# --------------------------------------------------------------------------- #
+# Techniques imported from the audio / sound-event-detection literature
+# --------------------------------------------------------------------------- #
+class FreqCoordCNN(nn.Module):
+    """1-D CNN with an explicit FREQUENCY COORDINATE channel (CoordConv-style).
+
+    Sound-event-detection work (Nam et al., "Frequency Dynamic Convolution",
+    arXiv:2203.15296) points out that convolution enforces translation
+    equivariance along frequency, but frequency is **not** a shift-invariant
+    axis -- the same pattern at a different frequency means something different.
+
+    That objection is sharper for tremor than for audio. PD rest tremor sits at
+    4-6 Hz and ET at 6-12 Hz, so peak *location* is the single most diagnostic
+    quantity, and :class:`Spectrum1DCNN` slides identical filters over every bin
+    and therefore cannot represent it.
+
+    The cheapest fix is to hand the network the coordinate: concatenate a
+    normalised frequency ramp as a second input channel, so each filter can
+    condition on where in the band it is looking.
+
+    This also predicts something already measured -- `DescriptorFusion` helped
+    the plain CNN by +0.021, and the descriptors state peak frequency
+    explicitly. If the coordinate channel captures the same information, fusion
+    should stop helping on top of it.
+    """
+
+    def __init__(self, n_bins, num_classes=3, ch=8, dropout=0.3):
+        super().__init__()
+        self.register_buffer("coord",
+                             torch.linspace(-1, 1, n_bins).view(1, 1, n_bins))
+        self.conv = nn.Sequential(
+            nn.Conv1d(2, ch, 5, padding=2), nn.BatchNorm1d(ch), nn.ReLU(),
+            nn.MaxPool1d(2),
+            nn.Conv1d(ch, ch * 2, 3, padding=1), nn.BatchNorm1d(ch * 2), nn.ReLU(),
+            nn.AdaptiveAvgPool1d(4))
+        self.head = nn.Sequential(nn.Flatten(), nn.Dropout(dropout),
+                                  nn.Linear(ch * 2 * 4, num_classes))
+
+    def forward(self, x):
+        z = x.unsqueeze(1)
+        z = torch.cat([z, self.coord.expand(z.shape[0], -1, -1)], dim=1)
+        return self.head(self.conv(z))
+
+
+class FreqDynamicCNN(nn.Module):
+    """Frequency-dynamic convolution: per-frequency mixing of basis kernels.
+
+    A 1-D adaptation of Frequency Dynamic Convolution (arXiv:2203.15296). Rather
+    than one kernel shared across the whole band, ``n_basis`` kernels are run in
+    parallel and combined with weights that depend on the frequency bin, so
+    different regions of the 3-15 Hz band get different effective filters.
+
+    The mixing weights come from the frequency coordinate alone (not the input),
+    which is the deterministic variant -- with 404 patients, input-conditioned
+    attention over basis kernels is more capacity than the data supports.
+    """
+
+    def __init__(self, n_bins, num_classes=3, ch=8, n_basis=4, dropout=0.3):
+        super().__init__()
+        self.n_basis = n_basis
+        self.basis = nn.Conv1d(1, ch * n_basis, 5, padding=2)
+        # per-bin softmax over the basis kernels, learned from position only
+        self.mix = nn.Parameter(torch.zeros(n_basis, n_bins))
+        self.bn = nn.BatchNorm1d(ch)
+        self.post = nn.Sequential(
+            nn.Conv1d(ch, ch * 2, 3, padding=1), nn.BatchNorm1d(ch * 2), nn.ReLU(),
+            nn.AdaptiveAvgPool1d(4))
+        self.head = nn.Sequential(nn.Flatten(), nn.Dropout(dropout),
+                                  nn.Linear(ch * 2 * 4, num_classes))
+
+    def forward(self, x):
+        b, f = x.shape
+        z = self.basis(x.unsqueeze(1)).view(b, self.n_basis, -1, f)
+        w = torch.softmax(self.mix, dim=0).view(1, self.n_basis, 1, f)
+        z = torch.relu(self.bn((z * w).sum(1)))
+        return self.head(self.post(z))
+
+
+class LearnableCompression(nn.Module):
+    """Per-band learnable compression, in the spirit of PCEN.
+
+    PCEN (Wang et al., IEEE SPL 2019) replaces the fixed pointwise logarithm of
+    a log-mel front-end with a trainable, per-channel compression, and
+    outperforms log compression on keyword spotting and bioacoustics. Its
+    adaptive-gain term needs a time axis, which patient-averaged spectra do not
+    have, so what carries over is the **per-band trainable exponent**:
+
+        y_f = ((x_f + eps) ** alpha_f - eps ** alpha_f) / scale
+
+    with ``alpha_f`` learned per frequency bin. At alpha -> 0 this approaches
+    log compression, which is the current fixed choice, so the module can
+    recover the existing behaviour and move away from it if the data prefers.
+
+    Expects a RAW (non-log) normalised spectrum.
+    """
+
+    def __init__(self, n_bins, init_alpha=0.25):
+        super().__init__()
+        self.log_alpha = nn.Parameter(torch.full((n_bins,), float(np.log(init_alpha))))
+        self.eps = 1e-8
+
+    def forward(self, x):
+        a = torch.exp(self.log_alpha).clamp(1e-3, 2.0)
+        return ((x + self.eps) ** a - self.eps ** a) * 10.0
+
+
+class SpecAugment1D(nn.Module):
+    """SpecAugment frequency masking for a 1-D spectrum (training only).
+
+    Park et al.'s SpecAugment masks contiguous bands of the spectrogram. Only
+    the frequency-masking half applies to a time-averaged spectrum. Earlier
+    augmentation attempts here shifted and added noise to the whole spectrum and
+    did nothing; masking is a different operation -- it forces the model not to
+    depend on any single band.
+    """
+
+    def __init__(self, max_width=3, n_masks=1):
+        super().__init__()
+        self.max_width, self.n_masks = max_width, n_masks
+
+    def forward(self, x):
+        if not self.training or self.max_width < 1:
+            return x
+        x = x.clone()
+        b, f = x.shape
+        for _ in range(self.n_masks):
+            w = torch.randint(1, self.max_width + 1, (1,)).item()
+            s = torch.randint(0, max(f - w, 1), (b,), device=x.device)
+            idx = torch.arange(f, device=x.device).view(1, -1)
+            m = (idx >= s.view(-1, 1)) & (idx < (s + w).view(-1, 1))
+            x = x.masked_fill(m, 0.0)
+        return x
+
+
+class AudioStyleNet(nn.Module):
+    """Compose the audio-literature front-end pieces onto a spectrum backbone.
+
+    ``compress`` applies a PCEN-style learnable per-band exponent (expects a raw
+    spectrum), ``spec_augment`` masks frequency bands during training, and the
+    backbone is any spectrum model -- typically :class:`FreqCoordCNN` or
+    :class:`FreqDynamicCNN`, which remove the frequency-translation invariance.
+    """
+
+    def __init__(self, backbone, n_bins, compress=False, mask_width=0):
+        super().__init__()
+        self.compress = LearnableCompression(n_bins) if compress else None
+        self.aug = SpecAugment1D(mask_width) if mask_width else None
+        self.backbone = backbone
+
+    def forward(self, x):
+        if self.compress is not None:
+            x = self.compress(x)
+        if self.aug is not None:
+            x = self.aug(x)
+        return self.backbone(x)
