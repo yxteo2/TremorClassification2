@@ -87,16 +87,27 @@ def coverage_at_precision(prob, y, target=0.90, rule="margin", n_classes=3,
     return best
 
 
-def report(prob, y, tag="", rule="margin", target=0.90):
-    rows = selective_scores(prob, y, rule=rule)
+def report(prob, y, tag="", rule="margin", target=0.90, class_names=None):
+    """``class_names`` labels the per-class columns.
+
+    Defaults to N/PD/ET. Pass the actual names for binary axes -- the columns
+    are positional, so a binary PD-vs-ET call previously printed PD precision
+    under a 'precN' header.
+    """
+    n_classes = prob.shape[1]
+    names = class_names or (("N", "PD", "ET")[:n_classes] if n_classes <= 3
+                            else tuple(f"c{i}" for i in range(n_classes)))
+    rows = selective_scores(prob, y, rule=rule, n_classes=n_classes)
     print(f"\n{tag}  (abstention rule: {rule})")
-    print(f"{'coverage':>9}{'n':>6}{'precN':>9}{'precPD':>9}{'precET':>9}"
-          f"{'macroP':>9}{'macroF1':>9}   n per class")
+    print(f"{'coverage':>9}{'n':>6}" + "".join(f"{'prec'+c:>9}" for c in names)
+          + f"{'macroP':>9}{'macroF1':>9}   n per class")
+    keys = ["precN", "precPD", "precET"][:n_classes]
     for r in rows:
-        print(f"{r['coverage']:>9.2f}{r['n']:>6}{r['precN']:>9.3f}"
-              f"{r['precPD']:>9.3f}{r['precET']:>9.3f}{r['macroP']:>9.3f}"
-              f"{r['macroF1']:>9.3f}   {r['n_per_class']}")
-    cov, mp, n = coverage_at_precision(prob, y, target=target, rule=rule)
+        print(f"{r['coverage']:>9.2f}{r['n']:>6}"
+              + "".join(f"{r[k]:>9.3f}" for k in keys)
+              + f"{r['macroP']:>9.3f}{r['macroF1']:>9.3f}   {r['n_per_class']}")
+    cov, mp, n = coverage_at_precision(prob, y, target=target, rule=rule,
+                                       n_classes=n_classes)
     if cov > 0:
         print(f"  -> macro precision >= {target:.2f} at coverage {cov:.0%} "
               f"({n} of {len(y)} patients answered, macroP {mp:.3f})")
