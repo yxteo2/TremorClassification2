@@ -598,6 +598,10 @@ class DescriptorFusion(nn.Module):
 #: Feature extractors that strip the classifier off each backbone family, for
 #: use as ``DescriptorFusion(feat_fn=...)``. Each returns (B, feat_dim).
 TRUNKS = {
+    # backbones that build their own input (e.g. a frequency-coordinate
+    # channel) must expose .trunk() -- feeding them a bare 1-channel spectrum
+    # raises a channel-count error.
+    "trunk":  (lambda m, s: m.trunk(s)),
     "cnn":    (lambda m, s: m.conv(s.unsqueeze(1)).flatten(1)),
     "tcn":    (lambda m, s: m.trunk(s).mean(-1)),
     "bilstm": (lambda m, s: m.rnn(s.unsqueeze(-1))[0].mean(1)),
@@ -723,10 +727,15 @@ class FreqCoordCNN(nn.Module):
         self.head = nn.Sequential(nn.Flatten(), nn.Dropout(dropout),
                                   nn.Linear(ch * 2 * 4, num_classes))
 
-    def forward(self, x):
+    def trunk(self, x):
+        """Pooled features. Builds the 2-channel input, so DescriptorFusion
+        cannot feed this backbone a bare 1-channel spectrum."""
         z = x.unsqueeze(1)
         z = torch.cat([z, self.coord.expand(z.shape[0], -1, -1)], dim=1)
-        return self.head(self.conv(z))
+        return self.conv(z).flatten(1)
+
+    def forward(self, x):
+        return self.head(self.trunk(x))
 
 
 class FreqDynamicCNN(nn.Module):
@@ -755,12 +764,15 @@ class FreqDynamicCNN(nn.Module):
         self.head = nn.Sequential(nn.Flatten(), nn.Dropout(dropout),
                                   nn.Linear(ch * 2 * 4, num_classes))
 
-    def forward(self, x):
+    def trunk(self, x):
         b, f = x.shape
         z = self.basis(x.unsqueeze(1)).view(b, self.n_basis, -1, f)
         w = torch.softmax(self.mix, dim=0).view(1, self.n_basis, 1, f)
         z = torch.relu(self.bn((z * w).sum(1)))
-        return self.head(self.post(z))
+        return self.post(z).flatten(1)
+
+    def forward(self, x):
+        return self.head(self.trunk(x))
 
 
 class LearnableCompression(nn.Module):

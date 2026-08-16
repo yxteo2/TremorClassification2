@@ -132,17 +132,20 @@ def main():
     H = (f"{'config':>38}{'precN':>9}{'precPD':>9}{'precET':>9}{'macroP':>9}"
          f"{'macroF1':>9}  |{'  sd':>7}")
     RT = lambda: ResidualTCN(F, num_classes=3, ch=16)
-    FUS = lambda bb: (lambda: DescriptorFusion(bb(), TRUNKS["cnn"], F, nd,
-                                               8 * 2 * 4))
+
+    def FUS(bb, trunk="cnn"):
+        """Fusion wrapper. Frequency-aware backbones build their own input
+        channels, so they need the generic .trunk() extractor."""
+        return lambda: DescriptorFusion(bb(), TRUNKS[trunk], F, nd, 8 * 2 * 4)
     print("### A. frequency-aware convolution (the main hypothesis)")
     print(H)
     res = {}
     res["base"] = evaluate("Spectrum1DCNN + ResidualTCN (base)", [both, sb], y, key,
                            [FUS(lambda: Spectrum1DCNN(F, 3, ch=8)), RT])
     res["coord"] = evaluate("FreqCoordCNN + ResidualTCN", [both, sb], y, key,
-                            [FUS(lambda: FreqCoordCNN(F, 3, ch=8)), RT])
+                            [FUS(lambda: FreqCoordCNN(F, 3, ch=8), "trunk"), RT])
     res["dyn"] = evaluate("FreqDynamicCNN + ResidualTCN", [both, sb], y, key,
-                          [FUS(lambda: FreqDynamicCNN(F, 3, ch=8)), RT])
+                          [FUS(lambda: FreqDynamicCNN(F, 3, ch=8), "trunk"), RT])
 
     print("\n### B. does frequency-awareness SUBSUME descriptor fusion?")
     print(H)
