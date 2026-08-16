@@ -80,7 +80,14 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
         return [torch.softmax(m(T(z)), 1).numpy() for z in Xout]
 
 
-def evaluate(name, Xs, y, key, fns, splits=SPLITS, verbose=True):
+def evaluate(name, Xs, y, key, fns, splits=SPLITS, verbose=True,
+             standardize=True):
+    """``standardize=False`` passes the RAW non-negative spectrum through.
+
+    Required by :class:`LearnableCompression`, which raises its input to a
+    fractional power: zero-mean standardised input makes that NaN, which
+    silently produced a one-class model (sd 0.000 across every split).
+    """
     out = []
     for sp in range(splits):
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
@@ -91,8 +98,11 @@ def evaluate(name, Xs, y, key, fns, splits=SPLITS, verbose=True):
         tr, va = tv[t0], tv[v0]
         pv_l, pt_l = [], []
         for X, fn in zip(Xs, fns):
-            mu = X[tr].mean(0, keepdims=True)
-            sd = X[tr].std(0, keepdims=True) + 1e-8
+            if standardize:
+                mu = X[tr].mean(0, keepdims=True)
+                sd = X[tr].std(0, keepdims=True) + 1e-8
+            else:
+                mu, sd = 0.0, 1.0
             r = [train(fn, (X[tr]-mu)/sd, y[tr], (X[va]-mu)/sd, y[va],
                        [(X[va]-mu)/sd, (X[te]-mu)/sd], seed=s) for s in (0, 1, 2)]
             pv_l.append(np.mean([a[0] for a in r], 0))
@@ -159,7 +169,10 @@ def main():
     raw = np.exp(sb)          # undo the log so learnable compression can act
     res["pcen"] = evaluate("learnable compression (PCEN-ish)", [raw], y, key,
                            [lambda: AudioStyleNet(FreqCoordCNN(F, 3, ch=8), F,
-                                                  compress=True)])
+                                                  compress=True)],
+                           standardize=False)
+    res["logref"] = evaluate("  reference: fixed log, same backbone", [sb], y, key,
+                             [lambda: FreqCoordCNN(F, 3, ch=8)])
     for mw in (2, 4):
         res[f"mask{mw}"] = evaluate(f"SpecAugment freq-mask w<={mw}", [sb], y, key,
                                     [lambda mw=mw: AudioStyleNet(
