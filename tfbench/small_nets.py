@@ -852,3 +852,73 @@ class AudioStyleNet(nn.Module):
         if self.aug is not None:
             x = self.aug(x)
         return self.backbone(x)
+
+
+class TrajectoryEncoder(nn.Module):
+    """TCN over the instantaneous-frequency / envelope TRAJECTORY.
+
+    The tremor literature's PD-vs-ET discriminator is the stability of the
+    instantaneous frequency over time (Di Biase et al., Brain 2017), not the
+    shape of the averaged spectrum. `tfbench.stability.if_trajectory` produces
+    that trajectory as a (2, T) sequence -- centred instantaneous frequency in
+    Hz and relative envelope.
+
+    This is a genuine use of a sequence model over TIME, and is not the test
+    that previously came back at chance: that one ran a BiLSTM over raw
+    61-dimensional spectrogram frames, asking whether spectral SHAPE evolves.
+    Here the input is a 2-channel physically meaningful trajectory.
+    """
+
+    def __init__(self, n_ch=2, out_dim=16, ch=16, dropout=0.2,
+                 dilations=(1, 2, 4, 8)):
+        super().__init__()
+        layers, c_in = [], n_ch
+        for d in dilations:
+            layers += [nn.Conv1d(c_in, ch, 3, padding=d, dilation=d),
+                       nn.BatchNorm1d(ch), nn.ReLU(), nn.Dropout(dropout)]
+            c_in = ch
+        self.tcn = nn.Sequential(*layers)
+        self.out_dim = out_dim
+        self.proj = nn.Linear(ch * 2, out_dim)      # mean AND std pooling
+
+    def forward(self, x):                            # (B, 2, T)
+        z = self.tcn(x)
+        # std pooling matters here: the discriminative quantity is how much the
+        # trajectory VARIES, which mean pooling would average away
+        h = torch.cat([z.mean(-1), z.std(-1)], dim=1)
+        return torch.relu(self.proj(h))
+
+
+class TwoStreamNet(nn.Module):
+    """Spectrum stream + trajectory stream, joined at the head.
+
+    Stream 1 sees the log-binned spectrum (what every model here has used).
+    Stream 2 sees the instantaneous-frequency trajectory (what the tremor
+    literature says actually separates PD from ET). Optional descriptor vector
+    is concatenated alongside.
+
+    Input is packed as ``[spectrum | descriptors | trajectory.flatten()]`` so it
+    fits the existing flat-matrix training harness.
+    """
+
+    def __init__(self, spec_backbone, spec_feat_fn, spec_dim, n_spec, n_desc,
+                 traj_len, num_classes=3, traj_dim=16, desc_hidden=16,
+                 dropout=0.3):
+        super().__init__()
+        self.n_spec, self.n_desc, self.traj_len = n_spec, n_desc, traj_len
+        self.spec, self.spec_feat_fn = spec_backbone, spec_feat_fn
+        self.traj = TrajectoryEncoder(2, traj_dim)
+        self.desc = (nn.Sequential(nn.Linear(n_desc, desc_hidden), nn.ReLU(),
+                                   nn.Dropout(dropout)) if n_desc else None)
+        d = spec_dim + traj_dim + (desc_hidden if n_desc else 0)
+        self.head = nn.Sequential(nn.Dropout(dropout), nn.Linear(d, num_classes))
+
+    def forward(self, x):
+        i = self.n_spec
+        s = x[:, :i]
+        d = x[:, i:i + self.n_desc] if self.n_desc else None
+        t = x[:, i + self.n_desc:].reshape(x.shape[0], 2, self.traj_len)
+        parts = [self.spec_feat_fn(self.spec, s), self.traj(t)]
+        if d is not None:
+            parts.append(self.desc(d))
+        return self.head(torch.cat(parts, dim=1))
