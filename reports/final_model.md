@@ -94,3 +94,47 @@ supersedes it.
 Measured: precN 0.639, precPD 0.655, precET 0.685, macro precision 0.660.
 
 Reproduce: `python -m experiments.final_model`.
+
+## Trajectory branch tuning: already at its optimum
+
+The trajectory branch produced the only significant deep-model gain and had
+never been tuned, so axis handling and length were swept. **Nothing improves on
+the original configuration.**
+
+Paired against `axis=mean, len=64` (the untuned default), 20 splits, macroP:
+
+| variant | macroP diff | precET diff |
+|---|---|---|
+| axis=dominant | +0.002 [-0.018, +0.021] | -0.004 [-0.060, +0.051] |
+| axis=pca | -0.017 [-0.042, +0.008] | -0.047 [-0.117, +0.026] |
+| axis=stack (6 ch) | -0.011 [-0.040, +0.017] | -0.041 [-0.131, +0.046] |
+| dominant, len=32 | -0.010 [-0.024, +0.003] | -0.035 [-0.078, +0.004] |
+| dominant, len=128 | -0.018 [-0.037, +0.001] | -0.051 [-0.110, +0.011] |
+
+### A retracted argument, worth recording
+
+Averaging the three axes' IF trajectories damps the absolute fluctuation by
+**1.61x** (close to the sqrt(3) expected for independent axes), which looks like
+it must be destroying the quantity the Tremor Stability Index measures. The
+class separation appeared to double: PD-ET gap 0.094 -> 0.207 under PCA
+projection, and the class ordering even corrected itself (under averaging PD sat
+*below* N, which is wrong; under projection it is N > PD > ET).
+
+It made no difference to the model, for a reason the argument missed: **the
+pipeline standardises features per fold**, so a uniform scale change never
+reaches the network. The quantity that matters is the standardised effect size:
+
+| axis_mode | PD-ET gap | pooled sd | Cohen's d | model macroP |
+|---|---|---|---|---|
+| mean | 0.094 | 0.076 | 1.238 | **0.660** |
+| dominant | 0.201 | 0.143 | 1.405 | 0.662 |
+| pca | 0.207 | 0.155 | 1.331 | 0.643 |
+| stack | 0.125 | 0.159 | 0.786 | 0.649 |
+
+The gap doubled but the within-class spread doubled with it, so the effect size
+improved 13 %, not 100 %, and 13 % on one feature family is worth +0.002.
+`stack` has a markedly *worse* effect size and is correspondingly worse in the
+model.
+
+**Lesson: measure effect size, not absolute separation, whenever the pipeline
+standardises.** The absolute-gap plot was persuasive and wrong.
