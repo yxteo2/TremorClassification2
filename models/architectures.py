@@ -697,11 +697,12 @@ class TwoStreamNet(nn.Module):
 
     def __init__(self, spec_backbone, spec_feat_fn, spec_dim, n_spec, n_desc,
                  traj_len, num_classes=3, traj_dim=16, desc_hidden=16,
-                 dropout=0.3):
+                 dropout=0.3, n_traj_ch=2):
         super().__init__()
         self.n_spec, self.n_desc, self.traj_len = n_spec, n_desc, traj_len
+        self.n_traj_ch = n_traj_ch
         self.spec, self.spec_feat_fn = spec_backbone, spec_feat_fn
-        self.traj = TrajectoryEncoder(2, traj_dim)
+        self.traj = TrajectoryEncoder(n_traj_ch, traj_dim)
         self.desc = (nn.Sequential(nn.Linear(n_desc, desc_hidden), nn.ReLU(),
                                    nn.Dropout(dropout)) if n_desc else None)
         d = spec_dim + traj_dim + (desc_hidden if n_desc else 0)
@@ -711,7 +712,8 @@ class TwoStreamNet(nn.Module):
         i = self.n_spec
         s = x[:, :i]
         d = x[:, i:i + self.n_desc] if self.n_desc else None
-        t = x[:, i + self.n_desc:].reshape(x.shape[0], 2, self.traj_len)
+        t = x[:, i + self.n_desc:].reshape(x.shape[0], self.n_traj_ch,
+                                           self.traj_len)
         parts = [self.spec_feat_fn(self.spec, s), self.traj(t)]
         if d is not None:
             parts.append(self.desc(d))

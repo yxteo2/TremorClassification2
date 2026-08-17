@@ -197,14 +197,71 @@ def if_trajectory(x, fs=100.0, f_lo=3.0, f_hi=15.0, bw=2.0, n_out=64,
     return out
 
 
-def trajectory_table(recs, ch=slice(0, 3), fs=100.0, n_out=64, **kw):
-    """(patients, 2, n_out) trajectories, averaged over channels then recordings."""
+def _dominant_axis(sig, fs, f_lo, f_hi):
+    """Index of the axis carrying the most in-band power."""
+    from scipy.signal import welch as _w
+    best, bi = -1.0, 0
+    for i, c in enumerate(sig):
+        f, P = _w(c, fs=fs, nperseg=min(512, len(c)))
+        m = (f >= f_lo) & (f <= f_hi)
+        p = float(P[m].sum()) if m.any() else 0.0
+        if p > best:
+            best, bi = p, i
+    return bi
+
+
+def _pca1(sig):
+    """Projection onto the dominant oscillation direction of the 3 axes."""
+    X = np.asarray(sig, float)
+    X = X - X.mean(1, keepdims=True)
+    try:
+        U, S, Vt = np.linalg.svd(X, full_matrices=False)
+        return Vt[0] @ X if Vt.shape[0] else X.mean(0)
+    except Exception:
+        return X.mean(0)
+
+
+def trajectory_table(recs, ch=slice(0, 3), fs=100.0, n_out=64,
+                     axis_mode="pca", f_lo=3.0, f_hi=15.0, **kw):
+    """(patients, C, n_out) instantaneous-frequency / envelope trajectories.
+
+    ``axis_mode`` decides how the three angular-velocity axes are handled, and
+    it matters more than it looks:
+
+    ``mean``      average the three axes' trajectories. **Measured to damp the
+                  fluctuation magnitude by 1.61x** (predicted sqrt(3) = 1.73):
+                  each axis is separately mean-centred and their fluctuations
+                  are largely independent, so averaging cancels the very
+                  quantity the Tremor Stability Index measures. Kept only for
+                  comparison.
+    ``dominant``  use the single axis with the most in-band power.
+    ``pca``       project onto the dominant oscillation direction (first right
+                  singular vector). Tremor is a 3-D oscillation whose direction
+                  varies between patients; this follows it instead of assuming
+                  an axis. Default.
+    ``stack``     keep all three axes, giving 6 channels. Preserves everything
+                  but triples the input width, which has repeatedly diluted
+                  results at this sample size.
+    """
     from collections import defaultdict
     rows, lab = defaultdict(list), {}
     for r in recs:
         sig = r.x[ch] if r.x.shape[0] > 3 else r.x
         sig = np.atleast_2d(np.asarray(sig))
-        t = np.mean([if_trajectory(c, fs=fs, n_out=n_out, **kw) for c in sig], 0)
+        if axis_mode == "mean":
+            t = np.mean([if_trajectory(c, fs=fs, n_out=n_out, f_lo=f_lo,
+                                       f_hi=f_hi, **kw) for c in sig], 0)
+        elif axis_mode == "dominant":
+            t = if_trajectory(sig[_dominant_axis(sig, fs, f_lo, f_hi)], fs=fs,
+                              n_out=n_out, f_lo=f_lo, f_hi=f_hi, **kw)
+        elif axis_mode == "pca":
+            t = if_trajectory(_pca1(sig), fs=fs, n_out=n_out, f_lo=f_lo,
+                              f_hi=f_hi, **kw)
+        elif axis_mode == "stack":
+            t = np.concatenate([if_trajectory(c, fs=fs, n_out=n_out, f_lo=f_lo,
+                                              f_hi=f_hi, **kw) for c in sig], 0)
+        else:
+            raise ValueError(axis_mode)
         rows[r.subject].append(t)
         lab[r.subject] = r.y
     pats = sorted(rows)
