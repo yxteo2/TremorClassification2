@@ -718,3 +718,96 @@ class TwoStreamNet(nn.Module):
         if d is not None:
             parts.append(self.desc(d))
         return self.head(torch.cat(parts, dim=1))
+
+
+class SpectrumTransformer(nn.Module):
+    """Small transformer over FREQUENCY bins, sized for 404 patients.
+
+    Attention was tested here before only as `BilateralAttention` on 25-patient
+    NewData with 61-bin raw spectra, and as `vit_b_16` (85.8 M parameters, AUC
+    0.540 -- chance). Neither is a fair test of attention on the CURRENT input:
+    16 log-scaled bins, 404 patients.
+
+    This is the fair version. Each frequency bin is a token, with a fixed
+    sinusoidal position encoding so the model knows *where* in the 3-15 Hz band
+    it is looking -- the property a plain convolution lacks and which
+    `FreqCoordCNN` was built to supply.
+
+    Kept at ~10-30 k parameters, the band every model on this cohort has peaked
+    in, rather than the 1e6+ of a vision transformer.
+    """
+
+    def __init__(self, n_bins, num_classes=3, d=32, n_heads=4, n_layers=2,
+                 ff=64, dropout=0.2):
+        super().__init__()
+        self.proj = nn.Linear(1, d)
+        self.register_buffer("pos", self._sinusoidal(n_bins, d))
+        layer = nn.TransformerEncoderLayer(d, n_heads, ff, dropout,
+                                           batch_first=True)
+        self.enc = nn.TransformerEncoder(layer, n_layers)
+        self.head = nn.Sequential(nn.Dropout(dropout), nn.Linear(d, num_classes))
+
+    @staticmethod
+    def _sinusoidal(n, d):
+        pos = torch.arange(n).float().unsqueeze(1)
+        i = torch.arange(0, d, 2).float()
+        ang = pos / torch.pow(10000.0, i / d)
+        pe = torch.zeros(n, d)
+        pe[:, 0::2] = torch.sin(ang)
+        pe[:, 1::2] = torch.cos(ang[:, :pe[:, 1::2].shape[1]])
+        return pe
+
+    def trunk(self, x):
+        h = self.proj(x.unsqueeze(-1)) + self.pos
+        return self.enc(h).mean(1)
+
+    def forward(self, x):
+        return self.head(self.trunk(x))
+
+
+class CrossStreamAttention(nn.Module):
+    """Spectrum tokens attend to the instantaneous-frequency trajectory.
+
+    The principled use of attention on this data. The two streams carry
+    different things -- the spectrum says WHERE the tremor sits in frequency,
+    the trajectory says HOW STEADY it is over time -- and `TwoStreamNet` joins
+    them only at the classifier head, so neither can condition on the other.
+
+    Cross-attention lets each frequency bin query the trajectory, which is the
+    mechanism the published bilateral-wrist result uses across limbs rather than
+    across streams.
+
+    Input packed as ``[spectrum | descriptors | trajectory.flatten()]``.
+    """
+
+    def __init__(self, n_spec, n_desc, traj_len, n_traj_ch=2, num_classes=3,
+                 d=32, n_heads=4, desc_hidden=16, dropout=0.2):
+        super().__init__()
+        self.n_spec, self.n_desc = n_spec, n_desc
+        self.traj_len, self.n_traj_ch = traj_len, n_traj_ch
+        self.sp_proj = nn.Linear(1, d)
+        self.tr_proj = nn.Linear(n_traj_ch, d)
+        self.register_buffer("sp_pos", SpectrumTransformer._sinusoidal(n_spec, d))
+        self.register_buffer("tr_pos", SpectrumTransformer._sinusoidal(traj_len, d))
+        self.attn = nn.MultiheadAttention(d, n_heads, dropout=dropout,
+                                          batch_first=True)
+        self.norm = nn.LayerNorm(d)
+        self.desc = (nn.Sequential(nn.Linear(n_desc, desc_hidden), nn.ReLU(),
+                                   nn.Dropout(dropout)) if n_desc else None)
+        self.head = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(d + (desc_hidden if n_desc else 0), num_classes))
+
+    def forward(self, x):
+        i = self.n_spec
+        s = x[:, :i]
+        dsc = x[:, i:i + self.n_desc] if self.n_desc else None
+        t = x[:, i + self.n_desc:].reshape(x.shape[0], self.n_traj_ch,
+                                           self.traj_len).transpose(1, 2)
+        q = self.sp_proj(s.unsqueeze(-1)) + self.sp_pos      # (B, F, d)
+        kv = self.tr_proj(t) + self.tr_pos                   # (B, T, d)
+        a, _ = self.attn(q, kv, kv)
+        h = self.norm(q + a).mean(1)
+        if dsc is not None:
+            h = torch.cat([h, self.desc(dsc)], dim=1)
+        return self.head(h)
