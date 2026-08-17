@@ -222,26 +222,31 @@ def _pca1(sig):
 
 
 def trajectory_table(recs, ch=slice(0, 3), fs=100.0, n_out=64,
-                     axis_mode="pca", f_lo=3.0, f_hi=15.0, **kw):
+                     axis_mode="mean", f_lo=3.0, f_hi=15.0, **kw):
     """(patients, C, n_out) instantaneous-frequency / envelope trajectories.
 
     ``axis_mode`` decides how the three angular-velocity axes are handled, and
     it matters more than it looks:
 
-    ``mean``      average the three axes' trajectories. **Measured to damp the
-                  fluctuation magnitude by 1.61x** (predicted sqrt(3) = 1.73):
-                  each axis is separately mean-centred and their fluctuations
-                  are largely independent, so averaging cancels the very
-                  quantity the Tremor Stability Index measures. Kept only for
-                  comparison.
-    ``dominant``  use the single axis with the most in-band power.
-    ``pca``       project onto the dominant oscillation direction (first right
-                  singular vector). Tremor is a 3-D oscillation whose direction
-                  varies between patients; this follows it instead of assuming
-                  an axis. Default.
-    ``stack``     keep all three axes, giving 6 channels. Preserves everything
-                  but triples the input width, which has repeatedly diluted
-                  results at this sample size.
+    ``mean``      average the three axes' trajectories. **Default, and measured
+                  best or tied.**
+    ``dominant``  the single axis with the most in-band power.
+    ``pca``       project onto the dominant oscillation direction.
+    ``stack``     all three axes as 6 channels.
+
+    A note on a correction, because the obvious argument here is wrong.
+    Averaging the axes damps the absolute IF fluctuation by 1.61x (close to the
+    sqrt(3) expected if the axes were independent), which looks like it must be
+    discarding the quantity the Tremor Stability Index measures. It is not: the
+    pipeline standardises features per fold, so a uniform scale change never
+    reaches the model. The quantity that matters is the standardised effect
+    size, and there the difference is small -- Cohen's d for PD vs ET is 1.238
+    (mean), 1.405 (dominant), 1.331 (pca), 0.786 (stack), because the
+    within-class spread grows along with the gap.
+
+    Measured in the model, 20 splits: macroP 0.660 (mean), 0.662 (dominant),
+    0.643 (pca), 0.649 (stack) -- indistinguishable at the top, and ``stack``
+    is worse, as its effect size predicts.
     """
     from collections import defaultdict
     rows, lab = defaultdict(list), {}
