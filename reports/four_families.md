@@ -67,3 +67,41 @@ with `own_data_reality_check.md`: the two cohorts want different features, and
 pooling them serves neither.
 
 Reproduce: `signal_processing/tremor_physics.py`, `scratch/physics_test.py`.
+
+## Do the axis features improve the in-house MODEL?
+
+Directionally yes, not confirmably. Same test sets as
+`own_data_reality_check.md` (2015 + NewData, exactly 10 ET each, natural
+prevalence 0.101, 20 draws):
+
+| features | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| base (desc + asym) | 0.652 | **0.769** | 0.193 | 0.538 | 0.471 |
+| **+ axes** | 0.681 | 0.729 | **0.245** | **0.552** | 0.479 |
+| axes replace desc | 0.614 | 0.782 | 0.242 | 0.546 | 0.463 |
+| axes only | 0.653 | 0.754 | 0.200 | 0.536 | 0.482 |
+
+Paired against base:
+
+| | precN | precPD | precET | macroP |
+|---|---|---|---|---|
+| + axes | **+0.029 [+0.003, +0.058]** * | **-0.039 [-0.067, -0.013]** * | +0.052 [-0.049, +0.153] | +0.014 [-0.019, +0.048] |
+| axes replace desc | -0.038 [-0.085, +0.006] | +0.013 [-0.025, +0.059] | +0.049 [-0.075, +0.173] | +0.008 [-0.039, +0.053] |
+
+**ET precision 0.193 -> 0.245 is the largest in-house ET improvement measured**
+(+27 % relative), but its interval spans zero and its sd widens from 0.186 to
+0.273. What *is* significant is a trade rather than a gain: precN +0.029 and
+precPD -0.039, both clearing zero -- appending axes shifts predictions toward N
+and away from PD.
+
+### Why the feature-level advantage does not convert
+
+The axis family separates PD from ET at AUC 0.641 against harmonics' 0.402 on
+these same patients. That advantage does not become a significant model gain,
+and the arithmetic explains it: **with 10 ET per test set, an ET-precision
+difference must exceed roughly +/-0.10 to clear the noise.** A +0.052 effect is
+below what 21 ET patients can resolve.
+
+This is not a statement about the feature. It is a statement about the cohort,
+and it is the recurring shape of this project: population-level separability and
+model improvement are different things once the minority class is this small.
