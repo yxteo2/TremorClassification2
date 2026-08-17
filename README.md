@@ -1,67 +1,101 @@
-# Tremor Classification — N / PD / ET from wearable IMU
+# Tremor classification — N / PD / ET from wearable IMU
+
+Classifying Normal, Parkinson's and Essential Tremor from wrist/arm inertial
+recordings, across three cohorts.
+
+Two lines of work:
+
+1. **Time-frequency processing** — characterise the tremor and classify from
+   frequency quantities (mean, max, bandwidth, peak sharpness).
+2. **Deep learning** — classify each patient's time-frequency signal.
 
 ## Start here
 
+| notebook | what it does |
+|---|---|
+| `01_tremor_characteristics.ipynb` | frequency characteristics per class; classification from mean/max frequency, features added one at a time |
+| `02_deep_model.ipynb` | the final two-stream deep model and each component's contribution |
+
+Or from the command line:
+
 ```bash
-jupyter notebook START_HERE.ipynb
+python -m tfbench.characteristics    # goal 1: characteristics + frequency classification
+python -m tfbench.final_model        # goal 2: the deep model, paired against baseline
+python -m tfbench.cohort_strategies  # how the three cohorts should be combined
 ```
 
-One notebook, top to bottom: loads and verifies all three cohorts, reproduces
-the frequency tables, the best PD-vs-ET model, and the externally validated
-N-vs-Tremor result. Executed with outputs committed, so the numbers are
-readable without running anything.
-
-Deeper dives live in `tfbench/`:
-`01_signal_processing_benchmark` (12 TF methods),
-`02_deep_model_comparison` (architectures),
-`03_cohort_comparison` (2015 vs NewData vs PADS).
-
-**Read balanced accuracy and precision together.** Majority baselines are 0.833
-(2015 PD-vs-ET) and 0.908 (PADS), so raw accuracy misleads.
-
-Classifies Normal, Parkinson's and Essential Tremor from arm-worn IMU
-quaternion recordings, via two diagnostic axes: **N vs Tremor** (screening) and
-**PD vs ET** (differential).
-
 ## Headline results
-Local cohort, forearm sensor, subject-grouped CV — see `reports/final_results.md`.
 
-| axis | headline | positive class |
-|---|---|---|
-| **N vs Tremor** | acc 0.884 [0.832, 0.929], **AUC 0.936** | Tremor P 0.92 / R 0.88 / F1 0.90 |
-| **PD vs ET** | **AUC 0.873**, balanced-acc 0.673 | ET P 0.60 / R 0.40 / F1 0.48 |
+**Frequency characteristics (PADS, 383 patients)** — ET tremor is markedly more
+sharply peaked and lower in frequency than PD:
 
-Note: on PD-vs-ET, raw accuracy is meaningless ("always PD" = 0.833). Report AUC
-and balanced accuracy.
+| | N | PD | ET |
+|---|---|---|---|
+| max frequency (Hz) | 7.20 | 7.07 | 6.16 |
+| mean frequency (Hz) | 8.02 | 7.67 | 6.61 |
+| bandwidth (Hz) | 2.94 | 2.48 | 2.04 |
+| peak sharpness | 4.08 | 5.80 | **12.19** |
 
-## Layout
-    Data/               2015 cohort, quaternions @100 Hz (OUT / REST / WING)
-    NewData/            2025 cohort, Moveo h5 @128 Hz (6 ET subjects)
-    pads_stretchhold/   PADS StretchHold extract (validation cohort only)
-    preprocessed/       PADS-derived intermediates
-    tremor/             core pipeline: loaders, TFDs, models, metrics, stats
-    pdetn/              condition-aware analysis, feature families, notebooks
-    reports/            all findings (start with final_results.md)
-    docs/               handoff notes, licence
-    notebooks/          exploratory notebooks
-    scripts/            PADS reference scripts (from the dataset authors)
+**N vs Tremor** — six frequency numbers and a logistic regression reach
+**precision 0.910 (2015) / 0.924 (PADS)**.
 
-## Key findings
-* **Forearm sensor alone beats all three** on both axes.
-* **Frequency alone cannot separate PD from ET** — identical 6.64 Hz medians,
-  50-70% distribution overlap, replicated in two independent cohorts. The signal
-  lives in the full spectral profile (AUC 0.88) not in summary statistics (0.61).
-* **8 time-frequency methods** compared (STFT/CWT/HHT/wavelet/multitaper/SST/
-  VMD/S-transform) — STFT-256 best, all within CI.
-* **PADS cannot be used as training data** (device domain shift, identity AUC
-  0.999); it serves as an independent validation cohort.
-* Simple models beat deep ones here — the cohort (15 ET) is the binding limit.
+**PD vs ET, 3-class merged model** — two-stream deep model (multitaper spectrum
++ instantaneous-frequency trajectory):
 
-## Reproduce
-    pip install -r requirements.txt
-    python -m pdetn.run --data-root Data            # interpretable pipeline
-    python -m tremor.cv_benchmark --data-root Data --action OUT ...   # deep
-Notebooks in `pdetn/` cover the two-stage comparison, decomposition study and
-cross-dataset work.
+| | precN | precPD | precET | macro precision |
+|---|---|---|---|---|
+| baseline | 0.639 | 0.636 | 0.583 | 0.619 |
+| **final model** | 0.639 | 0.655 | **0.685** | **0.660** |
 
-Next steps: `docs/NEXT_SESSION.md`.
+paired +0.041 [+0.014, +0.067] macro precision, +0.102 [+0.031, +0.175] ET
+precision, over 20 splits.
+
+## Data
+
+| cohort | patients | N / PD / ET | source |
+|---|---|---|---|
+| 2015 | 151 | 61 / 75 / 15 | `Data/` — quaternion, 3 sensors, OUT/REST/WING |
+| NewData | 56 | 27 / 23 / 6 | `NewData/` — 2025 Moveo, both limbs, 7 tasks |
+| PADS | 383 | 79 / 276 / 28 | `pads_stretchhold/`, `pads_relaxed/` — both wrists |
+
+PADS is extracted with `python -m pdetn.extract_pads`. Class labels are
+re-derived from the manifest by **exact** diagnosis match — an earlier substring
+match put 13 non-ET records in the ET class (`reports/pads_label_bug.md`).
+
+## Package layout
+
+```
+tfbench/     the current pipeline
+  characteristics.py   frequency characteristics + classification   (goal 1)
+  transforms.py        12 time-frequency methods, all power-scaled
+  descriptors.py       10 spectral descriptors
+  stability.py         Tremor Stability Index, IF trajectories
+  small_nets.py        every model: CNN / TCN / BiLSTM / two-stream / attention
+  final_model.py       the final model, paired against baseline   (goal 2)
+  cohort_strategies.py how to combine the three cohorts
+  selective.py         precision at reduced coverage
+  benchmark.py         method ranking with BH + Bonferroni
+tremor/      loaders, quaternion handling, evaluation, statistics
+pdetn/       PADS extraction, 2025 loader, cross-dataset assembly
+reports/     22 findings, including the retractions
+```
+
+## Conventions that matter
+
+* **Patient-level splits only.** Never split recordings of the same patient.
+* **Report per-class precision**, with the test set's class prevalence —
+  precision is not comparable across differently-composed test sets.
+* **Paired bootstrap CIs** for every comparison. Unpaired differences of ~0.04
+  sit inside the per-config sd here and have repeatedly evaporated when paired.
+* **Two protocols, different questions.** Mixed-cohort (all three sources in
+  train/val/test) answers "how well at sites we trained on"; leave-one-cohort-out
+  answers "will this transfer". Only LOCO supports a generalisation claim.
+
+## Known limits
+
+* **Macro precision >0.90 on three classes is not reachable** at any coverage
+  (`reports/precision_ceiling.md`). It needs more ET patients or the PADS
+  non-motor questionnaire, not more architecture.
+* **NewData has 6 ET patients** — a training cohort, not an evaluation one.
+* **Feature unions dilute.** Seven have underperformed their best member; at 404
+  patients with 49 ET, dimensionality binds harder than information.
