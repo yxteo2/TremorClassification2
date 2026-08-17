@@ -2,9 +2,10 @@
 
 Every model in this project trains on **404 rows**, one per patient, because the
 spectra are averaged per patient before training. But each recording holds tens
-of seconds of signal, so a patient supplies dozens of 4 s windows. Training on
-windows and aggregating to patients at inference gives the network **10-40x more
-training examples from the same data**, which is the normal remedy when a deep
+of seconds of signal, so a patient supplies several 4 s windows. Training on
+windows and aggregating to patients at inference gives the network **9.2x more
+training rows from the same data** (3705 windows from 404 patients, median 8
+per patient), which is the normal remedy when a deep
 model is data-limited -- and every diagnostic here says this one is:
 
   * capacity ordering is 1 k > 3 k > 9 k > 35 k > 11.2 M
@@ -155,7 +156,19 @@ def main():
     print(f"training rows: {len(yw)} windows vs {len(pats)} patients "
           f"= {len(yw)/len(pats):.1f}x more\n")
 
-    key = np.array([f"{p.split('_')[0]}_{l}" for p, l in zip(pats, plab)])
+    def cohort_of(pid):
+        """2015 ids look like 'ET 10_OUT', so splitting on '_' gives the PATIENT,
+        not the cohort -- that made the stratification key unique per patient."""
+        pid = str(pid)
+        if pid.startswith("PADS"):
+            return "PADS"
+        if pid.startswith("NEW"):
+            return "NewData"
+        return "2015"
+
+    key = np.array([f"{cohort_of(p)}_{l}" for p, l in zip(pats, plab)])
+    import collections
+    print("stratification key counts:", dict(collections.Counter(key.tolist())))
     mk = lambda: Spectrum1DCNN(NBIN, num_classes=3, ch=8)
 
     out = []
