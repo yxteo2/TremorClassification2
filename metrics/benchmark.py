@@ -28,8 +28,8 @@ from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from tfbench.descriptors import DESCRIPTOR_NAMES, describe
-from tfbench.transforms import METHODS
+from frequency.descriptors import DESCRIPTOR_NAMES, describe
+from signal_processing.transforms import METHODS
 
 AXES = {"N_vs_Tremor": lambda y: (y != 0).astype(int),
         "PD_vs_ET": None}          # PD_vs_ET drops N; handled in _axis_data
@@ -64,7 +64,7 @@ def build_all(recs, methods=None, fs=100.0, verbose=True, cache=None, **kw):
     downstream (both axes, reruns, notebooks) needs the same tables.
     """
     if cache is not None:
-        from tfbench.cache import load_or_build
+        from common.cache import load_or_build
         return load_or_build(recs, path=cache, methods=methods, fs=fs,
                              verbose=verbose, **kw)
     tables = {}

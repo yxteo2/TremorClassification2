@@ -11,9 +11,9 @@ run --inspect FIRST to confirm the format, then adjust the two VERIFY blocks if
 needed and run the extraction.
 
     # 1. confirm the format
-    python -m pdetn.extract_pads --pads-root PADS --inspect
+    python -m common.extract_pads --pads-root PADS --inspect
     # 2. extract StretchHold -> ./pads_stretchhold/
-    python -m pdetn.extract_pads --pads-root PADS --out pads_stretchhold
+    python -m common.extract_pads --pads-root PADS --out pads_stretchhold
 """
 
 from __future__ import annotations

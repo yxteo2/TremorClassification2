@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import welch, stft
 
-from tremor.tfd import (
+from signal_processing.tfd import (
     apply_cwt, apply_hht, apply_multitaper, apply_sst, apply_wavelet_packet,
 )
 
@@ -86,7 +86,7 @@ def m_hht_imf2plus(x, fs=FS, max_imfs=8, step=0.25, **kw):
     to the top of the band). Dropping IMF1 is the standard remedy and makes the
     comparison against the other methods fair.
     """
-    from tremor.tfd import _emd_imfs
+    from signal_processing.tfd import _emd_imfs
     X2 = np.atleast_2d(x)
     freqs = np.arange(F_MIN, F_MAX + 1e-9, step)
     acc = np.zeros(len(freqs))

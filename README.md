@@ -19,9 +19,9 @@ Two lines of work:
 Or from the command line:
 
 ```bash
-python -m tfbench.characteristics    # goal 1: characteristics + frequency classification
-python -m tfbench.final_model        # goal 2: the deep model, paired against baseline
-python -m tfbench.cohort_strategies  # how the three cohorts should be combined
+python -m frequency.characteristics    # goal 1: characteristics + frequency classification
+python -m experiments.final_model        # goal 2: the deep model, paired against baseline
+python -m common.cohorts  # how the three cohorts should be combined
 ```
 
 ## Headline results
@@ -58,26 +58,56 @@ precision, over 20 splits.
 | NewData | 56 | 27 / 23 / 6 | `NewData/` — 2025 Moveo, both limbs, 7 tasks |
 | PADS | 383 | 79 / 276 / 28 | `pads_stretchhold/`, `pads_relaxed/` — both wrists |
 
-PADS is extracted with `python -m pdetn.extract_pads`. Class labels are
+PADS is extracted with `python -m common.extract_pads`. Class labels are
 re-derived from the manifest by **exact** diagnosis match — an earlier substring
 match put 13 non-ET records in the ET class (`reports/pads_label_bug.md`).
 
 ## Package layout
 
 ```
-tfbench/     the current pipeline
-  characteristics.py   frequency characteristics + classification   (goal 1)
-  transforms.py        12 time-frequency methods, all power-scaled
+models/              deep learning architectures
+  architectures.py     CNN / TCN / BiLSTM / two-stream / attention, all of them
+
+signal_processing/   time-frequency transforms and signal-level methods
+  transforms.py        12 TF methods on one interface, all power-scaled
+  tfd.py               multitaper / SST / CWT implementations
+  quaternion.py        quaternion -> angular velocity, log map, gravity
+  preprocessing.py     band-pass, framing, STFT magnitude
+  spectral.py          log compression, per-frequency normalisation, SpecAugment
+  stability.py         Tremor Stability Index, instantaneous-frequency trajectories
+  signal_features.py   Hjorth, sample entropy, amplitude modulation
+
+frequency/           the mean / max frequency method
+  characteristics.py   6 characteristics + cumulative classification   (goal 1)
   descriptors.py       10 spectral descriptors
-  stability.py         Tremor Stability Index, IF trajectories
-  small_nets.py        every model: CNN / TCN / BiLSTM / two-stream / attention
-  final_model.py       the final model, paired against baseline   (goal 2)
-  cohort_strategies.py how to combine the three cohorts
-  selective.py         precision at reduced coverage
+  tables.py            per-patient spectra, bilateral asymmetry features
+  biomarker.py         Welch PSD, band power
+  report.py            frequency comparison across cohorts
+
+common/              data loading, cohort assembly, training
+  data.py              the Recording type
+  quaternion_data.py   2015 cohort loader
+  load_2025.py         NewData loader, task/side selection
+  extract_pads.py      PADS extraction (exact-match labelling)
+  loaders.py           PADS loader
+  cohorts.py           merged-cohort assembly, capping, missing-modality asymmetry
+  training.py          training loops (full-batch; minibatch measured worse)
+  protocol.py          train/val/test protocol, validation-tuned priors
+  datasets.py          torch Datasets
+  cache.py             on-disk caching
+
+metrics/             evaluation
+  evaluate.py          classification report
+  stats.py             subject-clustered bootstrap CIs, permutation tests
+  selective.py         precision at reduced coverage (abstain option)
   benchmark.py         method ranking with BH + Bonferroni
-tremor/      loaders, quaternion handling, evaluation, statistics
-pdetn/       PADS extraction, 2025 loader, cross-dataset assembly
-reports/     22 findings, including the retractions
+  merged.py            balanced accuracy, cohort-identity probe
+
+experiments/         runnable studies (library code lives above)
+  final_model.py       the final model, paired against baseline   (goal 2)
+  audio_techniques.py  frequency-aware conv, PCEN, SpecAugment
+
+reports/             23 findings, including the retractions
 ```
 
 ## Conventions that matter

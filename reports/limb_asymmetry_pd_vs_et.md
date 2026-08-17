@@ -19,7 +19,7 @@ spectra and asking it to find the relationship does not.
 
 ## Features
 
-`tfbench.small_nets.asym_feats`, computed from `bilateral_table` (patients x 2F,
+`models.architectures.asym_feats`, computed from `bilateral_table` (patients x 2F,
 left spectrum concatenated with right, each normalised to sum 1):
 
 | name | definition | signed? |
@@ -122,4 +122,4 @@ paper's real advantage over this repo's 2015 data is not its transformer, it is
 that both wrists were instrumented.
 
 Reproduce: `scratch/asym.py`, `scratch/asym_verify.py`, `scratch/asym_robust.py`
-(gitignored; features live in `tfbench.small_nets.asym_feats`).
+(gitignored; features live in `models.architectures.asym_feats`).

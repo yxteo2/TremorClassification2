@@ -20,7 +20,7 @@ that pattern can show itself.
 All configurations share one fixed PADS subsample and one set of splits, so
 every comparison is paired.
 
-Run: ``python -m tfbench.final_model``
+Run: ``python -m experiments.final_model``
 """
 
 from __future__ import annotations
@@ -33,14 +33,15 @@ import torch
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from tfbench.cohort_strategies import (N_ASYM, NBIN, TEST_FRAC, VAL_FRAC,
-                                       asym_for, desc_table, logbin, train,
-                                       tune_offsets)
-from tfbench.small_nets import (DescriptorFusion, ResidualTCN, Spectrum1DCNN,
-                                TRUNKS, TwoStreamNet, spectrum_table)
-from tfbench.stability import patient_table as stab_table
-from tfbench.stability import trajectory_table
-from tfbench.transforms import METHODS
+from common.cohorts import asym_for, desc_table, logbin
+from common.protocol import N_ASYM, NBIN, TEST_FRAC, VAL_FRAC, train, tune_offsets
+
+from models.architectures import DescriptorFusion, ResidualTCN, Spectrum1DCNN, TRUNKS, TwoStreamNet
+from frequency.tables import spectrum_table
+
+from signal_processing.stability import patient_table as stab_table
+from signal_processing.stability import trajectory_table
+from signal_processing.transforms import METHODS
 
 SPLITS, TL = 20, 64
 GRID = np.linspace(3.0, 15.0, 64)
@@ -64,9 +65,9 @@ def method_table(recs, meth, ch):
 
 
 def build():
-    from pdetn.crossdataset import load_pads_extracted
-    from pdetn.load_2025 import SIDE, load_2025_all
-    from tremor.quaternion_data import load_quaternion_recordings
+    from common.loaders import load_pads_extracted
+    from common.load_2025 import SIDE, load_2025_all
+    from common.quaternion_data import load_quaternion_recordings
 
     side_new = lambda r: SIDE.get(os.path.basename(r.path)[:2])
     side_pads = lambda r: ("left" if "LeftWrist" in str(r.path)

@@ -93,4 +93,4 @@ supersedes it.
 
 Measured: precN 0.639, precPD 0.655, precET 0.685, macro precision 0.660.
 
-Reproduce: `python -m tfbench.final_model`.
+Reproduce: `python -m experiments.final_model`.

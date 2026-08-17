@@ -32,9 +32,9 @@ from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from tfbench.descriptors import DESCRIPTOR_NAMES, describe
-from tfbench.transforms import METHODS
-from tremor.stats import bootstrap_subject_ci
+from frequency.descriptors import DESCRIPTOR_NAMES, describe
+from signal_processing.transforms import METHODS
+from metrics.stats import bootstrap_subject_ci
 
 WRIST_2015 = slice(3, 6)          # lower_arm ~ wrist
 

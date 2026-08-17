@@ -63,4 +63,4 @@ Continued architecture work is not the route. Five rounds of it moved macro
 precision from 0.583 to 0.675; the remaining gap to 0.90 is larger than
 everything that work bought combined.
 
-Reproduce: `python -m tfbench.selective` helpers, `scratch/selective_run.py`.
+Reproduce: `python -m metrics.selective` helpers, `scratch/selective_run.py`.

@@ -7,7 +7,7 @@ Folder layout (the user keeps the data outside ProcessedData):
 Each .txt is comma-separated, shape ``(T, 12)`` — 3 sensors x 4 unit
 quaternion components, scalar-last ``(x, y, z, w)``, sampled at fs=100 Hz.
 
-The loader converts each file into a :class:`tremor.data.Recording`
+The loader converts each file into a :class:`common.data.Recording`
 with ``x`` shape ``(channels, time)`` so it can flow into the same
 ``TremorDataset`` -> ``apply_stft`` -> model pipeline as the raw
 amplitude data.
@@ -21,8 +21,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from tremor.data import CLASS_MAP, Recording
-from tremor.quaternion import process_quaternion_data
+from common.data import CLASS_MAP, Recording
+from signal_processing.quaternion import process_quaternion_data
 
 
 CLASS_FOLDER_TO_LETTER = {"N": "N", "PD": "P", "ET": "E"}

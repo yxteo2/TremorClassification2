@@ -39,8 +39,8 @@ oscillation — is exactly what could not be fetched.
 
 ```python
 from tfbench.deep import run_cv
-from tremor.quaternion_data import load_quaternion_recordings
-from tremor.data import Recording
+from common.quaternion_data import load_quaternion_recordings
+from common.data import Recording
 recs = load_quaternion_recordings("Data", action="REST", mode="angular_velocity")
 recs = [Recording(x=r.x[3:6], y=r.y, subject=r.subject, path=r.path,
                   condition=r.condition) for r in recs]

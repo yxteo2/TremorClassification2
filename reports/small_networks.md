@@ -99,8 +99,8 @@ several small-n findings (`handedness_does_not_survive.md`,
 **PADS `DrinkGlas` has 28 ET** — nearly 5x. Extract and re-run:
 
 ```bash
-python -m pdetn.extract_pads --pads-root PADS --task DrinkGlas --out pads_drinkglas
-python -m pdetn.extract_pads --pads-root PADS --task TouchNose --out pads_touchnose
+python -m common.extract_pads --pads-root PADS --task DrinkGlas --out pads_drinkglas
+python -m common.extract_pads --pads-root PADS --task TouchNose --out pads_touchnose
 ```
 
 If MLP-on-descriptors holds AUC near 0.85 on 28 independent ET subjects with a

@@ -65,8 +65,8 @@ and 30 dimensions already made results *significantly worse* at 16 ET
 
 ```python
 from tfbench.deep import run_cv
-from pdetn.load_2025 import load_2025_all
-from tremor.data import Recording
+from common.load_2025 import load_2025_all
+from common.data import Recording
 recs = load_2025_all(conditions=("DRINK",))
 recs = [Recording(x=r.x[3:6], y=r.y, subject=r.subject, path=r.path,
                   condition=r.condition) for r in recs]

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from tfbench.benchmark import build_all
+from metrics.benchmark import build_all
 
 DEFAULT = Path("artifacts/tfbench_tables.npz")
 

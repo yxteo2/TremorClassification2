@@ -17,9 +17,9 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from tremor.data import Recording
-from tremor.preprocessing import apply_stft
-from tremor.spectral import (
+from common.data import Recording
+from signal_processing.preprocessing import apply_stft
+from signal_processing.spectral import (
     crop_freq_bins,
     fit_length,
     log_compress,
@@ -27,8 +27,7 @@ from tremor.spectral import (
     per_recording_zscore,
     spec_augment,
 )
-from tremor.stft_data import STFTRecording
-from tremor.tfd import (
+from signal_processing.tfd import (
     apply_cwt,
     apply_hht,
     apply_multitaper,

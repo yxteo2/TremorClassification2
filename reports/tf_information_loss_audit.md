@@ -64,7 +64,7 @@ scale that would change conclusions.
 
 ## 3. What IS lost — orientation (classical path only)
 
-`tfbench.transforms._per_freq_mean` averages the per-channel spectra, so **every
+`signal_processing.transforms._per_freq_mean` averages the per-channel spectra, so **every
 `tfbench` descriptor is orientation-blind by construction**. This was a
 deliberate choice (rotation invariance, and it keeps descriptors comparable
 across the 3-sensor local data and single-sensor PADS) but it should be explicit.

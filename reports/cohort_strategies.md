@@ -69,4 +69,4 @@ mixed protocol, where the target sites are known in advance. Under
 leave-one-cohort-out the test site is unseen and the feature leaks. Do not carry
 it into any generalisation claim.
 
-Reproduce: `python -m tfbench.cohort_strategies`.
+Reproduce: `python -m common.cohorts`.

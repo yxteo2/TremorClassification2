@@ -7,11 +7,11 @@ Generates the three-part frequency report:
      balanced accuracy alone hides what class_weight="balanced" costs
 
 All cohorts go through the identical path: Welch PSD (the only Parseval-exact
-transform in ``tfbench.transforms``), 3-15 Hz, wrist-equivalent sensor
+transform in ``signal_processing.transforms``), 3-15 Hz, wrist-equivalent sensor
 (2015/NewData ``lower_arm``, PADS wrist), aggregated per patient, patient-level
 LOSO with class-balanced logistic regression.
 
-Run:  python -m tfbench.frequency_report
+Run:  python -m frequency.report
 """
 
 from __future__ import annotations
@@ -27,9 +27,9 @@ from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from tfbench.descriptors import describe
-from tfbench.transforms import m_welch
-from tremor.stats import bootstrap_subject_ci
+from frequency.descriptors import describe
+from signal_processing.transforms import m_welch
+from metrics.stats import bootstrap_subject_ci
 
 WRIST_2015 = slice(3, 6)
 PADS_WRIST = slice(0, 3)
@@ -37,9 +37,9 @@ PADS_WRIST = slice(0, 3)
 
 def load_cohorts(data_root="Data"):
     """Every (cohort, condition, recordings, channel-slice) used in the report."""
-    from pdetn.crossdataset import load_pads_extracted
-    from pdetn.load_2025 import load_2025
-    from tremor.quaternion_data import load_quaternion_recordings
+    from common.loaders import load_pads_extracted
+    from common.load_2025 import load_2025
+    from common.quaternion_data import load_quaternion_recordings
 
     out = []
     for cond in ("REST", "OUT", "WING"):

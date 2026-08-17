@@ -102,7 +102,7 @@ straining. It also explains, in one mechanism, why 1 k-parameter models beat
   (`limb_asymmetry_pd_vs_et.md`).
 
 Reproduce: `scratch/improve.py`, `scratch/improve2.py`, `scratch/improve3.py`
-(gitignored; models in `tfbench.small_nets`).
+(gitignored; models in `models.architectures`).
 
 ## Round 3: architecture fixes, fusion, ensembling
 

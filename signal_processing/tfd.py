@@ -32,7 +32,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import welch
 
-from tremor.preprocessing import apply_stft, _frame, _hann_periodic  # noqa: F401
+from signal_processing.preprocessing import apply_stft, _frame, _hann_periodic  # noqa: F401
 
 
 __all__ = [

@@ -156,4 +156,4 @@ representation.
   with LOCO as the evaluation.
 
 Reproduce: `scratch/threedeep.py`, `scratch/threedeep_verify.py` (gitignored;
-models in `tfbench.small_nets`, runners `kfold_proba` / `fit_predict_proba`).
+models in `models.architectures`, runners `kfold_proba` / `fit_predict_proba`).

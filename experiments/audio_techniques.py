@@ -32,7 +32,7 @@ frequency-translation-invariant conv discards. If frequency-aware convolution
 captures the same information natively, fusion should stop helping on top of it.
 Both arms are run to check.
 
-Run: ``python -m tfbench.audio_techniques``
+Run: ``python -m experiments.audio_techniques``
 """
 
 from __future__ import annotations
@@ -43,12 +43,11 @@ import torch.nn as nn
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from tfbench.cohort_strategies import (NBIN, SPLITS, TEST_FRAC, VAL_FRAC,
-                                       desc_table, load_all, logbin,
-                                       tune_offsets)
-from tfbench.small_nets import (AudioStyleNet, DescriptorFusion, FreqCoordCNN,
-                                FreqDynamicCNN, ResidualTCN, Spectrum1DCNN,
-                                TRUNKS)
+from common.cohorts import desc_table, load_all, logbin
+from common.protocol import NBIN, SPLITS, TEST_FRAC, VAL_FRAC, tune_offsets
+
+from models.architectures import AudioStyleNet, DescriptorFusion, FreqCoordCNN, FreqDynamicCNN, ResidualTCN, Spectrum1DCNN, TRUNKS
+
 
 
 def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,

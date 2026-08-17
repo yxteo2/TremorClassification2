@@ -5,14 +5,14 @@ Sensor IDs (from NewData/Convert_h5_and_csv_to_xlsx.ipynb):
     10464=Index Finger, 10833=Thorax  (last two have no 2015 counterpart)
 Action codes: 01/08=REST, 02/09=OUT (01-07 right limb, 08-14 left).
 Quaternions are resampled 128 -> 100 Hz, then converted to angular velocity
-with the same tremor.quaternion routine used for the 2015 data.
+with the same signal_processing.quaternion routine used for the 2015 data.
 """
 from __future__ import annotations
 import glob, os, re
 import numpy as np
 from scipy.signal import resample_poly
-from tremor.data import Recording
-from tremor.quaternion import process_quaternion_data
+from common.data import Recording
+from signal_processing.quaternion import process_quaternion_data
 
 SENSOR_ORDER = ["7257", "10871", "10468"]          # hand, lower_arm, upper_arm
 #: Action code -> task. 01-07 are the RIGHT upper limb, 08-14 the LEFT.
@@ -124,7 +124,7 @@ def select_steady_epoch(x, g, fs=100.0, win_s=10.0, hop_s=0.5, channels=(3, 4, 5
     return x[:, best_i:best_i + n]
 
 
-#: folder name -> class label, matching tremor.data (N=0, PD=1, ET=2).
+#: folder name -> class label, matching common.data (N=0, PD=1, ET=2).
 #: HC (healthy control) is the 2025 cohort's name for N.
 CLASS_LABELS = {"HC": 0, "N": 0, "PD": 1, "ET": 2}
 
@@ -148,7 +148,7 @@ def load_2025(root="NewData", cls="ET", label=None, conditions=("OUT",), fs=FS_D
               win_s=10.0):
     """Load the 2025 cohort, aligned to the 2015 channel order and rate.
 
-    ``mode`` is passed to :func:`tremor.quaternion.process_quaternion_data`, so
+    ``mode`` is passed to :func:`signal_processing.quaternion.process_quaternion_data`, so
     the same log_map / gravity representations used on the 2015 data are
     available here.
 

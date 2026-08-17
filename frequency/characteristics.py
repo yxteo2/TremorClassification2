@@ -15,7 +15,7 @@ Reference expectations from the clinical literature: PD rest tremor is
 ~4-6 Hz, ET ~6-12 Hz and more symmetric between limbs, and ET's
 cycle-to-cycle frequency is the more stable of the two.
 
-Run: ``python -m tfbench.characteristics``
+Run: ``python -m frequency.characteristics``
 """
 
 from __future__ import annotations
@@ -135,9 +135,9 @@ def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5):
 
 
 def main():
-    from pdetn.crossdataset import load_pads_extracted
-    from pdetn.load_2025 import load_2025_all
-    from tremor.quaternion_data import load_quaternion_recordings
+    from common.loaders import load_pads_extracted
+    from common.load_2025 import load_2025_all
+    from common.quaternion_data import load_quaternion_recordings
 
     cohorts = [
         ("2015 OUT", load_quaternion_recordings("Data", action="OUT",

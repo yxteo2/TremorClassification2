@@ -3,7 +3,7 @@
 Goal 1: describe the tremor in the quantities clinicians name, and classify from
 mean / max frequency alone before adding anything else.
 
-Angular velocity, 3-15 Hz, Welch-512, per patient. `python -m tfbench.characteristics`.
+Angular velocity, 3-15 Hz, Welch-512, per patient. `python -m frequency.characteristics`.
 
 ## Characteristics per class
 
