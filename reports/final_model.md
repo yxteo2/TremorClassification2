@@ -138,3 +138,43 @@ model.
 
 **Lesson: measure effect size, not absolute separation, whenever the pipeline
 standardises.** The absolute-gap plot was persuasive and wrong.
+
+## Window-level training: a small consistent positive, not established
+
+Every model here trains on 404 rows, one per patient, because spectra are
+averaged per patient first. Training on 4 s windows (9.2x more rows: 3705
+windows, median 8 per patient) and averaging probabilities back to patients at
+inference is the standard remedy for a data-limited network.
+
+Same `Spectrum1DCNN`, same welch 16-bin features, same 20 splits, patient-
+disjoint throughout -- the only difference is whether a training row is a window
+or a patient average:
+
+| | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| patient-trained (control) | 0.651 | 0.628 | 0.547 | 0.609 | 0.569 |
+| **window-trained, patient-scored** | 0.657 | 0.644 | **0.574** | **0.625** | 0.582 |
+
+Paired: precN +0.006 [-0.024, +0.036], precPD +0.016 [-0.022, +0.056],
+precET +0.026 [-0.051, +0.128], macroP +0.016 [-0.016, +0.056].
+
+**All five metrics move the same direction but no interval clears zero.** Pure
+noise would usually give mixed signs, so this is suggestive; the metrics are
+correlated, so it is not a sign test and should not be quoted as significant.
+
+### A comparison I nearly reported as a result
+
+The first run compared the window-trained `Spectrum1DCNN` (macroP 0.625) against
+the final two-stream multitaper + trajectory + descriptors + asymmetry model
+(0.660) and read as a clean negative. Those models differ in four ways, only one
+of which is the training scheme. With the control in place the sign flips.
+
+Same failure mode as the trajectory retraction earlier: a comparison that looks
+controlled and is not.
+
+### Where this leaves the deep model
+
+Window training is the only untried idea that attacks the binding constraint
+rather than the architecture, and it produces a small positive. It is worth
+combining with the full two-stream model -- which needs per-window trajectories,
+not just per-window spectra -- before it is either adopted or dropped.
