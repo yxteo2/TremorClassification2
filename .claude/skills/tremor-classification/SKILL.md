@@ -1,467 +1,179 @@
 ---
 name: tremor-classification
-description: Work inside the TremorClassification2 repo — a PyTorch pipeline that classifies IMU recordings as Normal (N), Parkinson's (PD), or Essential Tremor (ET) from quaternion / amplitude / STFT features. Use this skill whenever the user loads tremor recordings, computes STFT/CWT/HHT/multitaper/SST time-frequency features, builds or trains the BiLSTM/TCN/AST/ResNet/MIL models, runs subject-level splits or CV benchmarks, debugs class imbalance (especially low ET F1), or invokes `tremor.train`, `tremor.cv_benchmark`, or `tremor.compare_preprocessing`. Trigger this even when the user just references quaternion data, angular velocity, displacement amplitude, spectrograms, the `tremor` package, or any of its modules — do not reinvent conventions the repo already fixes.
+description: Work inside the TremorClassification2 repo — classifying wearable IMU recordings as Normal (N), Parkinson's (PD) or Essential Tremor (ET) across three cohorts. Use whenever the user loads tremor recordings, computes time-frequency features (STFT/CWT/multitaper/HHT/SST/wavelet-packet), works on mean/max frequency or tremor characteristics, builds or trains the CNN/TCN/BiLSTM/two-stream models, merges the 2015 / NewData / PADS cohorts, runs patient-level splits, or debugs low ET precision. Trigger on any reference to quaternion data, angular velocity, spectrograms, tremor stability, or the `models` / `signal_processing` / `frequency` / `common` / `metrics` / `experiments` packages — do not reinvent conventions the repo already fixes.
 ---
 
 # Tremor Classification (TremorClassification2)
 
-A PyTorch package (`tremor/`) for 3-class tremor classification from wearable IMU data:
-**N=Normal, PD=Parkinson's, ET=Essential Tremor**. ET is severely underrepresented (only
-**~15 unique ET subjects** in OUT) and is the hardest class — when a tradeoff exists, optimize
-**macro-F1 and ET F1**, not raw accuracy.
+Three-class N / PD / ET classification from wearable IMU, across three cohorts.
+**ET is the constraint**: 49 patients across all three cohorts. When a trade
+exists, optimise **per-class precision** — especially ET precision — not accuracy.
+
+## Package layout
+
+```
+models/             architectures.py — every model (CNN/TCN/BiLSTM/two-stream/attention)
+signal_processing/  transforms, tfd, quaternion, preprocessing, spectral,
+                    stability (Tremor Stability Index, IF trajectories), signal_features
+frequency/          characteristics (mean/max freq), descriptors, tables, biomarker, report
+common/             data, quaternion_data, load_2025, extract_pads, loaders,
+                    cohorts (merge assembly), training (loops), protocol (splits+priors),
+                    datasets, cache
+metrics/            evaluate, stats, selective (precision at coverage), benchmark, merged
+experiments/        final_model.py, audio_techniques.py — runnable studies
+*.ipynb             01_tremor_characteristics, 02_deep_model (repo root)
+```
+
+Entry points: `python -m frequency.characteristics`, `python -m experiments.final_model`.
 
 ## Non-negotiable invariants
 
-The code already enforces these. Never write code that breaks them; they are the difference between
-a real result and a leaked one.
+1. **Patient-level splits only.** Every recording of one patient stays in one
+   fold. In the merged tables each row IS a patient, so `StratifiedShuffleSplit`
+   on the row index is already patient-disjoint.
+2. **Split first, then normalise.** Fit scaling on the training fold only.
+3. **Augmentation and oversampling on the TRAIN fold only.**
+4. **Report per-class precision with the test set's class prevalence.**
+   Precision is not comparable across differently-composed test sets — see the
+   prevalence artifact below.
+5. **Paired bootstrap CIs for every comparison.** Unpaired differences of ~0.04
+   sit inside the per-config sd here and have repeatedly evaporated when paired.
 
-1. **Splits are at the SUBJECT level**, never the recording level. All trials of one patient stay
-   together in one fold. Use `tremor.splits.subject_level_split` (GroupShuffleSplit on subject) or
-   `GroupKFold`. A subject ID is the filename with the trailing trial number stripped.
-2. **Augmentation and oversampling apply to the TRAINING fold only** — never val or test. Random-
-   pad/crop, oversampling, SpecAugment, `WeightedRandomSampler`. Applying any to val/test inflates
-   metrics.
-3. **Split first, then normalize.** Fit normalization statistics on the training fold only.
-4. **Select the model by validation loss only.** Evaluate the test set exactly once, at the end.
-5. **Subject IDs embed the action** (`ET 10_OUT`). Fine for single-action work, but 136/154 subjects
-   appear in all three actions, so **cross-condition training silently leaks** while
-   `_assert_disjoint_subjects` still passes. Strip `[_\s]+(OUT|REST|WING)$` after the trial suffix
-   before any cross-action split.
+## Cohorts
 
-## Data at a glance
+| cohort | n | N / PD / ET | notes |
+|---|---|---|---|
+| 2015 | 151 | 61 / 75 / 15 | `Data/`, 3 sensors, single limb, OUT/REST/WING |
+| NewData | 56 | 27 / 23 / 6 | 2025 Moveo, both limbs, 7 tasks |
+| PADS | 383 | 79 / 276 / 28 | both wrists, 100 Hz, 10 tasks (2 extracted) |
 
-```
-<root>/Data/[ProcessedData/[raw data/]]<feature>/<ACTION>/<CLASS>/<file>.txt
-  ACTION ∈ {DRINK, EAT, FNF, OUT, REST, WING}   CLASS ∈ {ET, N, PD}
-```
+**PADS labels must be exact-matched.** A substring match once put 13 non-ET
+records (etiology, asymmetric, Retrocollis, hypokinetic) into ET, and 20 PD
+records are Atypical Parkinsonism. `common/extract_pads.py` re-derives class
+from the manifest by exact diagnosis. Strict mode gives 79 / 276 / 28.
 
-Two **different feature families** live in the tree — do not confuse them:
+**NewData is a training cohort, not an evaluation one.** At 6 ET, a 20 % test
+split holds ~1.2 ET patients; per-cohort ET metrics there are one-patient
+artifacts (an identical 0.100 appeared across three structurally different
+models).
 
-| feature (`--feature`)            | channels | native fs | what it is |
-|----------------------------------|----------|-----------|------------|
-| `raw_quaternion`                 | 12→9     | **100 Hz**| orientation → angular velocity (`--data-mode quaternion`) |
-| `filtered_amplitudes`            | 3        | **60 Hz** | displacement amplitude (`--data-mode raw`) |
-| `downsize_filtered_amplitudes`   | 3        | **60 Hz** | pre-downsampled amplitude — the MATLAB pipeline's actual input |
+## How to merge the cohorts (settled)
 
-> **fs TRAP — the most important single fact.** The `*_amplitudes` files are **already downsampled
-> to 60 Hz**. Passing `--fs 100` on them mislabels every frequency by 1.67× and *silently produces
-> plausible nonsense* (peaks land in the right-looking band but at the wrong Hz). Use **`--fs 60`**
-> for any amplitude feature; `--fs 100` only for `raw_quaternion`. Do **NOT** pass `--apply-bandpass`
-> on `filtered_*` features — they are already filtered.
+* Cap PADS at **90/class**, pool, one **global** set of validation-tuned priors.
+* **No distribution alignment.** `spectrum_table` output is already
+  scale- and rotation-invariant; the cohort probe sits at |acc − majority|
+  = 0.003–0.035 with nothing applied. z-score, rank and CORAL all RAISE it to
+  0.24–0.48, because centring each cohort on its own class mixture (PADS is
+  72 % PD) injects the signature they were meant to remove.
+* **Merge on the postural task** (OUT / OUT / StretchHold), not REST:
+  LOCO macroF1 0.451 vs 0.399.
+* **Dropping PADS is catastrophic**: ET precision 0.519 → 0.065.
+* **Sample weighting does not substitute for capping** (0.492 vs 0.649). Uncapped,
+  precPD rises to 0.742 while precET collapses to 0.221 — PADS at 72 % PD turns
+  the model into a PD detector regardless of loss weights.
+* **Transfer learning from PADS is the worst thing tried** (precET −0.188
+  [−0.315, −0.088]). PADS is where the ET signal lives; pooling is correct.
 
-Each quaternion `.txt` is `(T, 12)` = 3 sensors × 4 components, **scalar-last `(x, y, z, w)`**.
-Class is the leading filename letter (`N`/`P`/`E`). `CLASS_MAP = {N:0, P:1, E:2}`,
-`CLASS_NAMES = ("N","PD","ET")`, `SENSOR_NAMES = ("hand","lower_arm","upper_arm")` (distal→proximal).
-Hand carries the most tremor **amplitude**, but a 168-feature scan found **proximal sensors
-(lower/upper arm) carry MORE of the PD-vs-ET discriminative signal** — do not default to hand-only
-when the goal is PD-vs-ET separation.
+## What works
 
-Loaders return `tremor.data.Recording(x:(channels,time), y, subject, path)`:
-`load_quaternion_recordings` (raw quaternion), `load_recordings` (amplitude/time-domain),
-`load_stft_recordings` (precomputed STFT, `STFTRecording`). Feature/quaternion/TFD/normalization
-detail is in **`references/data-and-preprocessing.md`** — read it before touching feature code.
+**Frequency characteristics solve N-vs-Tremor.** Six numbers
+(`frequency/characteristics.py`) + logistic regression reach **precision 0.910
+(2015) / 0.924 (PADS)**. `bandwidth` contributes more than mean frequency.
+`peak_sharp` is the standout descriptor: ET 12.19, PD 5.80, N 4.08 on PADS — ET
+tremor is close to a pure tone.
 
-## Feature (TFD) methods
+**PD-vs-ET splits by cohort.** On PADS, max+mean frequency give AUC 0.786 (full
+descriptor set 0.807). On 2015 every frequency feature is BELOW chance
+(0.29–0.32); there, instantaneous-frequency **stability** works (AUC 0.652).
+Never report one cross-cohort PD-vs-ET frequency number.
 
-`--tfd-method {stft, cwt, hht, wavelet_packet, multitaper, sst}` (default `stft`), all producing a
-`(channels·kept_bins, frames)` layout via `TremorDataset`. STFT defaults are MATLAB-aligned:
-`--nperseg 128 --noverlap 96 --nfft 128 --f-max 30` (65 one-sided bins, 39 kept ≤30 Hz, 0.78 Hz/bin
-at fs=100 → 0.47 Hz/bin at fs=60). Higher-resolution amplitude STFT (fs=60, longer window span)
-resolves the 1–2 Hz PD/ET peak gap that the 100 Hz quaternion STFT blurs. `multitaper` (DPSS,
-~26× lower spectrogram variance) and `sst` (synchrosqueezed STFT, ~2× sharper peaks) were added as
-denoise/sharpen alternatives — neither improves *univariate* PD-vs-ET separation (see guardrails),
-but both are legitimate comparison columns.
+**The final deep model** (`experiments/final_model.py`): two-stream —
+`Spectrum1DCNN` on the log-binned **multitaper** spectrum plus `TrajectoryEncoder`
+(dilated TCN) on the instantaneous-frequency trajectory, soft-voted with
+`ResidualTCN`. precN 0.639 / precPD 0.655 / precET 0.685 / macroP 0.660, paired
+**+0.041 [+0.014, +0.067]** macroP over the welch baseline at 20 splits.
 
-## Models (`tremor/models.py`)
+Ranked by measured contribution:
 
-Registry (`--model`), all `(B,F,T) → (B,num_classes)` logits:
-`tremor_bilstm` (default), `bilstm`, `lstm`, `gru`, `resbilstm`, `restcn`, `ast`, `resnet18`.
-Instantiate via `tremor.models.build_model(name, input_size, num_classes, ...)`. Gotchas:
-- **`ast` `target_T` must be the post-TFD FRAME count** (`sample_x.shape[1]`), NOT the raw sample
-  length — passing the raw length mis-sizes the positional embedding and crashes at `x + pos_embed`.
-- `restcn` uses `base_filters=hidden` (use **≥64**; 32 underfits 129-bin input).
-- `resnet18` needs `n_input_channels` to divide F, and `resize_to`.
-- `ast`/`resnet18` honor `--no-pretrained` / `--no-freeze-backbone`. Pretrained weights download
-  from HuggingFace/torchvision — offline/CI runs must pass `--no-pretrained`.
-- **All five recurrent models end in `x.mean(dim=1)`**, averaging the time axis away. Tremor
-  amplitude *fluctuation over time* is a plausible PD/ET cue that mean-pooling discards — this is
-  the motivation for the MIL path below.
+1. **Input representation.** Log-scale and coarse-bin the spectrum to 16–32 bins.
+   61 bins at n=404 is 15 % of the sample count; every model collapses there
+   (TCN 0.505 at 16 bins vs 0.412 at 61).
+2. **Validation-tuned class priors** — per-class logit offsets fitted on val,
+   applied to test. ET precision 0.475 → 0.612, the single largest gain.
+3. **Instantaneous-frequency trajectory** (+0.056 precET paired).
+4. **Transform choice**: multitaper over welch. HHT is the WORST of eight.
+5. Residual connections in the TCN; bilateral asymmetry as a missing modality;
+   attention pooling for the BiLSTM (+0.012, does NOT transfer to the TCN).
 
-## Loss for imbalance (`tremor/losses.py`)
+## What does not work — do not re-try without new evidence
 
-`--loss {ce, weighted_ce, focal}` (default `focal`). **For the ET imbalance, reach for the loss
-function first, not augmentation.** Start with `focal` (`--focal-gamma`, default 1.5); if still weak,
-try inverse-frequency `weighted_ce`. **Do NOT stack oversampling (`--auto-oversample` /
-`--oversample-to`) AND a class-weighted loss (`focal`/`weighted_ce`)** — the double correction
-overshoots and collapses the majority classes; the code warns when both are on. Pick one (focal is
-cleaner; to run focal alone in `cv_benchmark`, pass `--oversample-to 0`). Augmentation is a later
-lever, not the opening move.
-
-## Cross-validation & statistics
-
-- `cv_benchmark.py` does subject-level `GroupKFold`; `--loso-target-class ET` switches to
-  **ET-targeted LOSO** (one fold per ET subject, each tested once) and prints a **POOLED per-class
-  AUC** table — the stable ET number, since per-fold ET F1 swings wildly on 1–2 test samples.
-- Report **subject-level (cluster) bootstrap CIs**, resampling *subjects* not recordings (trials of
-  one patient are correlated). See `tremor/stats.py` (`bootstrap_ci`, `permutation_test`,
-  `paired_permutation_test`, `format_ci`) once the pending patch is applied.
-- Both `splits.py` and `cv_benchmark.py` group by subject but are **NOT stratified**;
-  `StratifiedGroupKFold` is the correct-but-unimplemented fix.
-
-## Multiple-Instance Learning (`tremor/mil.py`, pending patch)
-
-MIL over spectrogram windows (Papadopoulos et al., IEEE JBHI 2019/2023): a recording is a *bag* of
-`(K, F, W)` windows; the TFD is computed once per recording then sliced. Pooling: `mean`,
-`attention`, `mean_stats`, `attention_stats`. **Critical ordering:** log-compress + z-score run on
-the FULL spectrogram *before* slicing — per-window normalization flattens each window to zero-mean/
-unit-variance and destroys the amplitude contrast attention needs. `MILDataset` never calls
-`fit_length` (so it is immune to the pad-corruption bug below). ONNX-verified `[1,K,F,W]→[1,3]`.
-
-## Running things
-
-```bash
-# Amplitude pipeline (the MATLAB-equivalent feature) — NOTE --fs 60, no bandpass
-python -m tremor.train --data-root Data --action OUT \
-    --data-mode raw --feature downsize_filtered_amplitudes \
-    --fs 60 --f-max 30 --nperseg 128 --noverlap 96 --nfft 128 \
-    --model tremor_bilstm --loss focal --seed 39 --output artifacts/amp_OUT/
-
-# Quaternion → angular velocity pipeline (fs 100)
-python -m tremor.train --data-root Data --action OUT \
-    --data-mode quaternion --quaternion-mode angular_velocity \
-    --model tremor_bilstm --tfd-method stft --f-max 30 \
-    --normalize per_recording --loss focal --output artifacts/
-
-# ET-targeted LOSO across TFD methods (pooled AUC)
-python -m tremor.cv_benchmark --data-root Data --action OUT \
-    --data-mode quaternion --model ast \
-    --tfd-methods stft multitaper sst \
-    --loso-target-class ET --oversample-to 0 --output cv_results/OUT/
-```
-
-The complete flag reference is in **`references/cli-reference.md`**.
-
-## Empirical guardrails (measured, do not re-derive)
-
-- **The published paper is NOT a baseline.** Its accuracy was obtained by deliberately selecting the
-  random seed. On the real split sizes, ET F1 ranges seed-worst 0.000 / median 0.667 / best 1.000.
-  Do not treat it as a target or comparison point; LOSO removes the split seed entirely.
-- **PD-vs-ET is NOT univariately separable in OUT.** Peak-frequency Mann-Whitney **p≈0.97**, peak
-  amplitude **p≈0.39**; across 168 scalar features, 0 survive Bonferroni. **N-vs-tremor separates at
-  p<0.0001.** So in a confusion matrix, **ET→PD is expected** (points at pooling / better model);
-  **ET→N means something else is wrong** (feature, fs, or normalization bug).
-- **Only ~15 ET subjects.** A genuine +0.124 ET F1 improvement sits at **p=0.25**; a 0.571 ET F1
-  carries a 95% CI of [0.333, 0.750]. "80% ET" is reachable by luck, not demonstrable — steer toward
-  a defensible number **with an interval**.
-- **`--length-mode pad` corrupts normalization** (zero-padding inflates log-std and buries the peak;
-  padding fraction does not correlate with class, so it's corruption not leakage). **Avoid.** Use
-  `truncate` (default) or MIL windows.
-- **MIL for tremor is already published (JBHI ×2)** by the group likely to review this work. Novelty
-  must come from *characterization* (why ET fails here, with evidence) + a pooling ablation — not
-  from "we applied MIL."
-- **Biggest available lever for a paper:** the single-condition / single-3-class-model constraints
-  are self-imposed. Dropping them (cross-condition rest/kinetic ratio; two-stage
-  tremor-detect-then-type) exploits the fact that N-vs-tremor is easy while PD-vs-ET is hard.
-
-## Working style for this repo
-
-- The user is a mechanical engineer: strong in signal processing, weaker in coding/ML methodology.
-  Explain method *characteristics*, not mechanics. Be direct and technical; keep it short.
-- Be honest about projected vs measured performance; never present an estimate as a result. The user
-  has correctly pushed back on claims not grounded in the actual codebase — audit source first, do
-  not invent variable names.
-- Reuse `TremorDataset`, `build_model`, `build_loss_fn`, `subject_level_split` rather than rewriting.
-- Read a module's docstring before editing — they carry hard-won rationale (e.g. why
-  `per_freq_zscore` erases the tremor peak and should be avoided).
-- Keep changes ONNX-export-friendly: the deployment path is C++ ONNX Runtime, so prefer ops that
-  trace cleanly and keep train / export / inference preprocessing identical.
-
-## Reporting metrics — precision is not optional
-
-**Never lead with balanced accuracy on a minority class.** With
-`class_weight="balanced"` the classifier deliberately trades precision for
-recall so the ~10 %-prevalence ET class is not ignored. Balanced accuracy
-rewards that trade; precision exposes what it costs. Measured on this cohort:
-
-| headline | what it hides |
+| tried | result |
 |---|---|
-| PD-vs-ET bal-acc **0.730** | **ET precision 0.219** — 32 ET calls, 7 correct |
-| max+mean frequency only | **ET precision 0.093** |
-| PADS StretchHold (best anywhere) | ET precision 0.339, recall 0.679 |
+| mixup | worse in 7 of 9 configs |
+| spectrum augmentation (shift+noise) | paired CI spans zero |
+| SpecAugment frequency masking | −0.021 |
+| rich descriptors (10 → 34) | 0.584 vs 0.583 |
+| two-stage hierarchy | 0.568 vs 0.583 |
+| minibatch training | worse at every batch size |
+| 1-D ResNet | 0.571 vs ResidualTCN 0.587 |
+| ImageNet backbones (ResNet18/WideResNet/ViT) | at chance; ResNet18 from scratch trades macroF1 for precET |
+| HHT / hht_imf2plus | worst of eight transforms |
+| averaging two PADS tasks | precET 0.585 vs 0.612 |
+| per-cohort priors | significantly worse (overfits ~11 val patients) |
+| cohort-ID input | best mean, CI spans zero, sd nearly doubles |
+| frequency-aware conv (CoordConv/FDY) | +0.010, not significant |
 
-The dominant error is **PD → ET**, not N → ET: the model confuses the two tremor
-types, not tremor with health. `tfbench.merged.report` now prints P and R
-alongside bal-acc, and `tfbench.merged.per_class_report` gives the full
-per-class table — use it for any 3-class result.
+**Feature unions dilute.** Seven have underperformed their best member
+(concat+asym 0.554 vs 0.709; descriptors+stability 0.754 vs 0.807;
+multitaper+traj+stability 0.639 vs 0.660). At 404 patients with 49 ET,
+**dimensionality binds harder than information**. Prefer replacing a feature
+family over appending one.
 
-Raw accuracy is worse than useless here. Majority baselines: **0.833** (2015
-PD-vs-ET), **0.908** (PADS PD-vs-ET). A model can beat balanced chance and still
-sit below the majority baseline on raw accuracy.
+## Measurement traps that have produced wrong conclusions here
 
-## Statistical discipline (learned the hard way in this repo)
+* **Precision is prevalence-dependent.** A cap sweep appeared to show ET
+  precision falling monotonically with more PADS (0.282 → 0.156). It was an
+  artifact: capping also shrank the PADS *test* fold from 7.3 % to 31.8 % ET.
+  With the test cohort fixed, the trend reverses. Always report prevalence, or
+  lift = precision / prevalence.
+* **One fold split proves nothing.** Split-to-split sd is 0.008–0.025 here. A
+  single split said "BiLSTM loses to logreg"; over 5 splits it wins.
+* **Pooled k-fold overstates deep models on merged cohorts.** The pooled-to-LOCO
+  gap grows with capacity (−0.037 logreg → −0.149 CNN). Report LOCO for any
+  generalisation claim.
+* **Two protocols answer different questions.** Mixed-cohort (all sources in
+  train/val/test) = "how well at sites we trained on"; LOCO = "will it transfer".
+  Cohort-ID as an input is legitimate in the first and leaks in the second.
+* **Window-level metrics do NOT inflate results here** — tested because a paper
+  reports them; window-level is LOWER than patient-level on N-vs-Tremor.
+* **Sanity-check physics, not just metrics.** The IF-trajectory extractor
+  initially z-normalised away the fluctuation magnitude it existed to measure; a
+  stable and a wandering 6 Hz tremor came out identical. No accuracy number
+  looked wrong.
 
-Three results were reported and then retracted in a single session. All three
-would have been caught by the checks below, all of which are cheap.
+## Ceilings
 
-1. **Paired CI belongs in the same run as the point estimate.** For any "B beats
-   A" claim, bootstrap the *difference* on the same resampled subjects. Two
-   independent CIs are not a comparison. `tfbench.benchmark.rank_methods` does
-   this.
-2. **Correct for multiplicity, and say how many tests.** A 198-test screen makes
-   p=0.00035 non-significant (Bonferroni 2.5e-4, BH q=0.070). `rank_methods`
-   prints `*` (uncorrected CI) and `BONF-PASS`/`bonf-fail` separately — they are
-   different tests and must not be merged.
-3. **`n_boot` must resolve the threshold.** At `n_boot=1000` the smallest
-   non-zero p is 0.001; a comparison read p=0.0040 (would pass α=0.00455) and at
-   20 000 draws was p=0.0083 (fails). Use ≥20 000 when close.
-4. **Check a second condition before writing anything down.** The headline
-   handedness effect was OUT-only and *reversed sign* at WING. REST/WING cost
-   nothing to run.
-5. **In-CV threshold tuning can HURT at this n.** It makes the best config
-   significantly worse (0.730 → 0.624, paired CI [−0.21, −0.01]). Tuning helps
-   only where 0.5 is genuinely misplaced. Always run tuning-off as a control.
+**Macro precision > 0.90 on three classes is not reachable at any coverage** —
+abstaining on 80 % of patients still gives 0.73. ET precision gets *worse* under
+abstention (0.630 → 0.462): confidence does not track correctness for the
+minority class, so no thresholding scheme rescues ET.
 
-## Cross-dataset rules
+The levers that would actually raise it, in order:
+1. more ET patients;
+2. the PADS non-motor questionnaire (the published 91 % baseline is multimodal;
+   this pipeline is IMU-only by the user's choice);
+3. PADS's 8 unextracted tasks — the kinetic ones (DrinkGlas, TouchNose) are
+   where ET separates best (NewData DRINK AUC 0.812 vs 0.20–0.27 at REST).
 
-* **Device-identity probe before any pooling**, on the minority class only,
-  judged on **|AUC − 0.5|**. An AUC of 0.000 is *maximally* separable with
-  LOO-inverted labels, not "safe" — that mistake was made here.
-* **PADS cannot be training data.** Confirmed twice, before and after the label
-  fix: pooling costs ET-F1 0.538 → 0.350 and the identity probe is 1.000.
-* **PD-vs-ET does not transfer between cohorts**, even task-matched
-  (rest→rest). External AUC 0.387–0.424, consistently *below* chance, because
-  the cohorts disagree on the **direction** of the effect: 2015 has PD slower
-  than ET at REST (5.47 vs 6.15 Hz, p=0.042), PADS has PD *faster* (6.91 vs
-  5.90 Hz, p<0.0001).
-* **N-vs-Tremor does transfer**: 2015-trained → PADS StretchHold, bal-acc 0.736,
-  AUC 0.783.
-* The best condition is **cohort-specific**: REST for 2015, StretchHold for
-  PADS. Do not generalise a condition recommendation across cohorts.
+Continued architecture work is not the route: five rounds moved macro precision
+0.583 → 0.675, and the remaining gap to 0.90 is larger than everything that
+bought.
 
-## Dataset gotchas (each cost real time)
+## Operational
 
-* **PADS labels.** Diagnoses are clinical free text; substring matching put 13
-  non-ET patients into ET ("etiology", "asymmetric", "Retrocollis",
-  "hypokinetic") and 21 parkinsonian mimics into PD. Use **exact** matching:
-  `Healthy` / `Parkinson's` / `Essential Tremor` → **79/276/28**, which matches
-  Varghese 2024. If ET reads 41, the filter has regressed.
-* **PADS task tokens differ from PADS's own script.** Files contain `Relaxed`
-  and `Entrainment`, not `Relaxed1`/`Relaxed2`. Match the task field **exactly**
-  — `Relaxed` as a substring also catches `RelaxedTask`, a different condition.
-* **PADS task durations differ**: Relaxed 2048 samples, StretchHold 1024.
-  Control for it before comparing tasks.
-* **NewData (2025) is unsegmented.** ~38 s `Free_Form` exports with an *empty*
-  Annotations table; whole-recording analysis leaves only **9.9 %** of power in
-  the tremor band vs 76.5 % (2015) and 81.2 % (PADS). `load_2025(segment=True)`
-  is the default; any 10 s window works, so this is not a selection artifact.
-* **NewData is ET-only (6 subjects)** — no classification metric exists for it
-  alone, and any device cue is perfectly confounded with the ET label.
-
-## Cohort combinability
-
-Run `python -m tfbench.combinability` before pooling. Both must hold:
-frequency-distribution equivalence within ±1 Hz **and** a passing device probe.
-2015 + NewData fails at both conditions, for opposite reasons (REST:
-frequencies differ, p=0.017; OUT: device-separable). Merging moves the ET class
-from 38 % to 50 % of patients below the PD median — it becomes bimodal,
-straddling PD.
-
-**Adding NewData ET has no measurable effect** (paired CI spans zero for both
-stft512 and welch, with opposite signs). The often-quoted merged 0.740/ET-F1
-0.557 is scored on a *different patient set*; on the same 2015 patients it is
-0.728/0.480.
-
-## Signal-processing facts (verified, do not re-derive)
-
-* **Power vs amplitude.** Four transforms returned |S| not |S|², so every
-  power-weighted descriptor used amplitude weights. Verify any new transform
-  against Parseval: doubling the signal must **quadruple** reported power.
-* **Only Welch is Parseval-exact.** Integrated-power / true-power ranges
-  0.15–1.4e4 across the 12 transforms, so `total_power` is comparable *within* a
-  method only.
-* **Bin width matters.** VMD and the S-transform have non-uniform frequency
-  grids; weight by power × bin width or mean/median frequency is biased.
-* **The quaternion → angular-velocity conversion is faithful** — verified
-  against the raw gyroscope stream in the 2025 h5 files (identical to three
-  decimals). There is no ω tilt to correct; de-tilting makes domain shift
-  *worse* (probe 0.629 → 1.000).
-* **Plain HHT is noise-dominated** (EMD puts broadband noise in IMF1). Drop
-  IMF1: a clean 6 Hz tone is recovered at 6.00 Hz instead of the band edge.
-* **`lower_arm` alone beats every sensor combination** at both OUT and REST.
-  Adding sensors dilutes: 30 features against 16 ET subjects overfits.
-* **Condition is worth ~0.2 balanced accuracy; method choice ~0.04**, and the
-  method effect is only resolvable at n≈28 ET. Spend effort on condition and
-  cohort, not transforms.
-
-## Current best results
-
-| axis | config | metric |
-|---|---|---|
-| N vs Tremor | 2015 OUT, merged, → PADS external | internal 0.814, **external 0.736 / AUC 0.783** |
-| PD vs ET | 2015 REST, lower_arm, stft512, thr 0.5 | bal-acc 0.730, **ET precision 0.219** |
-
-Nine-plus feature families have now landed within CI on PD-vs-ET. Treat a new
-feature family as unlikely to help unless it survives a paired CI.
-
-## Deep learning — what actually works here
-
-Ten architectures tested on PD-vs-ET. The variable that mattered was never
-capacity; it was **what the model is asked to read**.
-
-| model | params | AUC | note |
-|---|---|---|---|
-| **BiLSTM over FREQUENCY, time-averaged spectrum, h=32** | **9,090** | **0.870–0.942** | best; `tfbench.small_nets.best_model` |
-| MLP on the 10 descriptors, h=16 | 362 | 0.928 | best precision |
-| 1D-CNN over the spectrum | 626 | 0.862 | |
-| logreg on 10 descriptors | 11 | 0.812 | the bar to beat |
-| BiLSTM over TIME on a spectrogram | ~1e5 | 0.517 | chance |
-| ResNet18 / WideResNet / ViT (frozen) | 11–86 M | 0.47–0.54 | chance |
-| TCN(freq)+BiLSTM(time) | 1.6–15 k | 0.73–0.76 | worse |
-| per-axis x/y/z fusion | 11–38 k | 0.59–0.76 | worse than averaging axes |
-
-Rules that fall out of this, all measured:
-
-* **Frequency axis, not time.** Tremor is quasi-stationary over a 10 s window,
-  so a sequence model over time has little to model. The same BiLSTM family
-  goes from chance (time) to best-in-project (frequency).
-* **Capacity has an optimum, ~9–35 k.** h=8 → 0.851, h=32 → 0.913, h=128 →
-  0.830. Both the ~1e5 spectrogram BiLSTM and the 11–86 M backbones are past it.
-* **Feed features, not raw spectrograms.** Feature *learning* is what fails at
-  this n, not neural networks.
-* **Average the x/y/z axes.** That is a rotation-invariant reduction, not a free
-  loss; keeping them separate triples input dimensionality and measures worse.
-* **Class weighting is a trade.** On the frequency BiLSTM it buys recall
-  (0.667 → 1.000) and costs precision (0.667 → 0.600) and AUC (0.942 → 0.870).
-  Sweep it and report both; do not assume "imbalanced ⇒ use weights".
-* **torch threading destroys these models.** Tiny tensors mean thread sync
-  dominates: `torch.set_num_threads(1)` turns 30+ minutes into ~2.
-
-## Task choice beats everything else
-
-ET is a **kinetic** tremor. On the 2025 cohort, PD-vs-ET by task:
-
-| task | bal-acc | AUC | ET precision |
-|---|---|---|---|
-| **DRINK** | 0.790 | 0.812 | **0.667** |
-| **FINGER_NOSE** | 0.708 | **0.826** | 0.400 |
-| POUR / PRON_SUP / TAP | 0.42–0.57 | 0.44–0.53 | ≤0.23 |
-| REST / OUT | 0.39–0.49 | 0.20–0.27 | ≤0.18 |
-
-Every earlier attempt varied the *method* on rest/postural recordings and
-failed. Varying the *task* produced the largest jump in the project. Caveat:
-**6 ET**, no paired CI, no correction across 7 tasks, no replication cohort yet
-— PADS `DrinkGlas`/`TouchNose` (938 files each, 28 ET) is the decisive test.
-
-## Known-unfixed bugs (as of this skill revision)
-
-- `tremor/quaternion_data.py`: the `candidates` list contains the **same path twice**, so the
-  `ProcessedData/` and MATLAB `raw data/` layouts never resolve; and it calls
-  `process_quaternion_data` unconditionally (crashes on 3-col amplitude files). Fixed by the pending
-  `tremor_pipeline.patch`.
-- `cv_benchmark.py` has **no bandpass** flag/call at all, so its numbers are not comparable to
-  `train.py` when bandpass is used.
-- `_seed_everything` drives split seed and init seed together — variance cannot be attributed to one
-  or the other.
-
-### Merged-cohort evaluation: report leave-one-cohort-out, not pooled k-fold
-
-Measured on 2015 + NewData + PADS (n=355, 49 ET, PADS capped at 60/class),
-frequency-axis spectra, class weights on:
-
-| model | pooled macroF1 | mean LOCO macroF1 | gap |
-|---|---|---|---|
-| logreg | 0.472 +/- 0.014 | **0.435** | -0.037 |
-| MLPHead h=16 (1k) | 0.508 +/- 0.022 | 0.434 | -0.074 |
-| Spectrum1DCNN (1k) | **0.574 +/- 0.008** | 0.425 | -0.149 |
-| SpectrumTCN (3k) | 0.484 +/- 0.016 | 0.396 | -0.088 |
-| SpectrumBiLSTM h=32 (9k) | 0.496 +/- 0.025 | 0.366 | -0.130 |
-
-Pooled k-fold puts PADS patients in both train and test, and PADS is 42 % of
-the pool with the cleanest ET. Every deep model's advantage is cohort fitting:
-the pooled-to-LOCO gap grows with capacity, and under LOCO **no model beats
-logistic regression on average**. Spectrum1DCNN predicts ZERO ET on an unseen
-NewData (precision 0.000, recall 0.000) while logreg gets macroF1 0.420 there.
-
-Do not quote a pooled merged-cohort number without the LOCO number beside it.
-
-### Do not judge a model on one fold split
-
-Single split said "BiLSTM h=32 (0.470) loses to logreg (0.479)". Over 5 splits
-BiLSTM is 0.496 +/- 0.025 against logreg 0.472 +/- 0.014 -- the opposite
-conclusion. Split-to-split sd on macroF1 here is 0.008-0.025; differences below
-~0.05 need repeated splits before they mean anything.
-
-### Bilateral limb asymmetry is the only feature that moves PD-vs-ET
-
-On PADS StretchHold (n=304, 28 ET), four unsigned between-limb dissimilarity
-descriptors (`tfbench.small_nets.asym_feats`) reach AUC 0.730 where the
-single-limb spectrum sits at 0.527 and 122 concatenated bilateral bins reach
-0.605. Paired subject bootstrap dAUC +0.183 [+0.031, +0.343]; permutation null
-p = 0.000; null on N-vs-Tremor (+0.032 [-0.041, +0.104]), which is the correct
-axis-specificity.
-
-Two caveats that are easy to get wrong:
-* PADS has a handedness bias (ET 0.179 left-dominant vs PD 0.388), so the
-  SIGNED log-ratio features can read side rather than asymmetry. Dropping them
-  raises AUC to 0.730. Use the 4 unsigned features.
-* `concat+asym` (128 dim, AUC 0.554) is WORSE than `asym` alone (6 dim, 0.709).
-  At 28 positives, 122 uninformative dims bury 6 informative ones. This is also
-  the mechanistic reason a bilateral transformer over 2F frequency tokens
-  should not be expected to help at this n.
-
-### Contrastive / InfoNCE losses are contraindicated here
-
-Contrastive learning builds invariance to whatever the positive pairs declare
-to be nuisance. Every natural choice on this data deletes a measured biomarker:
-amplitude scaling removes tremor amplitude; time warping removes tremor
-frequency (the primary PD/ET discriminator); left-vs-right-wrist positives
-remove the asymmetry finding above; same-patient-different-task positives learn
-patient identity, i.e. device and session.
-
-### Window-level metrics do not inflate results on this data
-
-Tested because a published paper reports window-level metrics. 2 s windows at
-50 % overlap, patient-grouped folds both ways: window-level is LOWER than
-patient-level on N-vs-Tremor (0.774 vs 0.815 on 2015; 0.673 vs 0.714 on
-NewData). Averaging to patients denoises more than correlated rows inflate. Do
-not use "they report window-level" as an explanation for a performance gap.
-
-### Precision is not comparable across differently-composed test sets
-
-A cap sweep appeared to show ET precision falling monotonically as PADS was
-added (0.282 -> 0.156). It was an artifact: capping PADS also shrank the PADS
-LOCO test fold from 7.3 % ET to 31.8 % ET, and precision tracks prevalence.
-With the test cohort held FIXED the trend reverses on 2015 (0.150 -> 0.226) and
-is mild on NewData (0.167 -> 0.118).
-
-Always report per-class precision alongside the test set's class prevalence, or
-as lift = precision / prevalence. Never compare precision across configurations
-that change the test composition.
-
-### Do not apply per-cohort distribution alignment to spectrum features
-
-`spectrum_table` (sum-normalised, axis-averaged spectra) is already
-scale-invariant and rotation-invariant, and the cohort-identity probe sits at
-|acc - majority| = 0.003-0.035 with NO alignment. Per-cohort z-score, rank, and
-CORAL all RAISE it to 0.24-0.48, because centring each cohort on its own class
-mixture (PADS is 72 % PD, 2015 is balanced) injects a class-dependent shift that
-becomes the cohort signature. There is no domain shift left to correct.
-
-### Merge on the postural task, not REST
-
-Cross-cohort LOCO: postural (2015 OUT / NewData OUT / PADS StretchHold) reaches
-macroF1 0.451 / precET 0.282; rest (REST / REST / Relaxed) reaches 0.399 /
-0.209. At REST alignment methods help and at postural they hurt -- rest tremor
-is weak, so cohort differences dominate there -- but REST never becomes
-competitive.
-
-### Merging buys robustness, not peak accuracy
-
-For each held-out cohort, training on both other cohorts beats the AVERAGE
-single source (+0.016 macroF1) but never the BEST single source (0.433 vs
-0.436). The best single source cannot be known in advance without target
-labels, so merging is still the right default -- but do not claim it improves
-peak performance.
-
-Clean external validation worth knowing: train on 2015 alone, test on PADS ->
-ET precision 0.479, macroF1 0.476, with no PADS in training.
+* `torch.set_num_threads(1)` — thread sync dominates on these tiny tensors (15×
+  speedup).
+* Full-batch training is the default and beat minibatch at every size.
+* The container resets and reverts the working tree to an old commit. **Commit
+  and push after every result**, and keep runnable experiments as tracked
+  modules, not `scratch/` scripts — `scratch/` has not survived.
