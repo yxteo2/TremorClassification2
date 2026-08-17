@@ -198,15 +198,63 @@ def main():
         P, _, F, _ = precision_recall_fscore_support(yt, pred, labels=[0, 1, 2],
                                                      zero_division=0)
         out.append([P[0], P[1], P[2], P.mean(), F.mean()])
-    a = np.array(out); m_, s_ = a.mean(0), a.std(0)
-    print(f"{'config':>34}{'precN':>9}{'precPD':>9}{'precET':>9}{'macroP':>9}"
+    win = np.array(out)
+
+    # --- PAIRED CONTROL -----------------------------------------------------
+    # Same model, same features, same splits -- the only difference is whether
+    # training rows are windows or patient averages. Without this the comparison
+    # would measure the features the final model has and this one does not.
+    ctrl = []
+    for sp in range(SPLITS):
+        tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
+                                             random_state=sp).split(pats, key))
+        t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
+                                             random_state=sp).split(pats[tv],
+                                                                    key[tv]))
+        tr_p, va_p, te_p = set(pats[tv[t0]]), set(pats[tv[v0]]), set(pats[te])
+        # patient-level rows: average each patient's window spectra
+        Xp, yp, ids = [], [], []
+        for pid in pats:
+            m_ = pw == pid
+            Xp.append(Xw[m_].mean(0)); yp.append(yw[m_][0]); ids.append(pid)
+        Xp = np.array(Xp, np.float32); yp = np.array(yp); ids = np.array(ids)
+        itr = np.array([p in tr_p for p in ids])
+        iva = np.array([p in va_p for p in ids])
+        ite = np.array([p in te_p for p in ids])
+        mu = Xp[itr].mean(0, keepdims=True)
+        sd = Xp[itr].std(0, keepdims=True) + 1e-8
+        r = [train_windows(mk, (Xp[itr] - mu) / sd, yp[itr],
+                           (Xp[iva] - mu) / sd, yp[iva],
+                           [(Xp[iva] - mu) / sd, (Xp[ite] - mu) / sd],
+                           seed=s, batch=10 ** 6)          # full-batch
+             for s in (0, 1, 2)]
+        pv = np.mean([a[0] for a in r], 0)
+        pt = np.mean([a[1] for a in r], 0)
+        pred = (np.log(pt + 1e-12) + tune_offsets(pv, yp[iva])).argmax(1)
+        P, _, F, _ = precision_recall_fscore_support(yp[ite], pred,
+                                                     labels=[0, 1, 2],
+                                                     zero_division=0)
+        ctrl.append([P[0], P[1], P[2], P.mean(), F.mean()])
+    ctrl = np.array(ctrl)
+
+    print(f"{'config':>36}{'precN':>9}{'precPD':>9}{'precET':>9}{'macroP':>9}"
           f"{'macroF1':>9}  |{'  sd':>7}")
-    print(f"{'WINDOW-trained, patient-scored':>34}"
-          + "".join(f"{m_[i]:>9.3f}" for i in range(5))
-          + "  |" + "".join(f"{s_[i]:>7.3f}" for i in range(5)))
-    print(f"\n{'patient-trained reference (final_model)':>44}"
-          f"  precET 0.685  macroP 0.660")
-    np.save("scratch/window_training_scores.npy", a)
+    for nm, a in (("PATIENT-trained (control)", ctrl),
+                  ("WINDOW-trained, patient-scored", win)):
+        m_, s_ = a.mean(0), a.std(0)
+        print(f"{nm:>36}" + "".join(f"{m_[i]:>9.3f}" for i in range(5))
+              + "  |" + "".join(f"{s_[i]:>7.3f}" for i in range(5)))
+
+    print(f"\npaired, window - patient, same {SPLITS} splits and same model:")
+    d = win - ctrl
+    for i, nm in enumerate(("precN", "precPD", "precET", "macroP", "macroF1")):
+        boot = [np.mean(np.random.default_rng(s).choice(d[:, i], len(d),
+                                                        replace=True))
+                for s in range(4000)]
+        lo, hi = np.percentile(boot, [2.5, 97.5])
+        star = "*" if lo > 0 or hi < 0 else " "
+        print(f"  {nm:>8} {d[:, i].mean():+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+    np.save("scratch/window_training_scores.npy", np.stack([win, ctrl]))
     print("\nMARKER_DONE", flush=True)
 
 
