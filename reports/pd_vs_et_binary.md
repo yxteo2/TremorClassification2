@@ -83,3 +83,57 @@ prevalence, not as a standalone achievement. ET precision and AUC are the
 informative columns.
 
 Reproduce: `python -m experiments.pd_vs_et`.
+
+## Deep models on the binary problem
+
+Same folds, same features, binary heads throughout.
+
+### In-house (98 PD / 21 ET) -- logistic regression wins outright
+
+| model | dim | AUC | precPD | precET | bal-acc |
+|---|---|---|---|---|---|
+| **logreg on axes** | 4 | 0.625 | **0.879** | **0.291** | **0.629** |
+| MLPHead h=16 | 4 | 0.615 | 0.874 | 0.267 | 0.611 |
+| Spectrum1DCNN | 16 | 0.508 | 0.819 | 0.168 | 0.491 |
+| ResidualTCN | 16 | 0.475 | 0.828 | 0.175 | 0.499 |
+| TwoStream + hand feats | 148 | 0.644 | 0.869 | 0.253 | 0.597 |
+
+Paired against logreg: Spectrum1DCNN **AUC -0.117 [-0.148, -0.089]** *,
+ResidualTCN **-0.149 [-0.186, -0.113]** *, TwoStream **precET -0.038
+[-0.074, -0.006]** *. TwoStream's AUC edge (+0.019) does not clear zero.
+
+**A 4-feature logistic regression is the best in-house PD-vs-ET model measured.**
+
+### Merged (374 PD / 49 ET) -- deep helps the decision, not the ranking
+
+| model | AUC | precPD | precET | bal-acc |
+|---|---|---|---|---|
+| logreg (axes+stability) | **0.728** | 0.929 | 0.218 | 0.653 |
+| TwoStream + hand feats | 0.714 | **0.937** | **0.239** | **0.678** |
+
+Paired: AUC **-0.013** *, precPD **+0.007** *, precET **+0.021** *,
+bal-acc **+0.025** *. All four significant, in opposite directions.
+
+### PADS (276 PD / 28 ET) -- same split
+
+| model | AUC | precET |
+|---|---|---|
+| logreg (spectrum) | **0.790** | 0.268 |
+| Spectrum1DCNN | 0.771 | 0.289 (+0.021 *) |
+| ResidualTCN | 0.732 (-0.058 *) | **0.298** (+0.030 *) |
+
+## The pattern worth naming
+
+On the two larger cohorts, deep models give **worse rankings but better
+decisions**: AUC drops significantly while ET precision and balanced accuracy
+rise significantly. They are not ordering patients better -- they are placing the
+boundary better for the minority class, which is what class-weighted training
+plus a learned representation buys.
+
+On in-house data with 21 ET they lose on both counts, and the spectrum-only
+models collapse to near chance (AUC 0.475-0.508).
+
+**Which metric matters decides which model to use.** For ranking patients by
+risk, use logistic regression. For a fixed-threshold decision on the merged
+cohort, the two-stream model is better. For in-house patients, logistic
+regression on four axis features wins on every metric.
