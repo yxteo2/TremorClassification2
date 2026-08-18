@@ -143,8 +143,11 @@ def main():
             res[label] = evaluate(label, samp, X, y, k_folds)
         base = res["none (class_weight)"]
         print(f"\npaired vs class_weight baseline, {REPEATS} repeats:")
-        for q in ("SMOTE", "BorderlineSMOTE", "ADASYN", "RandomOver",
-                  "SMOTETomek", "SMOTE + class_weight"):
+        # SVMSMOTE was omitted from this list in the first run -- it is the
+        # best performer on the two larger cohorts, so its paired interval is
+        # exactly the one that matters.
+        for q in ("SMOTE", "BorderlineSMOTE", "SVMSMOTE", "ADASYN",
+                  "RandomOver", "SMOTETomek", "SMOTE + class_weight"):
             paired(res[q], base, q)
     print("\nMARKER_DONE", flush=True)
 
