@@ -58,3 +58,43 @@ possibility -- which is a materially stronger statement for a write-up.
 
 Reproduce: `python -m experiments.frozen_backbone --weights vit_fp16.pt`
 (rebuild the checkpoint with `cat vit_chunk_0* > vit_fp16.pt`).
+
+## Small attention on the current input: also no
+
+The frozen-ViT test above rules out a large pretrained transformer. This rules
+out small ones, on the input the current model actually uses (16 log-bins + IF
+trajectory, 404 patients) rather than the 61-bin raw spectra and 25 patients the
+earlier `BilateralAttention` test used.
+
+| model | params | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|---|
+| **TwoStreamNet CNN (current best)** | 0.7 k | 0.639 | 0.655 | **0.685** | **0.660** | 0.593 |
+| + SpectrumTransformer | 17.3 k | 0.625 | 0.655 | 0.665 | 0.648 | 0.595 |
+| CrossStreamAttention | 4.9 k | 0.645 | 0.633 | 0.646 | 0.641 | 0.568 |
+
+Paired against the current best, 20 splits:
+
+| | macroP | macroF1 |
+|---|---|---|
+| SpectrumTransformer | -0.011 [-0.036, +0.010] | +0.002 [-0.018, +0.020] |
+| CrossStreamAttention | -0.018 [-0.048, +0.013] | **-0.026 [-0.044, -0.007]** * |
+
+`CrossStreamAttention` was the best-motivated variant -- spectrum bins query the
+IF trajectory so the two streams condition on each other instead of meeting only
+at the classifier head, which is the mechanism the published bilateral-wrist
+result uses across limbs. It is significantly worse on macro F1.
+
+## The attention question, closed
+
+| form | result |
+|---|---|
+| frozen pretrained ViT-B/16 + linear head | macroP 0.501 |
+| ViT / ResNet18 / WideResNet, random weights | at chance |
+| `SpectrumTransformer` (17 k, current input) | -0.011, n.s. |
+| `CrossStreamAttention` (5 k, current input) | -0.026 macroF1 * |
+| `BilateralAttention` (25 patients, old input) | at chance |
+| `AttnPoolBiLSTM` | +0.012 for the BiLSTM only; does not transfer to the TCN |
+
+Attention does not help this problem at this scale, in pretrained or small form,
+on old or current inputs. A 0.7 k-parameter 1-D convolution over the frequency
+axis remains the best spectrum encoder measured.
