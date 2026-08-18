@@ -65,3 +65,45 @@ boundary: **methods that add capacity or synthesise data need more minority
 patients than the in-house cohort has.**
 
 Reproduce: `python -m experiments.resampling`.
+
+## RandomForest + SVMSMOTE do not combine
+
+Both improve ET precision independently on PADS (+0.141 and +0.102). Stacking
+them is worse than either alone.
+
+### PADS
+
+| model | AUC | precET |
+|---|---|---|
+| logreg (baseline) | 0.757 | 0.260 |
+| **RandomForest** | 0.756 | **0.401** (+0.141 *) |
+| logreg + SVMSMOTE | **0.764** | 0.362 (+0.102 *) |
+| RF + SVMSMOTE | 0.749 | 0.374 (+0.114 *) |
+| RF + BorderlineSMOTE | 0.750 | 0.355 (+0.095 *) |
+
+### Merged
+
+| model | AUC | precET | bal-acc |
+|---|---|---|---|
+| logreg (baseline) | **0.728** | 0.218 | 0.653 |
+| RandomForest | 0.660 | 0.292 | 0.651 |
+| **logreg + SVMSMOTE** | 0.717 | 0.291 | **0.668** |
+| RF + SVMSMOTE | 0.652 | 0.276 | 0.638 |
+
+**Why they do not stack:** both do the same job -- moving the decision boundary
+toward the minority class. RandomForest does it with class-weighted splits,
+SVMSMOTE by planting synthetic minority points near the boundary. Applying both
+over-corrects, and the combination lands between the two rather than above them.
+
+## Final PD-vs-ET recommendation per cohort
+
+| cohort | model | AUC | precPD | precET |
+|---|---|---|---|---|
+| in-house (21 ET) | logreg on 4 axis features | 0.625 | 0.879 | 0.291 |
+| merged (49 ET) | logreg + SVMSMOTE | 0.717 | 0.927 | 0.291 |
+| PADS (28 ET) | RandomForest | 0.756 | 0.945 | **0.401** |
+
+On the merged cohort `logreg + SVMSMOTE` is preferred over RandomForest despite
+identical ET precision (0.291 against 0.292): it holds AUC at 0.717 against
+0.660 and significantly improves balanced accuracy. Same precision, better
+ranking.
