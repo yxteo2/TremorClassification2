@@ -86,7 +86,7 @@ def obj_prec_guarded(yv, pred, prev):
 
 
 def obj_mix(yv, pred, prev):
-    P, _, F, _ = _pr(yv, pred)
+    P, _, F = _pr(yv, pred)
     return 0.5 * (P.mean() + F.mean())
 
 
