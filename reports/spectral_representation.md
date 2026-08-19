@@ -1,4 +1,4 @@
-# Log-frequency bins help; the principal-eigenvalue spectrum does not
+# Neither representation change survives: log bins retracted, eigenvalue null
 
 Two untested choices in how the spectrum is built, each with a physical argument
 against the current default. Run:
@@ -10,7 +10,7 @@ reported model, changing only the spectrum table.
 | representation | precN | precPD | precET | macroP | macroF1 | sd(macroP) |
 |---|---|---|---|---|---|---|
 | axis mean, linear bins (current) | 0.626 | 0.639 | 0.658 | 0.641 | 0.582 | 0.065 |
-| **axis mean, LOG-freq bins** | **0.657** | 0.647 | **0.675** | **0.660** | **0.600** | **0.052** |
+| axis mean, LOG-freq bins *(retracted, see below)* | 0.657 | 0.647 | 0.675 | 0.660 | 0.600 | 0.052 |
 | principal eigenvalue, linear bins | 0.611 | **0.660** | 0.650 | 0.640 | 0.587 | 0.069 |
 | principal eigenvalue, LOG-freq bins | 0.604 | 0.651 | 0.659 | 0.638 | 0.592 | 0.060 |
 | polarisation spectrum, linear bins | 0.592 | 0.620 | 0.651 | 0.621 | 0.552 | 0.089 |
@@ -19,7 +19,7 @@ paired vs the current representation:
 
 | arm | precN | precPD | macroP |
 |---|---|---|---|
-| axis mean, LOG-freq bins | **+0.031 [+0.006, +0.057]** * | +0.008 | +0.019 [−0.005, +0.043] |
+| axis mean, LOG-freq bins | +0.031 [+0.006, +0.057] * | +0.008 | +0.019 [−0.005, +0.043] |
 | principal eigenvalue, linear | −0.015 | **+0.021 [+0.004, +0.040]** * | −0.000 |
 | principal eigenvalue, LOG | −0.021 | +0.012 | −0.003 |
 | polarisation spectrum | −0.033 | −0.019 | −0.020 |
@@ -55,7 +55,7 @@ is believed — arm A of `combined_best.py` reproduces the reported model to thr
 decimals (0.639 / 0.655 / 0.685 / 0.660 / 0.593), which is what makes that
 experiment's comparisons trustworthy.
 
-## The principal eigenvalue## The principal eigenvalue: correct physics, discarded by the pipeline
+## The principal eigenvalue: correct physics, discarded by the pipeline
 
 `spectrum_table` and `method_table` both average the three gyroscope axes
 (`P.mean(0)`). Tremor is close to a **linear** oscillation — this repo measured
@@ -107,10 +107,11 @@ priority.
 
 ## Standing
 
-* **Log-frequency binning is a cheap, low-risk change** worth carrying: one
-  significant per-class gain, a positive macro point estimate, and lower
-  variance. It is tested against the reported model in
-  `experiments/combined_best.py`.
+* **Log-frequency binning is retracted** — significantly worse on the reported
+  model (precET −0.086 *, macroP −0.030 *). Do not carry it.
+* **Always check that a rebuilt baseline reproduces the reported number.** This
+  experiment's baseline scored 0.641 where the reported model scores 0.660, and
+  that 0.019 gap is what the log-bin "gain" was made of.
 * **Do not re-try the principal-eigenvalue or polarisation spectrum** under the
   current normalisation. Re-open only if a pipeline variant keeps absolute
   amplitude — and note that `rest_postural_contrast.md` found the same
