@@ -51,11 +51,23 @@ import torch
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
-from common.cohorts import logbin
 from experiments.masked_pretrain import finetune, pretrain
 from experiments.pd_vs_et import build as build_labelled
 
 REPEATS, COLS = 10, ("AUC", "precPD", "precET", "macroP", "ETsens")
+
+
+def logbin_truncating(X, nb=16):
+    """``common.cohorts.logbin`` as it was when the SSL result was produced.
+
+    Pinned here rather than imported, because ``logbin`` has since been fixed to
+    cover the whole band (`reports/band_truncation.md`). Importing it would make
+    the "mismatched" arm silently stop reproducing the thing it exists to
+    reproduce.
+    """
+    L = np.log(X + 1e-8)
+    n = X.shape[1] // nb * nb
+    return L[:, :n].reshape(len(L), nb, -1).mean(2)
 
 
 def _recordings():
@@ -118,7 +130,7 @@ def corpus(matched):
                 continue
             rows.append(v / v.sum())
             coh.append(tag)
-    X = np.nan_to_num(logbin(np.array(rows)).astype(np.float32))
+    X = np.nan_to_num(logbin_truncating(np.array(rows)).astype(np.float32))
     return X, np.array(coh)
 
 

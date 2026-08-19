@@ -149,6 +149,8 @@ def load_all(cap=90):
 
 
 def main():
+    from common.protocol import run  # the shared training/eval loop
+
     torch.set_num_threads(1)
     H = (f"{'strategy':>36}{'precN':>9}{'precPD':>9}{'precET':>9}{'macroP':>9}"
          f"{'macroF1':>9}  |{'  sd':>7}")
