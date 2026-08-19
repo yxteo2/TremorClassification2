@@ -116,6 +116,12 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      merged.py           balanced accuracy, cohort probe
 
 experiments/         final_model.py               the merged model
+                     oneclass_paired.py           one-class PD + logreg hybrid
+                     binning.py                   band coverage vs estimator
+                     binning_deep.py              the same, paired, 3-class deep
+                     masked_pretrain.py           masked-spectrum SSL
+                     ssl_leakage.py               is the SSL gain transductive?
+                     ssl_matched.py               SSL with a matched pipeline
                      own_data_10et.py             in-house, 10 ET in test
                      inhouse_axes.py              axis features in-house
                      frozen_backbone.py           frozen pretrained ViT
@@ -125,7 +131,7 @@ experiments/         final_model.py               the merged model
                      selection_and_calibration.py selection, calibration, seeds
                      audio_techniques.py          freq-aware conv, PCEN, SpecAugment
 
-reports/             27 findings, including every retraction
+reports/             31 findings, including every retraction
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
@@ -142,7 +148,14 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
   trained on"; leave-one-cohort-out answers "will this transfer". Only LOCO
   supports a generalisation claim.
 * **Prefer replacing a feature family over appending one.** Eight feature unions
-  have underperformed their best member.
+  have underperformed their best member. The two that work — `axes + stability`
+  and `logreg + one-class` — combine things that differ *in kind*, and both do it
+  at the **score** level, not the feature level (`reports/oneclass_hybrid.md`).
+* **A frozen treatment needs a frozen control.** Changing two things at once cost
+  this project a headline result (`reports/ssl_retraction.md`).
+* **Check what a reshape keeps.** `logbin` was exact on 64-column multitaper
+  input and silently dropped 21 % of the band on 61-column welch input
+  (`reports/band_truncation.md`).
 
 ## Known limits
 
@@ -155,6 +168,14 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 * **Pretrained vision backbones do not help.** Frozen ImageNet ViT-B/16 with a
   linear head reaches macro precision 0.501, below logistic regression on ten
   spectral descriptors (`reports/frozen_vit.md`).
+* **Self-supervised pretraining does not transfer.** Masked-spectrum SSL on 3,081
+  unlabelled recordings gives nothing once the evaluated patients are removed
+  from the pretraining corpus — PADS precET −0.014, per-fold-excluded −0.029
+  [−0.036, −0.014]. The gain first measured (+0.161) was a *frozen* treatment
+  against a *fine-tuned* control; against a frozen control it is zero
+  (`reports/ssl_retraction.md`).
+* **Ten hand-computed spectral descriptors remain the best PD-vs-ET model on
+  PADS** (precET 0.464 / macroP 0.705), ahead of every encoder tried.
 * **21 in-house ET patients is the binding constraint.** Three feature families
   separate PD from ET at the population level — axis shape (0.641), frequency
   stability (0.652), bilateral asymmetry (0.730) — and none converts into a

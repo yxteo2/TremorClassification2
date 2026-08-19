@@ -96,5 +96,35 @@ about *which* frequencies the coarse bins covered.
   `own_data_10et.py`, `inhouse_axes.py` or `trajectory_tuning.py`, all of which
   bin `method_table` output at 64 columns where the old and new code agree
   exactly.
-* Measured with logistic regression. Whether the deep models convert the extra
-  band into the same gain is not tested here.
+## The 3-class merged deep model does not convert it — but cannot resolve it either
+
+`python -m experiments.binning_deep` runs both binnings through the merged
+3-class model on **20 shared splits**, so split variance cancels:
+
+| binning | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| truncating (3.12–12.30 Hz) | 0.661 | 0.633 | 0.587 | 0.627 | 0.585 |
+| full band (3.12–14.84 Hz) | 0.667 | 0.622 | 0.611 | 0.633 | 0.572 |
+
+paired: precET **+0.023 [−0.056, +0.103]**, macroP +0.006 [−0.026, +0.039].
+Nothing significant.
+
+The precET point estimate (+0.023) is the same direction and roughly the same
+size as the logistic-regression gain (+0.035 on the same merged patients), so
+this is **not evidence the deep model fails to use the band** — the interval is
+equally consistent with the logreg-sized effect and with zero. It is a power
+statement: precET has sd 0.154 across splits here, and the paired differences are
+barely correlated between arms, so 20 splits cannot resolve a 0.03 effect. The
+merged 3-class protocol is simply the wrong instrument for measuring a change
+this size.
+
+Where the fix *is* confirmable is the binary axes under logistic regression,
+which is where it is reported above.
+
+## Scope of the measurement
+
+* Confirmed with logistic regression on six cohort × axis cells.
+* Not confirmable, and not refuted, on the 3-class merged deep model.
+* The earlier unpaired before/after of `python -m common.cohorts` (macroP 0.649 →
+  0.642) should not be read as a regression: two unpaired 10-split runs at
+  sd 0.064 cannot distinguish those.
