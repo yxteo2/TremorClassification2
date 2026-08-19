@@ -101,7 +101,14 @@ Ranked by measured contribution:
 2. **Validation-tuned class priors** — per-class logit offsets fitted on val,
    applied to test. ET precision 0.475 → 0.612, the single largest gain.
 3. **Instantaneous-frequency trajectory** (+0.056 precET paired).
-4. **Transform choice**: multitaper over welch. HHT is the WORST of eight.
+4. **Transform choice**: multitaper over welch — but read `band_truncation.md`
+   first. That ranking was confounded with band coverage (multitaper was binned
+   from 64 columns, welch from 61, and the old `logbin` dropped the remainder).
+   With coverage equalised, on **N-vs-Tremor the estimator is worth almost
+   nothing** (0.780 vs 0.797 PADS, 0.829 vs 0.833 in-house); on **PD-vs-ET it
+   inverts by cohort** — multitaper better on PADS (precET 0.391 vs 0.339),
+   significantly worse in-house (0.169 vs 0.250, −0.057 [−0.086, −0.029]).
+   HHT is the WORST of eight.
 5. Residual connections in the TCN; bilateral asymmetry as a missing modality;
    attention pooling for the BiLSTM (+0.012, does NOT transfer to the TCN).
 
@@ -122,12 +129,22 @@ Ranked by measured contribution:
 | per-cohort priors | significantly worse (overfits ~11 val patients) |
 | cohort-ID input | best mean, CI spans zero, sd nearly doubles |
 | frequency-aware conv (CoordConv/FDY) | +0.010, not significant |
+| masked-spectrum SSL on 3,081 unlabelled recordings | **no transferable benefit** — every cohort-held-out arm is flat or negative; the apparent gain is transductive (`ssl_retraction.md`) |
+| fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
 
-**Feature unions dilute.** Seven have underperformed their best member
+**Feature unions dilute.** Eight have underperformed their best member
 (concat+asym 0.554 vs 0.709; descriptors+stability 0.754 vs 0.807;
 multitaper+traj+stability 0.639 vs 0.660). At 404 patients with 49 ET,
 **dimensionality binds harder than information**. Prefer replacing a feature
 family over appending one.
+
+**Two unions do work, and they share a property**: `axes + stability` (spatial
+shape and temporal shape) and `logreg + one-class Mahalanobis` rank-averaged
+(a boundary and a density). Both combine things that differ *in kind*, so their
+errors are not the same errors. The rule that fits all ten cases:
+**combine at the score level when the models differ in kind, at the feature
+level almost never** (`oneclass_hybrid.md` — in-house precET +0.023
+[+0.005, +0.042], AUC +0.022 [+0.014, +0.029] at 21 ET).
 
 ## Measurement traps that have produced wrong conclusions here
 
@@ -146,6 +163,22 @@ family over appending one.
   Cohort-ID as an input is legitimate in the first and leaks in the second.
 * **Window-level metrics do NOT inflate results here** — tested because a paper
   reports them; window-level is LOWER than patient-level on N-vs-Tremor.
+* **When an arm changes two things, the baseline must change with it.** The SSL
+  study compared a *frozen* pretrained encoder against a *fine-tuned* random one
+  and reported +0.161 precET for pretraining. Against a *frozen* random encoder
+  the effect is zero — the whole gain was freezing. A frozen treatment needs a
+  frozen control (`ssl_retraction.md`).
+* **A frozen random encoder plus a linear head IS a linear model.** It reproduces
+  logistic regression on the same spectrum to three decimals (precET 0.371, AUC
+  0.785 both ways). Any "deep" result at that configuration should be checked
+  against logreg before it is believed to be deep.
+* **Unlabelled pretraining corpora leak.** Pretraining on a corpus containing the
+  test patients' recordings is transductive even with no labels. Hold the
+  evaluated cohort — or the fold's patients — out of the corpus, or state the
+  claim as transductive.
+* **Check what a reshape actually keeps.** `logbin` dropped 21 % of the band for
+  61-column input (`X[:, :61//16*16]`) and nothing for 64-column input, so the
+  same line was exact on one path and lossy on another for the whole project.
 * **Sanity-check physics, not just metrics.** The IF-trajectory extractor
   initially z-normalised away the fluctuation magnitude it existed to measure; a
   stable and a wandering 6 Hz tremor came out identical. No accuracy number

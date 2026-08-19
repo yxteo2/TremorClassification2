@@ -102,9 +102,54 @@ the baseline has to change with it.** A frozen treatment needs a frozen control.
 * Freezing rather than fine-tuning a small encoder at ≤28 minority patients:
   **large and real**, but it converges to a linear model on the input, so the
   encoder is not earning its place.
-* Note this SSL run also had a pretrain/downstream frequency-bin mismatch
-  (`reports/band_truncation.md`): the corpus was welch-61 binned to 3.1–12.3 Hz
-  while the downstream features were multitaper on 3–15 Hz, so bin *j* meant
-  different frequencies in each. `experiments/ssl_matched.py` closes that,
-  because "SSL failed" and "SSL was fed the wrong axis" should not be left
-  entangled.
+## Closing the "but the pipeline was broken" objection
+
+The SSL run also had a pretrain/downstream frequency-bin mismatch
+(`reports/band_truncation.md`): the corpus was welch-61 binned to 3.1–12.3 Hz
+while the downstream features were multitaper on 3–15 Hz, so bin *j* meant
+11.9–12.3 Hz in one and 14.4–15.0 Hz in the other. "SSL failed" and "SSL was fed
+the wrong axis" should not be left entangled, so
+`python -m experiments.ssl_matched` rebuilds the corpus through the identical
+pipeline and adds a cohort-held-out arm. All arms frozen, 10 repeats.
+
+| | AUC | precET | macroP |
+|---|---|---|---|
+| **PADS** — random init, frozen | 0.789 | 0.393 | 0.666 |
+| SSL mismatched corpus | 0.803 | 0.389 | 0.664 |
+| SSL matched corpus | 0.804 | **0.414** | **0.677** |
+| SSL matched, **PADS held out** | 0.788 | 0.379 | 0.658 |
+| **MERGED** — random init, frozen | 0.652 | 0.302 | 0.605 |
+| SSL mismatched corpus | 0.676 | 0.308 | 0.609 |
+| SSL matched corpus | 0.714 | **0.384** | **0.651** |
+| **in-house** — random init, frozen | 0.537 | 0.210 | 0.520 |
+| SSL mismatched corpus | 0.564 | 0.229 | 0.532 |
+| SSL matched corpus | 0.552 | 0.200 | 0.514 |
+| SSL matched, **in-house held out** | 0.583 | 0.229 | 0.532 |
+
+**Matching the pipeline does recover a gain, and it is large on MERGED** —
+precET +0.082 [+0.063, +0.102] * over random-frozen, and +0.076 [+0.053, +0.100] *
+over the mismatched corpus. So the bin mismatch was genuinely costing a lot, and
+the earlier run was not a fair test of matched SSL.
+
+**But the recovered gain is entirely transductive.** Every arm where the
+evaluated cohort is removed from the pretraining corpus is flat or negative on
+precision:
+
+| held-out arm | precET vs random init, frozen |
+|---|---|
+| PADS held out (PADS eval) | −0.014 [−0.039, +0.014] |
+| in-house held out (in-house eval) | +0.019 [−0.019, +0.052] |
+| test patients excluded per fold (PADS eval) | **−0.029 [−0.036, −0.014] *** |
+
+and the MERGED +0.082 has no held-out counterpart by construction — holding out
+both cohorts leaves no corpus — so it is transductive throughout.
+
+The consistent reading across both experiments: **masked-spectrum SSL on these
+3,081 recordings gives no transferable benefit. What it gives is a transductive
+one — it helps on patients whose unlabelled recordings were in the pretraining
+corpus, and not otherwise.**
+
+That distinction is not merely pedantic here. Transductive SSL is legitimate in a
+deployment where the unlabelled recordings of the people you will classify are
+already in hand. It cannot support a claim of generalising to new patients, which
+is what a paper would be asserting.
