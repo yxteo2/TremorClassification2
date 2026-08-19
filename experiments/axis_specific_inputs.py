@@ -62,10 +62,11 @@ def fit_stage(spec, desc, traj, y2, tr, va, te, nc=2):
     packed = np.hstack([spec, desc, traj]) if traj is not None else \
         np.hstack([spec, desc])
     tl = TL if traj is not None else 0
-    mk1 = (lambda: TwoStreamNet(Spectrum1DCNN(NBIN, nc, ch=8), TRUNKS["cnn"],
-                                8 * 2 * 4, NBIN, nd, tl)) if traj is not None \
-        else (lambda: TwoStreamNet(Spectrum1DCNN(NBIN, nc, ch=8), TRUNKS["cnn"],
-                                   8 * 2 * 4, NBIN, nd, 0))
+    # TwoStreamNet has its OWN num_classes defaulting to 3; passing nc only to
+    # the inner Spectrum1DCNN leaves the head at 3 outputs while the trainer
+    # builds 2-class weights. The same mismatch bit DescriptorFusion earlier.
+    mk1 = lambda: TwoStreamNet(Spectrum1DCNN(NBIN, nc, ch=8), TRUNKS["cnn"],
+                               8 * 2 * 4, NBIN, nd, tl, num_classes=nc)
     mk2 = lambda: ResidualTCN(NBIN, num_classes=nc, ch=16)
     pv_l, pt_l = [], []
     for X, mk in ((packed, mk1), (spec, mk2)):
