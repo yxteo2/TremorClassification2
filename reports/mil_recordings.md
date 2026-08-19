@@ -71,15 +71,19 @@ attention weights here, encoder weights under fine-tuning, extra feature columns
 under concatenation — costs more than it returns. **The one lever that keeps
 working is giving the existing model more data.**
 
-## A tension with a standing note worth flagging
+## Correction: there was no tension with the standing note
 
-The skill file records *"averaging two PADS tasks | precET 0.585 vs 0.612"* as
-evidence that averaging tasks hurts. Here averaging **all** tasks helps. The two
-are not directly comparable — that was PADS-only with two tasks, this is the
-merged cohort with up to 18 recordings per patient — but the directions differ,
-and this measurement is the better-powered of the two (20 splits, paired, n=404).
-The earlier note should be read as specific to its setting, not as a general
-result about task averaging.
+I originally flagged this result as conflicting with the standing note
+*"averaging two PADS tasks | precET 0.585 vs 0.612"*, which says averaging tasks
+hurts ET precision. It does not conflict — the note was right and my reading was
+wrong.
+
+PADS's second task is **Relaxed**, the rest condition, and rest-versus-postural is
+the primary clinical discriminator between PD and ET. On the full model the same
+effect reappears sharply: averaging all tasks costs precET −0.104
+[−0.170, −0.035] while *gaining* precN +0.047 [+0.009, +0.088]
+(`task_averaging.md`). The apparent net gain here came from a stripped-down
+spectrum-only baseline, where the healthy-class term dominated the macro average.
 
 ## Scope
 
