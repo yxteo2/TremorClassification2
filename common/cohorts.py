@@ -68,9 +68,22 @@ def desc_table(recs, ch):
 
 
 def logbin(X, nb=NBIN):
+    """Log-power, coarse-binned to ``nb`` bins spanning the WHOLE input band.
+
+    The previous implementation reshaped ``X[:, :X.shape[1] // nb * nb]``, which
+    silently discarded the remainder. That is exact when ``nb`` divides the width
+    -- the multitaper path is 64 columns and 64 // 16 * 16 = 64 -- but the welch
+    path is 61 columns, so ``nb=16`` kept 48 and dropped 12.50-14.84 Hz, 21 % of
+    the 3-15 Hz band, from the merged table and the pretraining corpus.
+
+    Slicing on rounded edges instead covers every column. It is bit-identical to
+    the old behaviour whenever ``nb`` divides the width, so no multitaper result
+    changes; on the welch path it is worth precET +0.032 [+0.014, +0.050] on PADS
+    PD-vs-ET (`reports/band_truncation.md`).
+    """
     L = np.log(X + 1e-8)
-    n = X.shape[1] // nb * nb
-    return L[:, :n].reshape(len(L), nb, -1).mean(2)
+    e = np.linspace(0, L.shape[1], nb + 1).round().astype(int)
+    return np.stack([L[:, e[i]:e[i + 1]].mean(1) for i in range(nb)], 1)
 
 
 def asym_for(recs, side_fn, ch, patients):
