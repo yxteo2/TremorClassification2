@@ -118,6 +118,10 @@ Ranked by measured contribution:
    (TCN 0.505 at 16 bins vs 0.412 at 61).
 2. **Validation-tuned class priors** — per-class logit offsets fitted on val,
    applied to test. ET precision 0.475 → 0.612, the single largest gain.
+   **Leave `tune_offsets` alone.** It maximises validation macro F1 while the
+   target metric is precision, and that mismatch is load-bearing: optimising
+   precision directly lowers macroP and doubles its spread, because the
+   validation split holds ~11 ET patients (`prior_objective.md`).
 3. **Instantaneous-frequency trajectory** (+0.056 precET paired).
 4. **Transform choice**: multitaper over welch — but read `band_truncation.md`
    first. That ranking was confounded with band coverage (multitaper was binned
@@ -148,6 +152,9 @@ Ranked by measured contribution:
 | cohort-ID input | best mean, CI spans zero, sd nearly doubles |
 | frequency-aware conv (CoordConv/FDY) | +0.010, not significant |
 | masked-spectrum SSL on 3,081 unlabelled recordings | **no transferable benefit** — every cohort-held-out arm is flat or negative; the apparent gain is transductive (`ssl_retraction.md`) |
+| MIL attention / max pooling over a patient's recordings | significantly WORSE than the uniform mean they replace (precET −0.117, −0.147) — `mil_recordings.md` |
+| tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
+| refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
 
 **Feature unions dilute.** Eight have underperformed their best member
