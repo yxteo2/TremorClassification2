@@ -153,6 +153,8 @@ Ranked by measured contribution:
 | frequency-aware conv (CoordConv/FDY) | +0.010, not significant |
 | masked-spectrum SSL on 3,081 unlabelled recordings | **no transferable benefit** — every cohort-held-out arm is flat or negative; the apparent gain is transductive (`ssl_retraction.md`) |
 | MIL attention / max pooling over a patient's recordings | significantly WORSE than the uniform mean they replace (precET −0.117, −0.147) — `mil_recordings.md` |
+| averaging non-postural tasks into the spectrum | precN **+0.047** * but precET **−0.104** * — PD is a rest tremor and ET a postural one, so averaging conditions deletes the PD-vs-ET contrast (`task_averaging.md`) |
+| rest-vs-postural CONTRAST features (ratio, per-band, appended or substituted) | all significantly worse, precET −0.061 to −0.106 (`rest_postural_contrast.md`) |
 | tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
 | refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
@@ -248,6 +250,27 @@ precision (−0.082): the boundary PADS teaches does not hold in-house.
 
 **Never present the PADS PD-vs-ET number as a method that works.** It is a result
 about PADS.
+
+## The rest-tremor axis is missing from these recordings
+
+The strongest clinical PD-vs-ET sign — rest tremor present in PD, absent in ET —
+**is not measurable in this data**. The within-patient postural/rest band-power
+ratio is *positive* for PD (+0.837, 74 % of patients), the opposite of the
+textbook direction, and gives PD-vs-ET AUC 0.579. Every contrast feature built on
+it makes the model worse (`rest_postural_contrast.md`).
+
+Two independent attempts have now failed: this, and `reemergent_tremor.md`
+(onset latency ≈ 0.000 s for every class). Both target rest-tremor phenomena.
+
+Likely cause: none of the three protocols uses a **distraction-based** rest
+condition (limb supported, patient counting backwards), and PD cohorts are
+typically recorded ON medication. This is the single most specific data-collection
+recommendation the project can make, and it may be cheaper than recruiting more
+ET patients.
+
+Practical consequence: **merge and evaluate on the postural task only.** Every
+model here separates PD from ET using the *shape* of the postural tremor alone,
+which is why the axis is hard.
 
 ## Ceilings
 
