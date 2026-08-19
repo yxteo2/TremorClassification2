@@ -149,13 +149,28 @@ multitaper+traj+stability 0.639 vs 0.660). At 404 patients with 49 ET,
 **dimensionality binds harder than information**. Prefer replacing a feature
 family over appending one.
 
-**Two unions do work, and they share a property**: `axes + stability` (spatial
-shape and temporal shape) and `logreg + one-class Mahalanobis` rank-averaged
-(a boundary and a density). Both combine things that differ *in kind*, so their
-errors are not the same errors. The rule that fits all ten cases:
-**combine at the score level when the models differ in kind, at the feature
-level almost never** (`oneclass_hybrid.md` — in-house precET +0.023
-[+0.005, +0.042], AUC +0.022 [+0.014, +0.029] at 21 ET).
+**Two unions do work**: `axes + stability` and `logreg + one-class Mahalanobis`
+rank-averaged (`oneclass_hybrid.md` — in-house precET +0.023 [+0.005, +0.042] at
+21 ET). Both are **two-member** and both members are individually decent.
+
+An earlier version of this file generalised that to "combine at the score level
+when the models differ in kind, at the feature level almost never". That is too
+broad — see `score_vs_feature_fusion.md`, which tested it on all seven families:
+
+* score-level beats feature-level on PADS and MERGED but **loses in-house**;
+* **neither beats the best single family within one cohort** (PADS −0.063 precET,
+  in-house −0.138, both significant) — averaging in members that are near chance
+  on that cohort drags the good one down, and at 7 members it holds 1/7 weight;
+* combination pays **only when no member dominates**: on MERGED `rank-avg ALL` is
+  the best model tried, AUC +0.065 [+0.059, +0.071] over the best family, though
+  its precision edge (+0.011) is not significant;
+* AUC-weighting recovers about half the loss and is the safer default;
+* the one-class member helps as 1 of 2 and is neutral as 1 of 8 — the ingredient
+  was two strong dissimilar members, not the one-class model.
+
+**Corrected rule: combine when the members are comparable in strength and you
+cannot tell in advance which will win; do not combine when one dominates, and
+adding members makes it worse.**
 
 ## Measurement traps that have produced wrong conclusions here
 
