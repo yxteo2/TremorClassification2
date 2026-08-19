@@ -78,14 +78,27 @@ pooling (nothing) > at the classifier (baseline). That is a cleaner statement of
 the result than "early fusion is better", and it is the first architectural
 change in this project to produce a significant gain.
 
-## Scope — this is not yet a claim against the reported model
+## RESOLVED: it does not beat the reported model
 
 `FusionTCN` in "late" mode is a **re-implementation**, not the reported
 architecture: it uses a residual dilated trunk where the reported model's
 spectrum stream is `Spectrum1DCNN`. Its late arm scores macroP 0.645 where the
 reported model scores 0.660, so the +0.036 was measured from a lower starting
-point and may partly recover ground the reported architecture already holds.
+point.
 
-`experiments/combined_best.py` pairs this against the reported model directly.
-Until that reads out, the honest statement is **"early fusion beats late fusion
-within a matched trunk"**, not "this is a better model than the one reported".
+`combined_best.py` and then `early_fusion_confirm.py` settled it:
+
+| comparison | splits | macroP |
+|---|---|---|
+| vs late concat, matched trunk | 20 | **+0.036 [+0.004, +0.071]** * |
+| vs reported model | 20 | +0.021 [−0.006, +0.048] |
+| vs reported model | **40** | **+0.005 [−0.020, +0.028]** |
+
+**The gain against the reported model is split noise** (`early_fusion_confirm.md`).
+The `Spectrum1DCNN` trunk already captures what early fusion recovers in the
+residual-TCN trunk, leaving nothing to add.
+
+So the finding stands as an **architecture fact and not a model improvement**:
+where descriptors meet a convolutional trunk matters, and matters more than what
+the fusion costs in parameters. It is not a route to a better model on this
+cohort.

@@ -41,7 +41,15 @@ Entry points: `python -m frequency.characteristics`, `python -m experiments.fina
    The split-level bootstrap is sound for this: on the merged 20-split protocol it
    comes within 1.1x of a patient-level bootstrap, because every patient is tested
    ~4 times under different fold compositions (`patient_level_ci.md`).
-6. **Use a PERMUTATION null for any single-model claim.** Bootstraps hold the
+6. **Raise the split count before believing a difference under ~0.03.** 20
+   splits resolves ~0.04, 40 resolves ~0.025. A paired bootstrap over 20 splits
+   removes the fold-composition noise the two arms share but NOT the noise in how
+   much that particular set of folds favours one arm: a paired macroP +0.021
+   [−0.006, +0.048] became +0.005 [−0.020, +0.028] on doubling
+   (`early_fusion_confirm.md`). Also note precET has sd 0.183 across splits, so
+   the reported **0.685 carries about ±0.04**; at 40 splits the same model gives
+   0.663.
+7. **Use a PERMUTATION null for any single-model claim.** Bootstraps hold the
    fitted model fixed and cannot see fitting variance, which dominates at 21 ET.
    The in-house PD-vs-ET null spans [0.298, 0.655] — nothing below AUC 0.66 there
    is distinguishable from chance (`permutation_null.md`).
@@ -158,6 +166,7 @@ Ranked by measured contribution:
 | principal-eigenvalue spectrum (λ₁ of the per-frequency cross-spectral matrix) | macroP −0.000. The physics verifies (synthetic SNR 39.7→80.5, rotation-invariant to 6e−16) but sum-normalisation discards a gain that lives in absolute amplitude (`spectral_representation.md`) |
 | polarisation spectrum (λ₁/trace per frequency) | worst arm tried, macroP −0.020, sd 0.089 |
 | FiLM conditioning / channel gating of the TCN by descriptors | +0.019 and −0.004 macroP, neither significant (`tcn_fusion.md`) |
+| early-fusion TCN (descriptors as broadcast input channels) | beats LATE CONCAT in a matched trunk (macroP +0.036 *) but **does not beat the reported model** — +0.021 at 20 splits collapses to +0.005 [−0.020, +0.028] at 40 (`early_fusion_confirm.md`) |
 | tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
 | refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
