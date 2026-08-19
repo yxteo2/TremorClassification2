@@ -76,16 +76,23 @@ def patient_bootstrap_auc(y, p, n=NBOOT, seed=0):
 
 def main():
     data = build()
+    # 2015-only and NewData-only sit alongside the pooled in-house arm on
+    # purpose. If a family is near chance in each cohort separately but
+    # anti-predictive on the pool, the inversion is an artifact of pooling --
+    # one model fitted across two cohorts with different feature offsets can
+    # learn the cohort difference and apply it as if it were the class
+    # difference. That is a different finding from "the feature runs backwards".
     groups = {"PADS": (["PADS"], 5),
-              "in-house": (["2015", "NewData"], 3),
-              "2015 only": (["2015"], 3)}
+              "in-house pooled": (["2015", "NewData"], 3),
+              "2015 only": (["2015"], 3),
+              "NewData only": (["NewData"], 3)}
 
     store = {}
     for gname, (tags, k) in groups.items():
         y3 = np.concatenate([data[t][1] for t in tags])
         keep = y3 != 0
         y = (y3[keep] == 2).astype(int)
-        if y.sum() < 8:
+        if y.sum() < 5:
             print(f"skipping {gname}: only {int(y.sum())} ET")
             continue
         print(f"\n{'='*78}")
@@ -110,7 +117,7 @@ def main():
                   f"{f'[{lo:.3f}, {hi:.3f}]':>20}  {v}", flush=True)
 
     # Direct test of the inversion: same family, does PADS - in-house differ?
-    if "PADS" in store and "in-house" in store:
+    if "PADS" in store and "in-house pooled" in store:
         print(f"\n{'='*78}")
         print("PADS AUC minus in-house AUC, per family "
               "(independent bootstraps, 95 % CI on the difference)")
@@ -118,7 +125,7 @@ def main():
         rng = np.random.default_rng(7)
         for f in FAMILIES:
             ya, pa = store["PADS"][f]
-            yb, pb = store["in-house"][f]
+            yb, pb = store["in-house pooled"][f]
             d = []
             for _ in range(NBOOT):
                 def bs(y_, p_):
