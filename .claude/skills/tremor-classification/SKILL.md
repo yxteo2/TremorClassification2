@@ -155,6 +155,9 @@ Ranked by measured contribution:
 | MIL attention / max pooling over a patient's recordings | significantly WORSE than the uniform mean they replace (precET −0.117, −0.147) — `mil_recordings.md` |
 | averaging non-postural tasks into the spectrum | precN **+0.047** * but precET **−0.104** * — PD is a rest tremor and ET a postural one, so averaging conditions deletes the PD-vs-ET contrast (`task_averaging.md`) |
 | rest-vs-postural CONTRAST features (ratio, per-band, appended or substituted) | all significantly worse, precET −0.061 to −0.106 (`rest_postural_contrast.md`) |
+| principal-eigenvalue spectrum (λ₁ of the per-frequency cross-spectral matrix) | macroP −0.000. The physics verifies (synthetic SNR 39.7→80.5, rotation-invariant to 6e−16) but sum-normalisation discards a gain that lives in absolute amplitude (`spectral_representation.md`) |
+| polarisation spectrum (λ₁/trace per frequency) | worst arm tried, macroP −0.020, sd 0.089 |
+| FiLM conditioning / channel gating of the TCN by descriptors | +0.019 and −0.004 macroP, neither significant (`tcn_fusion.md`) |
 | tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
 | refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
@@ -268,6 +271,22 @@ better gate just admits more tremor patients and enlarges the ET denominator.
 
 The hierarchy alone does nothing (macroP −0.008), reproducing the earlier
 two-stage negative. The inputs are the active ingredient.
+
+## Input representation, revisited
+
+**Log-frequency binning** (16 bins equally spaced in log f, not linear f):
+precN +0.031 [+0.006, +0.057] *, macroP +0.019 [−0.005, +0.043], and it **cuts
+sd(macroP) from 0.065 to 0.052** — the lowest variance of any arm
+(`spectral_representation.md`). Mechanism: a TCN convolves along frequency, and
+harmonics sit at fixed offsets (log 2 apart) on a log axis for every patient,
+where on a linear axis their spacing changes with the fundamental.
+
+**An SNR gain that lives in absolute amplitude is invisible here.** Every
+spectrum is sum-normalised per patient, so a uniform enhancement of the signal
+band is removed before the model sees it. This has now discarded two physically
+correct quantities: the principal-eigenvalue spectrum, and the within-patient
+rest/postural amplitude ratio (`rest_postural_contrast.md`). Check whether a
+proposed gain survives normalisation before building it.
 
 ## The rest-tremor axis is missing from these recordings
 
