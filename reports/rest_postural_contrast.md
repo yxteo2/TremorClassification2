@@ -82,7 +82,38 @@ Three explanations, all consistent with the numbers and with an earlier finding:
    rest-tremor axis have now both come back empty**, which is much stronger
    evidence about the recordings than either alone.
 
+## The amplitude ratio, recovered from normalisation, is neutral
+
+`amplitude_contrast.py` recomputes the ratio from **un-normalised** band power,
+which is how the table above was produced. Added to the reported model:
+
+| arm | precN | precET | macroP |
+|---|---|---|---|
+| postural only (reported) | 0.639 | **0.685** | 0.660 |
+| + log amplitude ratio | 0.649 | 0.664 | 0.659 |
+| + ratio and raw levels *(control)* | 0.665 | 0.681 | 0.668 |
+| + ratio and shape contrast | 0.667 | 0.628 | 0.648 |
+
+paired: the ratio alone is macroP −0.001 [−0.020, +0.016] and precET −0.021
+[−0.072, +0.024] — **neutral**, neither the gain physiology predicts nor the
+damage the shape contrasts caused. Nothing reaches significance on macroP or
+precET in any arm.
+
+**The pre-registered control fired.** The module docstring said, before the run:
+*"log_amp_post and log_amp_rest are NOT scale-invariant across cohorts and should
+help much less than their difference; if they help more, the model is reading a
+cohort signature, not physiology."* They help more — the only significant effects
+in the whole table are precN gains (+0.025 *, +0.028 *) in the two arms carrying
+raw absolute power, while the scale-invariant ratio alone gives +0.009 (ns).
+
+Absolute band power differs by cohort (sensors, units, placement) and the cohorts
+have very different class mixtures (PADS is 72 % PD), so raw power is a proxy for
+cohort, which is a proxy for the class prior. This is the **cohort-ID input
+finding reached through a different door** — the repo already records that arm as
+"best mean, CI spans zero, sd nearly doubles". Do not adopt it.
+
 ## What this is worth
+
 
 It is a negative result with a clear, actionable cause, and it explains something
 the project had only described:
