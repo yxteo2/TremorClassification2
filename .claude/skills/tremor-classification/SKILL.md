@@ -38,6 +38,13 @@ Entry points: `python -m frequency.characteristics`, `python -m experiments.fina
    prevalence artifact below.
 5. **Paired bootstrap CIs for every comparison.** Unpaired differences of ~0.04
    sit inside the per-config sd here and have repeatedly evaporated when paired.
+   The split-level bootstrap is sound for this: on the merged 20-split protocol it
+   comes within 1.1x of a patient-level bootstrap, because every patient is tested
+   ~4 times under different fold compositions (`patient_level_ci.md`).
+6. **Use a PERMUTATION null for any single-model claim.** Bootstraps hold the
+   fitted model fixed and cannot see fitting variance, which dominates at 21 ET.
+   The in-house PD-vs-ET null spans [0.298, 0.655] — nothing below AUC 0.66 there
+   is distinguishable from chance (`permutation_null.md`).
 
 ## Cohorts
 
@@ -220,6 +227,20 @@ adding members makes it worse.**
   initially z-normalised away the fluctuation magnitude it existed to measure; a
   stable and a wandering 6 Hz tremor came out identical. No accuracy number
   looked wrong.
+
+## Transfer
+
+**PD-vs-ET does not transfer between cohorts, in either direction**
+(`pd_vs_et_transfer.md`). Fit on PADS, test in-house: not one family's CI excludes
+0.5, and `descriptors` falls from AUC 0.794 within PADS to 0.519 in-house. Fit
+in-house, test PADS: same. Three of 14 cells have intervals excluding 0.5 with
+lower bounds of 0.52-0.53, which is what 14 tests produce by chance.
+
+This explains why adding PADS to in-house training *degrades* in-house PD
+precision (−0.082): the boundary PADS teaches does not hold in-house.
+
+**Never present the PADS PD-vs-ET number as a method that works.** It is a result
+about PADS.
 
 ## Ceilings
 
