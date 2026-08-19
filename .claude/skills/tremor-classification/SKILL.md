@@ -82,10 +82,21 @@ models).
 `peak_sharp` is the standout descriptor: ET 12.19, PD 5.80, N 4.08 on PADS — ET
 tremor is close to a pure tone.
 
-**PD-vs-ET splits by cohort.** On PADS, max+mean frequency give AUC 0.786 (full
-descriptor set 0.807). On 2015 every frequency feature is BELOW chance
-(0.29–0.32); there, instantaneous-frequency **stability** works (AUC 0.652).
-Never report one cross-cohort PD-vs-ET frequency number.
+**PD-vs-ET works on PADS and is UNMEASURABLE in-house.** On PADS, five of six
+families beat a permutation null (descriptors 0.794, spectrum 0.791, stability
+0.757, harmonics 0.726, ampmod 0.700, all p ≤ 0.010; `axes` p = 0.279). In-house
+**not one family reaches significance** — best is `axes` p = 0.085
+(`permutation_null.md`).
+
+The permutation null for in-house PD-vs-ET AUC spans **[0.298, 0.655]** at 21 ET,
+so an in-house model must reach **AUC ≈ 0.66 to be distinguishable from chance at
+all**; the best measured is 0.629. Quote that detection floor rather than a
+precision figure — it depends on neither prevalence nor threshold.
+
+The earlier claim that "on 2015 every frequency feature is BELOW chance
+(0.29–0.32)" is **withdrawn**: 2015 descriptors measure 0.492, p = 0.995. There is
+no below-chance effect to explain. Never report one cross-cohort PD-vs-ET
+frequency number.
 
 **The final deep model** (`experiments/final_model.py`): two-stream —
 `Spectrum1DCNN` on the log-binned **multitaper** spectrum plus `TrajectoryEncoder`
@@ -179,6 +190,17 @@ level almost never** (`oneclass_hybrid.md` — in-house precET +0.023
 * **Check what a reshape actually keeps.** `logbin` dropped 21 % of the band for
   61-column input (`X[:, :61//16*16]`) and nothing for 64-column input, so the
   same line was exact on one path and lossy on another for the whole project.
+* **A patient bootstrap over fixed CV predictions is anti-conservative.** It
+  resamples patients while holding the fitted model's out-of-fold scores fixed,
+  so it cannot see the variance of the fitting procedure — which dominates at 21
+  ET. It produced three confident "ANTI-predictive" verdicts that a permutation
+  test calls ordinary chance (p = 0.41–0.44). **Use a permutation null for any
+  single-model claim**; keep the bootstrap for paired differences, where the
+  shared fold noise cancels.
+* **Below-chance AUC at small n is almost never anti-prediction.** It is the low
+  tail of a very wide null — [0.298, 0.655] at 21 ET, [0.195, 0.819] at 6 ET.
+  NewData once gave AUC exactly 0.000 (all 6 ET below all 23 PD) and it was not
+  a finding.
 * **Sanity-check physics, not just metrics.** The IF-trajectory extractor
   initially z-normalised away the fluctuation magnitude it existed to measure; a
   stable and a wandering 6 Hz tremor came out identical. No accuracy number

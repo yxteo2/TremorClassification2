@@ -37,6 +37,12 @@ the merged figures do not describe in-house patients
 | + rotation-invariant axis features | 0.681 | 0.729 | 0.245 | 0.552 |
 | + PADS in training | 0.685 | 0.687 | 0.196 | 0.523 |
 
+> **Read these against the detection floor.** At 21 in-house ET patients the
+> permutation null for PD-vs-ET AUC reaches 0.655, and no in-house feature family
+> clears it (`reports/permutation_null.md`). Differences between these rows are
+> paired and can be real; the individual rows are not evidence that any family
+> separates PD from ET in-house.
+
 **PD precision 0.769 is the strongest in-house figure**, and adding PADS
 significantly *degrades* it (−0.082). ET precision 0.193–0.245 is a ~2× lift over
 prevalence; the axis gain is not significant at 21 ET patients.
@@ -131,7 +137,7 @@ experiments/         final_model.py               the merged model
                      selection_and_calibration.py selection, calibration, seeds
                      audio_techniques.py          freq-aware conv, PCEN, SpecAugment
 
-reports/             31 findings, including every retraction
+reports/             38 findings, including every retraction
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
@@ -176,7 +182,11 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
   (`reports/ssl_retraction.md`).
 * **Ten hand-computed spectral descriptors remain the best PD-vs-ET model on
   PADS** (precET 0.464 / macroP 0.705), ahead of every encoder tried.
-* **21 in-house ET patients is the binding constraint.** Three feature families
-  separate PD from ET at the population level — axis shape (0.641), frequency
-  stability (0.652), bilateral asymmetry (0.730) — and none converts into a
-  confirmable in-house model gain.
+* **21 in-house ET patients is the binding constraint, and it is now quantified.**
+  The permutation null for in-house PD-vs-ET AUC spans **[0.298, 0.655]**, so a
+  model must reach **AUC ≈ 0.66 before it can be told from chance at all**. The
+  best measured is 0.629 (`axes`, p = 0.085). **No in-house single-model claim of
+  the form "family X separates PD from ET" is supported** — including the axis
+  result reported above, which should be read as underpowered, not established
+  (`reports/permutation_null.md`). On PADS, five of six families clear the same
+  test at p ≤ 0.010.

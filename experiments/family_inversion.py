@@ -107,10 +107,19 @@ def main():
             p = oof_mean(X, y, k)
             store[gname][f] = (y, p)
             mu, lo, hi = patient_bootstrap_auc(y, p)
+            # NOTE: this interval is ANTI-CONSERVATIVE and its verdicts must not
+            # be trusted on their own. Resampling patients while holding the
+            # out-of-fold predictions fixed ignores the variance of the fitting
+            # procedure, which dominates at 21 ET. Three families it called
+            # "ANTI-predictive" here are ordinary chance results under a
+            # permutation test (p = 0.41-0.44). Read
+            # `python -m experiments.cv_null` and `reports/permutation_null.md`
+            # for the calibrated version; this arm is kept only to show the two
+            # disagreeing.
             if lo > 0.5:
-                v = "predictive"
+                v = "bootstrap says predictive"
             elif hi < 0.5:
-                v = "ANTI-predictive"
+                v = "bootstrap says below 0.5 -- CHECK cv_null.py"
             else:
                 v = "indistinguishable from chance"
             print(f"{f:>14}{X.shape[1]:>5}{mu:>8.3f}"
