@@ -251,6 +251,24 @@ precision (−0.082): the boundary PADS teaches does not hold in-house.
 **Never present the PADS PD-vs-ET number as a method that works.** It is a result
 about PADS.
 
+## Axis-specific inputs (the one deep-learning gain that held)
+
+The two decisions want **opposite inputs**: N-vs-Tremor benefits from every
+recording, PD-vs-ET needs the postural condition kept clean. A flat 3-class model
+must pick one and pay the other cost.
+
+Two-stage with **all tasks for stage A, postural only for stage B**
+(`axis_specific_inputs.md`): macroP **0.671** — the highest merged macro precision
+measured here — with precN +0.058 *, precPD +0.050 *, macroF1 +0.025 *.
+
+**But**: the macroP gain is +0.011 [−0.017, +0.040], **not significant**, and
+precET is −0.075 [−0.160, +0.007]. Adopt only if the objective is macroF1 or
+N/PD precision. **It does not help ET**, and it cannot: stage B is unchanged, so a
+better gate just admits more tremor patients and enlarges the ET denominator.
+
+The hierarchy alone does nothing (macroP −0.008), reproducing the earlier
+two-stage negative. The inputs are the active ingredient.
+
 ## The rest-tremor axis is missing from these recordings
 
 The strongest clinical PD-vs-ET sign — rest tremor present in PD, absent in ET —
