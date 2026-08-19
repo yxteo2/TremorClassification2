@@ -1,4 +1,4 @@
-# Where the descriptors meet the TCN is worth more than any of them
+# Where the descriptors meet the TCN matters — but not enough to beat the reported model
 
 **The question.** `TwoStreamNet` fuses by **late concatenation** — the spectrum
 goes through a conv trunk, the descriptors through a small MLP, and the two
@@ -75,8 +75,11 @@ The parameter column supports the mechanism rather than just the guess:
 The ordering is not by parameter count. It is by **how early the two information
 sources can interact**: input (wins) > per-block modulation (partial) > after
 pooling (nothing) > at the classifier (baseline). That is a cleaner statement of
-the result than "early fusion is better", and it is the first architectural
-change in this project to produce a significant gain.
+the result than "early fusion is better".
+
+**Read this section against the resolution below**: the +0.036 is measured
+against late concatenation in a matched trunk, not against the reported model,
+and it does not survive that stronger comparison.
 
 ## RESOLVED: it does not beat the reported model
 
