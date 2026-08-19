@@ -24,26 +24,38 @@ paired vs the current representation:
 | principal eigenvalue, LOG | −0.021 | +0.012 | −0.003 |
 | polarisation spectrum | −0.033 | −0.019 | −0.020 |
 
-## Log-frequency binning: a real, modest gain
+## RETRACTED: log-frequency binning does not help the reported model
 
-Significant on precN (+0.031 *), positive but not significant on macro precision
-(+0.019 [−0.005, +0.043]) and macro F1 (+0.018). It also **reduces variance** —
-sd(macroP) 0.065 → 0.052, the lowest of any arm.
+Within this experiment log binning looked good — precN +0.031 [+0.006, +0.057] *,
+macroP +0.019, and sd(macroP) 0.065 → 0.052, the lowest variance of any arm.
 
-The mechanism it was built on: `ResidualTCN` convolves along the frequency axis.
-On a **linear** axis a tremor's harmonics sit at f, 2f, 3f — distances that
-change with the fundamental, so no fixed kernel matches them across patients
-whose tremor frequencies differ. On a **log** axis the same harmonics sit
-log 2 apart for everyone, so one kernel serves all patients and the convolution
-becomes equivariant to a *scaling* of frequency rather than a shift. Log spacing
-also concentrates resolution where the classes sit (PD 4–6 Hz, ET 4–12 Hz)
-instead of spreading 16 uniform bins over 3–15 Hz.
+**That gain was measured against the wrong baseline.** The "current" arm here does
+not use the reported spectrum. It rebuilds an axis-mean spectrum from an STFT
+(`cross_spectra`, nperseg 256) so that all five arms share one computation path,
+and that STFT spectrum scores macroP **0.641** where the reported multitaper
+spectrum scores **0.660**. Log binning was therefore recovering ground the
+reported representation already holds.
 
-The variance reduction is consistent with that story: a representation in which
-the same kernel works for every patient should be less sensitive to which
-patients land in the training fold.
+Tested directly on the reported model (`combined_best.py`, arm B, same 20 splits):
 
-## The principal eigenvalue: correct physics, discarded by the pipeline
+| | precET | macroP |
+|---|---|---|
+| reported model + LOG bins vs reported model | **−0.086 [−0.146, −0.029]** * | **−0.030 [−0.049, −0.012]** * |
+
+**Significantly worse on both.** The claim is withdrawn. Log-frequency binning is
+not a usable change, and the harmonic-spacing argument it was built on does not
+survive contact with the reported representation.
+
+The general lesson is the one this project keeps relearning: **a gain measured
+against a re-implemented baseline is a claim about the re-implementation.** The
+same trap produced the SSL retraction (a frozen arm against a fine-tuned control)
+and it very nearly produced a second one here. Any arm that rebuilds part of the
+pipeline needs its baseline checked against the reported number before the result
+is believed — arm A of `combined_best.py` reproduces the reported model to three
+decimals (0.639 / 0.655 / 0.685 / 0.660 / 0.593), which is what makes that
+experiment's comparisons trustworthy.
+
+## The principal eigenvalue## The principal eigenvalue: correct physics, discarded by the pipeline
 
 `spectrum_table` and `method_table` both average the three gyroscope axes
 (`P.mean(0)`). Tremor is close to a **linear** oscillation — this repo measured

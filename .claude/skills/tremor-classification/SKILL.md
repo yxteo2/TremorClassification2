@@ -274,12 +274,13 @@ two-stage negative. The inputs are the active ingredient.
 
 ## Input representation, revisited
 
-**Log-frequency binning** (16 bins equally spaced in log f, not linear f):
-precN +0.031 [+0.006, +0.057] *, macroP +0.019 [−0.005, +0.043], and it **cuts
-sd(macroP) from 0.065 to 0.052** — the lowest variance of any arm
-(`spectral_representation.md`). Mechanism: a TCN convolves along frequency, and
-harmonics sit at fixed offsets (log 2 apart) on a log axis for every patient,
-where on a linear axis their spacing changes with the fundamental.
+**Log-frequency binning is RETRACTED.** It measured precN +0.031 * against an
+STFT-derived baseline (macroP 0.641), but that baseline is weaker than the
+reported multitaper one (0.660). Against the reported model it is **significantly
+worse**: precET −0.086 [−0.146, −0.029] *, macroP −0.030 [−0.049, −0.012] *
+(`spectral_representation.md`). A gain measured against a re-implemented baseline
+is a claim about the re-implementation — check the baseline reproduces the
+reported number first.
 
 **An SNR gain that lives in absolute amplitude is invisible here.** Every
 spectrum is sum-normalised per patient, so a uniform enhancement of the signal
