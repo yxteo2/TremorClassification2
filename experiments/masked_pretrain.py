@@ -32,7 +32,8 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import recall_score, roc_auc_score
+from sklearn.metrics import (precision_score, recall_score,
+                             roc_auc_score)
 from sklearn.model_selection import StratifiedKFold
 
 from common.cohorts import logbin
@@ -212,7 +213,8 @@ def main():
         print(f"\n{'='*72}")
         print(f"{name}  PD vs ET  n={len(y)} ET={int(y.sum())}  spectrum only")
         print(f"{'='*72}")
-        print(f"{'init':>28}{'AUC':>16}{'bal-acc':>16}{'ETsens':>10}{'PDspec':>10}")
+        print(f"{'init':>28}{'precPD':>9}{'precET':>9}{'macroP':>9}"
+              f"{'AUC':>9}{'bal-acc':>9}{'ETsens':>9}{'PDspec':>9}")
         res = {}
         for lab, st, fr in (("random init (scratch)", None, False),
                             ("SSL pretrained, fine-tuned", enc_state, False),
@@ -228,17 +230,20 @@ def main():
                 pr = (p >= np.quantile(p, 1 - y.mean())).astype(int)
                 se = recall_score(y, pr, pos_label=1, zero_division=0)
                 sp = recall_score(y, pr, pos_label=0, zero_division=0)
-                rows.append([roc_auc_score(y, p), 0.5 * (se + sp), se, sp])
+                pPD = precision_score(y, pr, pos_label=0, zero_division=0)
+                pET = precision_score(y, pr, pos_label=1, zero_division=0)
+                rows.append([roc_auc_score(y, p), 0.5 * (se + sp), se, sp,
+                             pPD, pET, 0.5 * (pPD + pET)])
             a = np.array(rows); res[lab] = a
-            mu_, sd_ = a.mean(0), a.std(0)
-            print(f"{lab:>28}" + "".join(f"{mu_[i]:>10.3f} +/-{sd_[i]:<4.3f}"
-                                         for i in range(2))
-                  + f"{mu_[2]:>10.3f}{mu_[3]:>10.3f}")
+            mu_ = a.mean(0)
+            print(f"{lab:>28}{mu_[4]:>9.3f}{mu_[5]:>9.3f}{mu_[6]:>9.3f}"
+                  f"{mu_[0]:>9.3f}{mu_[1]:>9.3f}{mu_[2]:>9.3f}{mu_[3]:>9.3f}")
         base = res["random init (scratch)"]
         print(f"\n  paired vs random init:")
         for q in ("SSL pretrained, fine-tuned", "SSL pretrained, frozen"):
             d = res[q] - base
-            for i, nm in enumerate(("AUC", "bal-acc")):
+            for i, nm in ((5, "precET"), (6, "macroP"), (0, "AUC"),
+                          (1, "bal-acc")):
                 boot = [np.mean(np.random.default_rng(s).choice(d[:, i], len(d),
                                                                 replace=True))
                         for s in range(4000)]

@@ -32,7 +32,7 @@ import torch.nn as nn
 from sklearn.covariance import EmpiricalCovariance, MinCovDet
 from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import recall_score, roc_auc_score
+from sklearn.metrics import precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier, NeighborhoodComponentsAnalysis
 from sklearn.pipeline import Pipeline
@@ -142,10 +142,14 @@ def evaluate(name, scorer, X, y, k, repeats=REPEATS):
         pred = (s >= thr).astype(int)
         sens = recall_score(y, pred, pos_label=1, zero_division=0)
         spec = recall_score(y, pred, pos_label=0, zero_division=0)
-        rows.append([roc_auc_score(y, s), 0.5 * (sens + spec), sens, spec])
+        pPD = precision_score(y, pred, pos_label=0, zero_division=0)
+        pET = precision_score(y, pred, pos_label=1, zero_division=0)
+        rows.append([roc_auc_score(y, s), 0.5 * (sens + spec), sens, spec,
+                     pPD, pET, 0.5 * (pPD + pET)])
     a = np.array(rows); mu, sd = a.mean(0), a.std(0)
-    print(f"{name:>28}" + "".join(f"{mu[i]:>10.3f} +/-{sd[i]:<4.3f}"
-                                  for i in range(4)), flush=True)
+    # per-class precision is the reporting standard for this project
+    print(f"{name:>28}{mu[4]:>9.3f}{mu[5]:>9.3f}{mu[6]:>9.3f}"
+          f"{mu[0]:>9.3f}{mu[1]:>9.3f}{mu[2]:>9.3f}{mu[3]:>9.3f}", flush=True)
     return a
 
 
@@ -169,8 +173,8 @@ def main():
         print(f"{name}  PD vs ET  n={len(y)} PD={int((y==0).sum())} "
               f"ET={int(y.sum())}  features {'+'.join(keys)}")
         print(f"{'='*74}")
-        print(f"{'method':>28}{'AUC':>16}{'bal-acc':>16}{'ETsens':>16}"
-              f"{'PDspec':>16}")
+        print(f"{'method':>28}{'precPD':>9}{'precET':>9}{'macroP':>9}"
+              f"{'AUC':>9}{'bal-acc':>9}{'ETsens':>9}{'PDspec':>9}")
         res = {}
 
         def lr_base(Xtr, ytr, Xte, rep):
