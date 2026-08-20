@@ -122,9 +122,13 @@ def main():
             d[w] = np.array([X[idx[q]] if q in idx else np.zeros(dim)
                              for q in sp[2]])
         store[tag] = d
-        miss = sum(1 for q in sp[2] if q not in idx)
-        print(f"  {tag:>8}: {len(sp[1])} patients"
-              f"{f', {miss} without TF features' if miss else ''}")
+        # report coverage per WINDOW: a single count taken after the loop
+        # reflects only the last window and hid a total failure at 512.
+        cov = {w: float((np.abs(d[w]).sum(1) > 0).mean()) for w in WINDOWS}
+        print(f"  {tag:>8}: {len(sp[1])} patients   coverage " +
+              "  ".join(f"w{w}={cov[w]:.0%}" for w in WINDOWS))
+        if min(cov.values()) < 0.99:
+            print(f"           WARNING incomplete coverage at some window")
 
     B = blocks()
     ARMS = (("median (frequency marginal)", "median"),

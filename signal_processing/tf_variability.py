@@ -56,12 +56,20 @@ from scipy.signal import butter, filtfilt, stft
 
 FS, F_LO, F_HI, NBIN = 100.0, 3.0, 15.0, 16
 
+# Every frame is interpolated onto this fixed grid before binning. Without it the
+# usable window lengths are silently restricted: at nperseg 64 the resolution is
+# 1.56 Hz, so 3-15 Hz holds only ~8 native bins and 16 log-bins cannot be formed
+# at all. Interpolating decouples the number of output bins from the window
+# length, which is the whole point of sweeping the window.
+GRID = np.linspace(F_LO, F_HI, 64)
+
 BLOCK_NAMES = ("median", "iqr", "flux", "wander")
 
 
 def _logbin_frames(P, f, nb=NBIN):
-    """(T, F) band-limited power -> (T, nb) log-power, every column used."""
-    L = np.log(P + 1e-12)
+    """(T, F) band-limited power on grid f -> (T, nb) log-power, all bins used."""
+    P = np.stack([np.interp(GRID, f, row) for row in P])
+    L = np.log(np.clip(P, 0, None) + 1e-12)
     e = np.linspace(0, L.shape[1], nb + 1).round().astype(int)
     return np.stack([L[:, e[i]:e[i + 1]].mean(1) for i in range(nb)], 1)
 
@@ -76,7 +84,10 @@ def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN):
     if x.ndim == 1:
         x = x[None, :]
     x = x[:3]
-    if x.shape[-1] < 4 * nperseg // 2:
+    # 75 % overlap, so four frames need only nperseg + 3*(nperseg//4) samples.
+    # At 50 % overlap a 1024-sample PADS recording yields 3 frames at nperseg
+    # 512 and was silently dropped.
+    if x.shape[-1] < nperseg + 3 * (nperseg // 4):
         return None
     x = x - x.mean(-1, keepdims=True)
 
@@ -88,13 +99,13 @@ def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN):
         return None
 
     n = min(nperseg, x.shape[-1])
-    f, _, Z = stft(x, fs=fs, nperseg=n, noverlap=n // 2, axis=-1,
+    f, _, Z = stft(x, fs=fs, nperseg=n, noverlap=3 * n // 4, axis=-1,
                    boundary=None, padded=False)
     if Z.ndim < 3 or Z.shape[-1] < 4:
         return None
     P = (np.abs(Z) ** 2).mean(0)                    # axes averaged -> (F, T)
     k = (f >= f_lo) & (f <= f_hi)
-    if k.sum() < nb:
+    if k.sum() < 4:
         return None
     P, fb = P[k].T, f[k]                            # (T, F)
 
@@ -109,7 +120,7 @@ def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN):
     med = np.median(B, 0)
     iqr = np.percentile(B, 75, 0) - np.percentile(B, 25, 0)
     flux = float(np.abs(np.diff(Pn, axis=0)).sum(1).mean())
-    peak = fb[np.argmax(Pn, 1)]
+    peak = GRID[np.argmax(np.stack([np.interp(GRID, fb, r) for r in Pn]), 1)]
     wander = float(peak.std())
 
     out = np.concatenate([med, iqr, [flux, wander]])
