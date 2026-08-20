@@ -48,21 +48,38 @@ paired: B is **precET −0.192 [−0.278, −0.108] \*** and **macroP −0.076
 **The demodulation hypothesis is wrong** — the analytic stream is *worse* than the
 raw waveform (0.584 vs 0.626), not better.
 
-**A candidate explanation, under test.** The IF channel was centred on each
-patient's own median **on purpose**, to avoid duplicating the absolute frequency
-the spectrum stream already carries. Absolute tremor frequency is the single most
-discriminative quantity available — max + mean frequency alone give AUC 0.786 on
-PADS — so on this account the stream was deprived of the strongest signal by
-construction, leaving only envelope shape and frequency stability.
+**A candidate explanation — tested, and REFUTED.** The IF channel was centred on
+each patient's own median, to avoid duplicating the absolute frequency the
+spectrum stream already carries. Since absolute tremor frequency is the single
+most discriminative quantity available (max + mean frequency alone give AUC 0.786
+on PADS), the stream looked like it had been deprived of the strongest signal by
+construction.
 
-This is a *hypothesis*, not a result. The demodulation hypothesis behind this very
-experiment was wrong, so a second causal story about the same run does not get
-asserted without a control. `experiments/analytic_if_control.py` re-runs the
-identical stream with the IF left absolute; envelopes are bit-identical between
-arms, so frequency is the only thing that changes. Circumstantial support exists
-already — the raw waveform *does* carry absolute frequency and does better
-(0.626 vs 0.584) — but that comparison also changes the representation, so it is
-not decisive.
+`experiments/analytic_if_control.py` re-ran the identical stream with the IF left
+absolute. Envelopes are bit-identical between arms, so frequency is the only
+difference, and the absolute IF does carry class structure (N 8.28, PD 7.73,
+ET 7.07 Hz). The prediction written down before the run was that restoring it
+would recover roughly the 0.042 macroP separating the analytic stream from the
+raw waveform.
+
+| paired C (absolute IF) − B (centred IF) | |
+|---|---|
+| precET | +0.035 [−0.015, +0.081] |
+| macroP | **+0.006 [−0.018, +0.029]** |
+
+**The prediction fails.** precET moves in the predicted direction but spans zero,
+and macro precision is essentially unchanged. Median-centring was not the cause.
+
+So **both** causal stories offered for this experiment were wrong: demodulation
+does not explain why the raw waveform underperforms, and centring does not explain
+why the analytic stream underperforms further. What survives is the plain reading
+— **the analytic representation is not learnable at this sample size**, and the
+ordering among time-domain streams is not explained by what information they
+carry.
+
+Two wrong explanations in one experiment is itself the lesson: at this n, a
+representation's *content* predicts its performance far less well than whether the
+model has to estimate anything from these patients.
 
 ## The pattern across both, and what it means
 
