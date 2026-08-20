@@ -300,6 +300,35 @@ correct quantities: the principal-eigenvalue spectrum, and the within-patient
 rest/postural amplitude ratio (`rest_postural_contrast.md`). Check whether a
 proposed gain survives normalisation before building it.
 
+## Time-frequency: window length is a real knob, but it splits by model
+
+Every transform collapses its TF surface to the frequency marginal (`P.mean(0)`)
+and **window length was never swept** — all are pinned at nperseg 256 or 512.
+Sweeping it moves PADS PD-vs-ET AUC by 0.11 (`tf_window_length.md`).
+
+**A spectrum built as the mean of 0.64 s STFT frames, 16 bins**, paired over 30
+repeats against the current multitaper 16:
+
+* **logreg PD-vs-ET**: PADS AUC +0.036 *, precET **+0.088 [+0.073, +0.102] ***,
+  macroP +0.049 *; MERGED precET +0.032 *. Best PD-vs-ET representation measured.
+* **the reported 3-class deep model**: **macroP −0.033 [−0.057, −0.007] ***,
+  losing on 77 % of splits. **Do not swap it in.**
+
+Note the two results differ in task as well as model (binary vs 3-class), so this
+does not show the deep model cannot use it on the binary axis.
+
+**Coarseness accounts for much of it on PADS**: multitaper at **8** bins alone
+gives AUC 0.818 vs 0.798 at 16 — the top-ranked "coarse-bin" lever pushed further.
+On MERGED coarseness explains the precision gain and the short window adds only
+ranking.
+
+**Spectral variability features are a settled negative** — per-bin IQR, spectral
+flux and peak wander are the weakest arms at every window on both cohorts
+(iqr at 2.56 s is AUC 0.494, chance) and dilute the median when appended.
+
+**Refuted along the way**: "a median over frames is robust to transients" — a
+**mean** does as well or better, so the estimator is irrelevant.
+
 ## The spectrum is a near-sufficient statistic at this n
 
 Two learned time-domain models were built and both fail (`time_domain_deep.md`):
