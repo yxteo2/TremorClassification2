@@ -307,6 +307,13 @@ a TCN on the band-passed waveform (macroP −0.034 *) and a TCN on the analytic
 channels (macroP −0.076 *, precET −0.192 *). Votes with the reported model are
 neutral-to-negative.
 
+**Two causal explanations for that were offered and BOTH were tested and
+refuted**: demodulation cost (the analytic stream is worse, not better, than the
+raw waveform) and median-centring removing absolute frequency (restoring it gives
+macroP +0.006 [−0.018, +0.029] against a pre-registered prediction of ~+0.042).
+At this n, a representation's *content* predicts performance far less well than
+whether the model must estimate anything from these patients.
+
 **The informative contrast is against catch22.** Both read the same temporal
 structure from the same band. catch22 *ties* the spectral descriptors; a learned
 TCN on the same information is significantly worse. The difference is that
