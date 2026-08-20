@@ -314,8 +314,12 @@ repeats against the current multitaper 16:
 * **the reported 3-class deep model**: **macroP −0.033 [−0.057, −0.007] ***,
   losing on 77 % of splits. **Do not swap it in.**
 
-Note the two results differ in task as well as model (binary vs 3-class), so this
-does not show the deep model cannot use it on the binary axis.
+**Resolved**: re-run on the binary axis, the **CNN gains too** (PADS AUC +0.016 *,
+MERGED precET +0.013 *), about half the linear magnitude. So it is a **task**
+effect, not a model one — short-window is better for PD-vs-ET under both model
+families, and also better for N-vs-Tremor (logreg AUC 0.774 → 0.810). **Why the
+3-class model loses is unexplained**; four proposed mechanisms were tested and all
+four failed.
 
 **Coarseness accounts for much of it on PADS**: multitaper at **8** bins alone
 gives AUC 0.818 vs 0.798 at 16 — the top-ranked "coarse-bin" lever pushed further.

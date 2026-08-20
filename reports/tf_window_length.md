@@ -108,19 +108,65 @@ architecture, priors and folds fixed. 30 splits, raised in advance.
 paired: **macroP −0.033 [−0.057, −0.007] \***, precET −0.080 [−0.153, +0.000].
 B loses on **77 % of splits** for macro precision.
 
-**A representation that significantly helps logistic regression significantly
-hurts the deep model.** Two differences are confounded in that comparison and
-both should be stated: the logreg result is **PD-vs-ET binary**, the deep result
-is **3-class merged**. So this does not show the deep model cannot use the
-short-window spectrum on the binary axis — it shows the reported model is not
-improved by the swap, which is the question that was asked.
+**That framing was wrong**, and the follow-up says so.
 
-A plausible reading, **untested**: at nperseg 64 the frequency resolution is
-1.56 Hz, so the spectrum is heavily smoothed. Smoothing is variance reduction,
-which helps a linear model on 16 correlated inputs; a convolutional trunk that
-already pools adaptively instead loses fine structure it could have used. Given
-that two explanations have already been refuted in this session, this one is
-recorded as a hypothesis and nothing rests on it.
+## Resolving the confound: it is the TASK, not the model
+
+The two results above differ in **task** as well as model, so the deep arm was
+re-run on the binary axis — `Spectrum1DCNN` alone, tremor patients only, folds
+shared across arms (`experiments/shortwindow_binary_deep.py`, 20 repeats).
+
+| paired short-window − multitaper | PADS AUC | PADS precET | MERGED AUC | MERGED precET |
+|---|---|---|---|---|
+| logistic regression | **+0.034** * | **+0.033** * | **+0.030** * | **+0.030** * |
+| Spectrum1DCNN | **+0.016** * | −0.001 | +0.007 | **+0.013** * |
+
+**The CNN gains too**, at roughly half the magnitude, and significantly on
+PADS AUC and MERGED precET. So "helps linear models, hurts deep ones" is not
+supported. The short-window spectrum is better for **PD-vs-ET under both model
+families**; what it hurts is the **3-class merged** model.
+
+## And the obvious mechanism for that is refuted as well
+
+The natural explanation was that heavy smoothing at 1.56 Hz resolution blurs the
+N-vs-Tremor boundary, which leans on peak sharpness (`peak_sharp` is the standout
+descriptor: ET 12.19, PD 5.80, N 4.08). Tested directly with logistic regression
+on all 590 patients:
+
+| representation | N-vs-Tremor AUC | peak sharpness N / PD / ET |
+|---|---|---|
+| multitaper 16 | 0.774 | 0.98 / 1.51 / 2.03 |
+| short-window 16 | **0.810** | 0.71 / 1.19 / 1.68 |
+
+**Short-window is better at N-vs-Tremor too.** Sharpness is compressed in absolute
+terms but its class ordering and separation survive. So that explanation fails.
+
+## What is actually established, and what is not
+
+Established, all paired:
+
+* short-window helps **logreg** on PD-vs-ET, both cohorts (AUC +0.030 to +0.034 *,
+  precET +0.030 to +0.033 *);
+* it helps **logreg** on N-vs-Tremor (0.774 → 0.810);
+* it helps the **binary CNN**, about half as much;
+* it **hurts the reported 3-class two-stream model** (macroP −0.033 *, losing on
+  77 % of splits).
+
+**Why the 3-class model loses is unexplained.** Four mechanisms were proposed and
+tested against data today, and all four failed: robust estimation over frames
+(a mean does as well as a median), demodulation cost and median-centring in the
+time-domain study, and N-vs-Tremor blurring here. A fifth guess is not offered.
+
+That run of four is itself worth recording: **on this dataset my mechanistic
+explanations have a poor track record, and the discipline that keeps paying is
+running the control rather than writing the sentence.** Each of those four would
+have gone into a report as an assertion if it had not been tested.
+
+Remaining candidates, none tested: the 3-class model consumes the spectrum twice
+(inside `TwoStreamNet` alongside descriptors and trajectory, and alone in
+`ResidualTCN`) and soft-votes them, so the loss may live in an interaction rather
+than in the representation; or in the validation-tuned priors, which are fitted on
+three classes.
 
 ## Two bugs caught in the first run
 
