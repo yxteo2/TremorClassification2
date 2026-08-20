@@ -48,13 +48,21 @@ paired: B is **precET −0.192 [−0.278, −0.108] \*** and **macroP −0.076
 **The demodulation hypothesis is wrong** — the analytic stream is *worse* than the
 raw waveform (0.584 vs 0.626), not better.
 
-The reason is a design decision I made deliberately and which cost more than it
-bought: the IF channel was centred on each patient's own median **to avoid
-duplicating the absolute frequency the spectrum stream already carries**. But
-absolute tremor frequency is the single most discriminative quantity available —
-max + mean frequency alone give AUC 0.786 on PADS. Removing it left the stream
-with envelope shape and frequency *stability*, which is genuinely weaker
-information. The stream was deprived of the strongest signal by construction.
+**A candidate explanation, under test.** The IF channel was centred on each
+patient's own median **on purpose**, to avoid duplicating the absolute frequency
+the spectrum stream already carries. Absolute tremor frequency is the single most
+discriminative quantity available — max + mean frequency alone give AUC 0.786 on
+PADS — so on this account the stream was deprived of the strongest signal by
+construction, leaving only envelope shape and frequency stability.
+
+This is a *hypothesis*, not a result. The demodulation hypothesis behind this very
+experiment was wrong, so a second causal story about the same run does not get
+asserted without a control. `experiments/analytic_if_control.py` re-runs the
+identical stream with the IF left absolute; envelopes are bit-identical between
+arms, so frequency is the only thing that changes. Circumstantial support exists
+already — the raw waveform *does* carry absolute frequency and does better
+(0.626 vs 0.584) — but that comparison also changes the representation, so it is
+not decisive.
 
 ## The pattern across both, and what it means
 

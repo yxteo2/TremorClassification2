@@ -132,7 +132,7 @@ def patient_tensor(recs, ch=slice(3, 6), n_rec=2, length=LENGTH):
 
 
 def analytic_channels(x, fs_in=FS_IN, fs_out=FS_OUT, f_lo=F_LO, f_hi=F_HI,
-                      length=LENGTH):
+                      length=LENGTH, centre_if=True):
     """(3, T) raw -> (2, length): log envelope and instantaneous frequency.
 
     The raw waveform contains amplitude and phase entangled, so a network reading
@@ -195,7 +195,13 @@ def analytic_channels(x, fs_in=FS_IN, fs_out=FS_OUT, f_lo=F_LO, f_hi=F_HI,
 
     sd = le.std()
     le = (le - le.mean()) / (sd + 1e-12) if sd > 1e-12 else le * 0.0
-    inst = inst - np.median(inst)                        # stability, not frequency
+    # centre_if=True makes channel 1 a STABILITY channel (deviation from the
+    # patient's own median); False leaves it as ABSOLUTE instantaneous frequency.
+    # The choice is not cosmetic: absolute tremor frequency is the most
+    # discriminative single quantity available (max+mean frequency give AUC 0.786
+    # on PADS), so centring removes it deliberately. See `analytic_if_control.py`.
+    if centre_if:
+        inst = inst - np.median(inst)
 
     out = np.vstack([le, inst])
     if out.shape[-1] >= length:
@@ -207,12 +213,13 @@ def analytic_channels(x, fs_in=FS_IN, fs_out=FS_OUT, f_lo=F_LO, f_hi=F_HI,
     return np.nan_to_num(out.astype(np.float32))
 
 
-def patient_analytic(recs, ch=slice(3, 6), n_rec=2, length=LENGTH):
+def patient_analytic(recs, ch=slice(3, 6), n_rec=2, length=LENGTH,
+                     centre_if=True):
     """(patients, n_rec, 2, length) envelope+IF, plus mask, labels, ids."""
     rows, lab = defaultdict(list), {}
     for r in recs:
         x = r.x[ch] if r.x.shape[0] > 3 else r.x
-        w = analytic_channels(x, length=length)
+        w = analytic_channels(x, length=length, centre_if=centre_if)
         if w is None:
             continue
         rows[r.subject].append(w)
