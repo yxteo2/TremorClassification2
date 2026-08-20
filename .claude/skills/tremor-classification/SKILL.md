@@ -167,6 +167,8 @@ Ranked by measured contribution:
 | polarisation spectrum (λ₁/trace per frequency) | worst arm tried, macroP −0.020, sd 0.089 |
 | FiLM conditioning / channel gating of the TCN by descriptors | +0.019 and −0.004 macroP, neither significant (`tcn_fusion.md`) |
 | early-fusion TCN (descriptors as broadcast input channels) | beats LATE CONCAT in a matched trunk (macroP +0.036 *) but **does not beat the reported model** — +0.021 at 20 splits collapses to +0.005 [−0.020, +0.028] at 40 (`early_fusion_confirm.md`) |
+| TCN over TIME on the raw waveform | macroP **−0.034 [−0.066, −0.004] ***; soft vote with the reported model −0.024 (`time_domain_deep.md`) |
+| TCN on analytic channels (envelope + IF stability) | precET **−0.192 ***, macroP **−0.076 ***; the worst deep input tried |
 | tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
 | refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
@@ -297,6 +299,36 @@ band is removed before the model sees it. This has now discarded two physically
 correct quantities: the principal-eigenvalue spectrum, and the within-patient
 rest/postural amplitude ratio (`rest_postural_contrast.md`). Check whether a
 proposed gain survives normalisation before building it.
+
+## The spectrum is a near-sufficient statistic at this n
+
+Two learned time-domain models were built and both fail (`time_domain_deep.md`):
+a TCN on the band-passed waveform (macroP −0.034 *) and a TCN on the analytic
+channels (macroP −0.076 *, precET −0.192 *). Votes with the reported model are
+neutral-to-negative.
+
+**The informative contrast is against catch22.** Both read the same temporal
+structure from the same band. catch22 *ties* the spectral descriptors; a learned
+TCN on the same information is significantly worse. The difference is that
+**catch22 does no learning on the time axis** — its formulas were fixed offline on
+93 unrelated datasets, while a TCN must estimate temporal filters from 404
+patients with 49 ET.
+
+> Time-domain information is only reachable here through estimators that do not
+> have to be learned from this cohort.
+
+That also explains why the reported model's IF-trajectory stream works (+0.056
+precET): it is a closed-form 64-point summary, not a learned representation of a
+384-point sequence.
+
+**Every time-domain representation is lower-variance and lower-accuracy** than the
+spectral one — sd(macroP) 0.044 and 0.051 against 0.068, with means 0.584 and
+0.626 against 0.660.
+
+Processing rules if this is revisited: use the **principal-axis projection, never
+the magnitude** (‖ω‖ has fundamental 2f for a linear oscillation — verified,
+11.91 vs 6.05 Hz); pick a crop length that **pads nothing**, since padding amount
+is a cohort signature; and do **not** standardise waveform inputs per feature.
 
 ## Where this sits against the literature
 

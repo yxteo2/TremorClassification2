@@ -137,7 +137,7 @@ experiments/         final_model.py               the merged model
                      selection_and_calibration.py selection, calibration, seeds
                      audio_techniques.py          freq-aware conv, PCEN, SpecAugment
 
-reports/             51 findings, including every retraction
+reports/             52 findings, including every retraction
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
