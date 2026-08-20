@@ -1,4 +1,4 @@
-# Window length matters, but the gain belongs to logistic regression
+# Window length matters: better for PD-vs-ET, worse for the 3-class model
 
 ## The gap
 
@@ -94,7 +94,7 @@ D vs B — the short window beyond coarseness — is significant on all four col
 But D vs B is **AUC only** (+0.033 *) with precET −0.001 and macroP −0.001 — there
 the precision gain is coarseness and the short window adds ranking alone.
 
-## And it reverses in the deep model
+## It reverses in the reported 3-class model
 
 The test that decides whether it matters: swap only the spectrum input of the
 reported two-stream model, keeping descriptors, asymmetry, trajectory,
@@ -185,10 +185,12 @@ Both would have produced a confident wrong answer.
 ## Standing
 
 * **Do not swap the reported model's spectrum for the short-window one** —
-  significantly worse (macroP −0.033 *).
-* **Do consider it for linear models on PD-vs-ET**, where it is the best
-  representation measured: PADS AUC 0.826 / precET 0.486 against multitaper's
-  0.789 / 0.398, at equal dimensionality.
+  significantly worse (macroP −0.033 *), and unexplained.
+* **Do use it for PD-vs-ET**, under either model family. It is the best PD-vs-ET
+  representation measured: logreg PADS AUC 0.826 / precET 0.486 against
+  multitaper's 0.789 / 0.398 at equal dimensionality, and the binary CNN gains
+  about half that.
+* **And for N-vs-Tremor** with a linear model (AUC 0.774 → 0.810).
 * **Spectral variability features are settled negative** — weakest arms at every
   window on both cohorts, and they dilute the median when appended.
 * **Window length is worth carrying as a knob.** It was never swept, and it moves
