@@ -298,6 +298,39 @@ correct quantities: the principal-eigenvalue spectrum, and the within-patient
 rest/postural amplitude ratio (`rest_postural_contrast.md`). Check whether a
 proposed gain survives normalisation before building it.
 
+## Where this sits against the literature
+
+* **PADS published baseline: 72.42 % balanced accuracy for PD vs DD**, 91.16 % for
+  PD vs HC (Varghese, npj Park Dis 2024). This repo's PADS PD-vs-ET AUC 0.794 is
+  the same regime — the difficulty is not an artifact of this pipeline.
+* **Häring (Mov Disord 2025) is the credible target: 81.8 % accuracy for PD vs ET**
+  on 414 patients from massive time-series feature extraction, vs 70.4 % for TSI.
+  Their TSI baseline matches ours (AUC 0.757 on PADS), so the gap is real.
+* **A 2026 arXiv preprint claiming 87.04 % on PADS PD-vs-DD uses class-dependent
+  window overlap** (70 % HC / 0 % PD / 65 % DD). Preprocessing that reads the
+  label is not a like-for-like comparator; do not quote it as a target.
+
+## catch22: a temporal family that ties the spectral one
+
+`signal_processing/catch22_features.py`. Every other family here comes from the
+power spectrum or the IF trajectory; catch22 reads the **waveform**. Six features
+encode Häring's mechanism (discrete stable oscillator states in PD vs one
+pacemaker in ET) and were fixed a priori from that paper.
+
+* **PADS: state subset (6 features) AUC 0.798 vs descriptors 0.794** — a tie on
+  60 % of the dimensions and **half the fold variance** (sd 0.012 vs 0.023).
+  `SB_MotifThree_quantile_hh` is the best single catch22 feature (Cohen's d 1.235).
+* **Rank-avg hybrid gives AUC +0.014 [+0.008, +0.019] *** — the combination rule
+  firing exactly as predicted (comparable strength, different kind, score level).
+* **But precET is significantly WORSE everywhere** (−0.028 * hybrid, −0.034 *
+  state alone). AUC integrates the whole ranking; precision at 9 % prevalence
+  reads only its top, and rank-averaging dilutes descriptors' most confident ET
+  calls. **Descriptors remain the best model by ET precision.**
+* Concatenation diluted twice more (15 instances now).
+* Use the **principal-axis projection**, never the magnitude: for a linear
+  oscillation ‖ω‖ has fundamental 2f (verified — 11.91 Hz vs 6.05 Hz on a 6 Hz
+  synthetic).
+
 ## The rest-tremor axis is missing from these recordings
 
 The strongest clinical PD-vs-ET sign — rest tremor present in PD, absent in ET —
