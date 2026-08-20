@@ -74,7 +74,8 @@ def _logbin_frames(P, f, nb=NBIN):
     return np.stack([L[:, e[i]:e[i + 1]].mean(1) for i in range(nb)], 1)
 
 
-def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN):
+def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN,
+                stat="median"):
     """(3, T) -> 2*nb + 2 features describing the spectrum and its movement.
 
     Returns ``None`` if the recording cannot supply at least four frames, since
@@ -117,7 +118,11 @@ def tf_features(x, fs=FS, nperseg=128, f_lo=F_LO, f_hi=F_HI, nb=NBIN):
     Pn = P / tot                                    # per-frame shape
 
     B = _logbin_frames(Pn, fb, nb)                  # (T, nb) log-shape
-    med = np.median(B, 0)
+    # ``stat`` exists to separate two explanations of the short-window gain:
+    # a median over many frames is ROBUST to transients, while a mean is not.
+    # If mean and median score the same, the gain is the window, not the
+    # estimator. See `experiments/tf_window_control.py`.
+    med = np.median(B, 0) if stat == "median" else B.mean(0)
     iqr = np.percentile(B, 75, 0) - np.percentile(B, 25, 0)
     flux = float(np.abs(np.diff(Pn, axis=0)).sum(1).mean())
     peak = GRID[np.argmax(np.stack([np.interp(GRID, fb, r) for r in Pn]), 1)]
@@ -135,12 +140,13 @@ def blocks(nb=NBIN):
             "variability": slice(nb, 2 * nb + 2)}
 
 
-def patient_table(recs, ch=slice(3, 6), nperseg=128, fs=FS, nb=NBIN):
+def patient_table(recs, ch=slice(3, 6), nperseg=128, fs=FS, nb=NBIN,
+                  stat="median"):
     """(patients, 2*nb + 2) averaged over each patient's recordings."""
     rows, lab = defaultdict(list), {}
     for r in recs:
         x = r.x[ch] if r.x.shape[0] > 3 else r.x
-        v = tf_features(x, fs=fs, nperseg=nperseg, nb=nb)
+        v = tf_features(x, fs=fs, nperseg=nperseg, nb=nb, stat=stat)
         if v is None:
             continue
         rows[r.subject].append(v)
