@@ -129,3 +129,98 @@ def patient_tensor(recs, ch=slice(3, 6), n_rec=2, length=LENGTH):
         for j, w in enumerate(rows[p][:n_rec]):
             X[i, j], M[i, j] = w, 1.0
     return X, M, np.array([lab[p] for p in pats]), np.array(pats)
+
+
+def analytic_channels(x, fs_in=FS_IN, fs_out=FS_OUT, f_lo=F_LO, f_hi=F_HI,
+                      length=LENGTH):
+    """(3, T) raw -> (2, length): log envelope and instantaneous frequency.
+
+    The raw waveform contains amplitude and phase entangled, so a network reading
+    it must first learn to demodulate before it can see anything about *states* —
+    and demodulation costs capacity this cohort cannot spare. The analytic signal
+    does that step in closed form, handing the model the two quantities the
+    Häring mechanism is actually about:
+
+        channel 0   log envelope, z-scored  -- amplitude modulation over time
+        channel 1   instantaneous frequency in Hz, centred on its own median
+                    -- "several discrete oscillator states in PD" should appear
+                    as switching between levels; "a singular pacemaker in ET" as
+                    a flat line.
+
+    Centring the IF on the patient's own median makes it a *stability* channel
+    rather than a frequency channel, so it carries no absolute-frequency
+    information the spectrum already has, and stays comparable across cohorts.
+    """
+    from scipy.signal import hilbert
+
+    x = np.asarray(x, float)
+    if x.ndim == 1:
+        x = x[None, :]
+    x = x[:3]
+    if x.shape[-1] < 128:
+        return None
+    x = x - x.mean(-1, keepdims=True)
+
+    nyq = fs_in / 2.0
+    try:
+        b, a = butter(4, [f_lo / nyq, min(f_hi / nyq, 0.99)], btype="band")
+        x = filtfilt(b, a, x, axis=-1)
+    except Exception:
+        return None
+
+    if x.shape[0] >= 2:
+        C = np.cov(x)
+        if not np.isfinite(C).all():
+            return None
+        s = np.linalg.eigh(C)[1][:, -1] @ x
+    else:
+        s = x[0]
+
+    z = hilbert(s)
+    env = np.abs(z)
+    phase = np.unwrap(np.angle(z))
+    inst = np.diff(phase) * fs_in / (2 * np.pi)          # Hz, length T-1
+    env = env[:len(inst)]
+
+    keep = np.isfinite(inst) & np.isfinite(env) & (env > 0)
+    if keep.sum() < 128:
+        return None
+    inst = np.clip(inst, f_lo, f_hi)
+    le = np.log(np.clip(env, 1e-12, None))
+
+    g = np.gcd(int(fs_out), int(fs_in))
+    up, down = int(fs_out) // g, int(fs_in) // g
+    le = resample_poly(le, up, down)
+    inst = resample_poly(inst, up, down)
+
+    sd = le.std()
+    le = (le - le.mean()) / (sd + 1e-12) if sd > 1e-12 else le * 0.0
+    inst = inst - np.median(inst)                        # stability, not frequency
+
+    out = np.vstack([le, inst])
+    if out.shape[-1] >= length:
+        i = (out.shape[-1] - length) // 2
+        out = out[:, i:i + length]
+    else:
+        pad = length - out.shape[-1]
+        out = np.pad(out, ((0, 0), (pad // 2, pad - pad // 2)))
+    return np.nan_to_num(out.astype(np.float32))
+
+
+def patient_analytic(recs, ch=slice(3, 6), n_rec=2, length=LENGTH):
+    """(patients, n_rec, 2, length) envelope+IF, plus mask, labels, ids."""
+    rows, lab = defaultdict(list), {}
+    for r in recs:
+        x = r.x[ch] if r.x.shape[0] > 3 else r.x
+        w = analytic_channels(x, length=length)
+        if w is None:
+            continue
+        rows[r.subject].append(w)
+        lab[r.subject] = r.y
+    pats = sorted(rows)
+    X = np.zeros((len(pats), n_rec, 2, length), np.float32)
+    M = np.zeros((len(pats), n_rec), np.float32)
+    for i, p in enumerate(pats):
+        for j, w in enumerate(rows[p][:n_rec]):
+            X[i, j], M[i, j] = w, 1.0
+    return X, M, np.array([lab[p] for p in pats]), np.array(pats)
