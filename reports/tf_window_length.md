@@ -162,11 +162,58 @@ explanations have a poor track record, and the discipline that keeps paying is
 running the control rather than writing the sentence.** Each of those four would
 have gone into a report as an assertion if it had not been tested.
 
-Remaining candidates, none tested: the 3-class model consumes the spectrum twice
-(inside `TwoStreamNet` alongside descriptors and trajectory, and alone in
-`ResidualTCN`) and soft-votes them, so the loss may live in an interaction rather
-than in the representation; or in the validation-tuned priors, which are fitted on
-three classes.
+## The two-stage prediction fails too
+
+One candidate was testable without inventing a mechanism. Since short-window
+improves **both** sub-decisions of the 3-class problem measured separately, a
+model that makes those decisions separately should be able to keep the gain. That
+is a prediction from measurements, not a story, and
+`experiments/shortwindow_twostage.py` ran it at 30 splits.
+
+| arm | precN | precPD | precET | macroP |
+|---|---|---|---|---|
+| A flat, multitaper (reported) | 0.655 | 0.652 | **0.658** | **0.655** |
+| B flat, short-window | 0.660 | 0.628 | 0.578 | 0.622 |
+| C two-stage, multitaper | 0.659 | 0.653 | 0.625 | 0.646 |
+| D two-stage, short-window | 0.672 | 0.640 | 0.552 | 0.622 |
+
+paired vs A: B macroP **−0.033 [−0.057, −0.007] ***; C macroP −0.009
+[−0.028, +0.009]; D macroP **−0.033 [−0.064, −0.003] *** and precET
+**−0.106 [−0.189, −0.026] ***.
+
+paired D vs C — the representation inside the hierarchy — is precET −0.073
+[−0.158, +0.011] and macroP −0.024 [−0.056, +0.007]: directionally **worse**, not
+better.
+
+**The pre-registered reading is the third one, D < C: the 3-class loss is not
+about the flat combination at all.** Decomposing the problem into exactly the two
+binary axes on which the representation wins does not recover the gain — D lands
+precisely where B did (macroP 0.622 both).
+
+A useful side-effect: arm C reproduces the earlier hierarchy-alone result to
+within a thousandth (−0.009 here against −0.008 in `axis_specific_inputs.md`),
+across independent runs and a different split count. That is the cleanest
+replication in the project and it makes the rest of this table trustworthy.
+
+## The honest summary
+
+**The short-window spectrum is a binary-axis representation.** It improves
+PD-vs-ET and N-vs-Tremor separately, under both linear and convolutional models,
+on both cohorts. Its gains do **not** compose into the 3-class problem under any
+combination tested — flat or hierarchical — and why is unknown.
+
+Five predictions were made about this family of results today and all five failed:
+four mechanism stories (robust estimation, demodulation cost, median-centring,
+N-vs-Tremor blurring) and now one derived from measured sub-component gains. The
+last is the more sobering, because it was the disciplined kind: **even a
+prediction built from measurements did not compose.** Sub-component gains on this
+dataset are not evidence about the composite task, and should not be reported as
+if they were.
+
+Untested and left for anyone continuing: the composition is multiplicative with
+priors fitted on three classes, and stage B is trained on tremor patients only, so
+the calibration path differs from the binary experiments. That is a difference,
+not an explanation, and it is recorded as such.
 
 ## Two bugs caught in the first run
 
