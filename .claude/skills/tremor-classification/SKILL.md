@@ -444,8 +444,28 @@ The levers that would actually raise it, in order:
 1. more ET patients;
 2. the PADS non-motor questionnaire (the published 91 % baseline is multimodal;
    this pipeline is IMU-only by the user's choice);
-3. PADS's 8 unextracted tasks — the kinetic ones (DrinkGlas, TouchNose) are
-   where ET separates best (NewData DRINK AUC 0.812 vs 0.20–0.27 at REST).
+3. PADS's 8 unextracted tasks — worth extracting to **test** whether the kinetic
+   ones separate ET, which is an open hypothesis and **not** the measured fact
+   this entry used to assert (`kinetic_task_audit.md`).
+
+   The old wording — "the kinetic ones are where ET separates best (NewData DRINK
+   AUC 0.812)" — reproduces exactly (DRINK 0.804, REST/OUT 0.307/0.225) but does
+   not survive its own null. At 6 ET the PD-vs-ET permutation null reaches
+   **0.819**, so DRINK is p = 0.050 and FINGER_NOSE p = 0.060 among **seven**
+   tasks tested; nothing survives multiplicity. On N-vs-Tremor, where 29–33
+   positives make the axis measurable, the **postural OUT task is the best**
+   (0.840) and the kinetic tasks are comparable, not superior.
+
+   The pattern is still suggestive — DRINK and FINGER_NOSE at 0.804/0.826 against
+   REST/OUT at 0.307/0.225 is a coherent split between task types — which is why
+   extracting PADS (28 ET) is still the right next step. It is a test, not an
+   exploitation.
+
+   **No PD-vs-ET result from NewData alone can be evidence of anything**: the null
+   there reaches 0.819. Apply this check to any other single-cohort NewData claim.
+
+   Blocked here: `physionet.org` is denied by the environment's network policy
+   (403 at the egress proxy). Needs a policy change or an uploaded archive.
 
 Continued architecture work is not the route: five rounds moved macro precision
 0.583 → 0.675, and the remaining gap to 0.90 is larger than everything that
