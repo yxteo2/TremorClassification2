@@ -330,6 +330,17 @@ all tested and all failed.
 report a binary-axis improvement as if it will carry into the 3-class model —
 it has now been shown not to, under both flat and hierarchical combination.
 
+**And it is PADS-dependent.** On in-house patients alone it does nothing:
+PD-vs-ET AUC 0.556 vs 0.557 (both p ≈ 0.46, inside the null), and the in-house
+3-class protocol shows no significant difference on any column
+(`inhouse_shortwindow.md`). Both cohorts where it won contain PADS.
+
+**A precision trap worth remembering.** In that in-house binary table precET reads
+0.190 against 0.286 — a 50 % relative jump — while ΔAUC is 0.001 and both models
+are indistinguishable from chance. **Always print the permutation null beside
+in-house precision**: at 21 ET every model measured sits inside it, so in-house
+precision differences describe where the threshold fell, not skill.
+
 **Coarseness accounts for much of it on PADS**: multitaper at **8** bins alone
 gives AUC 0.818 vs 0.798 at 16 — the top-ranked "coarse-bin" lever pushed further.
 On MERGED coarseness explains the precision gain and the short window adds only
