@@ -116,8 +116,18 @@ frequency number.
 **The final deep model** (`experiments/final_model.py`): two-stream —
 `Spectrum1DCNN` on the log-binned **multitaper** spectrum plus `TrajectoryEncoder`
 (dilated TCN) on the instantaneous-frequency trajectory, soft-voted with
-`ResidualTCN`. precN 0.639 / precPD 0.655 / precET 0.685 / macroP 0.660, paired
-**+0.041 [+0.014, +0.067]** macroP over the welch baseline at 20 splits.
+`ResidualTCN`. **Re-audited at 40 splits and it held** (`headline_audit.md`):
+precN 0.651 / precPD 0.654 / **precET 0.663** / **macroP 0.656**, paired
+**+0.043 [+0.024, +0.062]** macroP and **+0.097 [+0.047, +0.146]** precET over the
+welch baseline, winning on 75 % of splits. The interval **tightened** from the
+original 20-split [+0.014, +0.067] — the opposite of early fusion.
+
+Both ranked components survive at 40 splits: trajectory precET +0.068
+[+0.030, +0.110] *, transform-alone precPD +0.032 * / macroP +0.020 *, and the two
+sum to the whole (+0.020 + +0.022 vs +0.043 measured).
+
+**Quote precET 0.663, not 0.685** — sd is 0.183, so the 20-split figure carries
+about ±0.04.
 
 Ranked by measured contribution:
 

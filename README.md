@@ -51,10 +51,18 @@ prevalence; the axis gain is not significant at 21 ET patients.
 
 | model | precN | precPD | precET | macro P |
 |---|---|---|---|---|
-| welch baseline | 0.639 | 0.636 | 0.583 | 0.619 |
-| **multitaper + IF trajectory** | 0.639 | 0.655 | **0.685** | **0.660** |
+| welch baseline | 0.638 | 0.636 | 0.566 | 0.613 |
+| **multitaper + IF trajectory** | 0.651 | 0.654 | **0.663** | **0.656** |
 
-Paired +0.041 [+0.014, +0.067] macro precision over 20 splits.
+Paired **+0.043 [+0.024, +0.062] macro precision** and **+0.097 [+0.047, +0.146]
+ET precision** over the welch baseline, at **40 splits**, winning on 75 % of them
+(`reports/headline_audit.md`).
+
+> Quoted at 40 rather than the original 20 splits. The claim was re-audited
+> because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
+> on doubling. It held and its interval **tightened** (from [+0.014, +0.067]).
+> Note ET precision reads 0.685 at 20 splits and 0.663 at 40 — sd is 0.183, so the
+> two agree, but **0.663 is the figure to quote**.
 
 ### N vs Tremor — the one place >0.90 is reached
 
@@ -137,7 +145,7 @@ experiments/         final_model.py               the merged model
                      selection_and_calibration.py selection, calibration, seeds
                      audio_techniques.py          freq-aware conv, PCEN, SpecAugment
 
-reports/             55 findings, including every retraction
+reports/             56 findings, including every retraction
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
