@@ -129,23 +129,26 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         final_model.py               the merged model
-                     oneclass_paired.py           one-class PD + logreg hybrid
-                     binning.py                   band coverage vs estimator
-                     binning_deep.py              the same, paired, 3-class deep
-                     masked_pretrain.py           masked-spectrum SSL
-                     ssl_leakage.py               is the SSL gain transductive?
-                     ssl_matched.py               SSL with a matched pipeline
-                     own_data_10et.py             in-house, 10 ET in test
-                     inhouse_axes.py              axis features in-house
-                     frozen_backbone.py           frozen pretrained ViT
-                     attention_test.py            small attention models
-                     trajectory_tuning.py         trajectory sweep
-                     window_training.py           window-level training
-                     selection_and_calibration.py selection, calibration, seeds
-                     audio_techniques.py          freq-aware conv, PCEN, SpecAugment
+experiments/         50 runnable studies. The ones that carry a result:
 
-reports/             56 findings, including every retraction
+                     final_model.py            the reported merged model
+                     headline_audit.py         that model re-checked at 40 splits
+                     own_data_10et.py          in-house, 10 ET per test set
+                     pd_vs_et.py               the binary axis, per cohort
+                     permutation_null.py *     detection floors  (see reports/)
+                     catch22_family.py         waveform features vs spectral ones
+                     tf_variability_screen.py  window-length sweep
+                     tf_window_paired.py       short-window spectrum, paired
+                     oneclass_paired.py        one-class PD + logreg hybrid
+                     binning.py                band coverage vs estimator
+                     loco_pd_et.py             cross-cohort transfer
+                     kinetic_task_audit.py     auditing lever #3
+
+                     The rest are recorded negatives — SSL, attention, MIL,
+                     time-domain TCNs, fusion points, rest/postural contrasts.
+                     Every one has a report; none improved the reported model.
+
+reports/             56 findings, including every retraction and five failed predictions
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
