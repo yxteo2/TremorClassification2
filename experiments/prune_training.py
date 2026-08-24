@@ -89,6 +89,12 @@ def prune(X, y, tr, k, mode, seed=0):
         return tr
     if mode == "hard":
         d = difficulty(X, y, tr, seed=seed)
+    elif mode == "easy":
+        # the mirror image. If the hardest majority patients are boundary-
+        # defining rather than noisy -- which is what the hard/random contrast
+        # says -- then dropping the EASIEST should be harmless, since those sit
+        # far from the boundary and constrain it least.
+        d = -difficulty(X, y, tr, seed=seed)
     else:
         d = np.random.default_rng(1000 + seed).random(len(tr))
     keep = np.ones(len(tr), bool)
@@ -137,8 +143,8 @@ def main():
     print("difficulty scored by inner CV on the TRAINING fold alone\n", flush=True)
 
     ARMS = (("k=0 (baseline)", 0, "hard"),
-            ("hard-drop 5", 5, "hard"),
-            ("hard-drop 15", 15, "hard"),
+            ("easy-drop 5", 5, "easy"),
+            ("easy-drop 15", 15, "easy"),
             ("random-drop 5", 5, "random"),
             ("random-drop 15", 15, "random"))
     res = {a: [] for a, _, _ in ARMS}
@@ -154,11 +160,11 @@ def main():
         for lab, k, mode in ARMS:
             tr2 = prune(packed, y, tr, k, mode, seed=sp)
             res[lab].append(fit_eval(spec, D, traj, y, tr2, va, te))
-            if lab == "hard-drop 15":
+            if lab == "easy-drop 15":
                 gone = np.setdiff1d(tr, tr2)
                 dropped_cohort.append(gone)
         print(f"  split {sp+1}/{SPLITS}  train {len(tr)} -> "
-              f"{len(prune(packed, y, tr, 15, 'hard', seed=sp))} at k=15",
+              f"{len(prune(packed, y, tr, 15, 'easy', seed=sp))} at k=15",
               flush=True)
 
     for a in res:
@@ -177,10 +183,10 @@ def main():
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
-    print("\nhard vs random at the same k — is it WHICH patients, or just fewer?")
+    print("\neasy vs random at the same k — is it WHICH patients, or just fewer?")
     for k in (5, 15):
         print(f"  k={k}:")
-        for (dd, lo, hi), c in zip(paired(res[f"hard-drop {k}"],
+        for (dd, lo, hi), c in zip(paired(res[f"easy-drop {k}"],
                                           res[f"random-drop {k}"]), NM):
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")

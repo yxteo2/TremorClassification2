@@ -148,7 +148,7 @@ experiments/         50 runnable studies. The ones that carry a result:
                      time-domain TCNs, fusion points, rest/postural contrasts.
                      Every one has a report; none improved the reported model.
 
-reports/             56 findings, including every retraction and five failed predictions
+reports/             57 findings, including every retraction and five failed predictions
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.

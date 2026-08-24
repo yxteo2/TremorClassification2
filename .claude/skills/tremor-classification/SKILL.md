@@ -179,6 +179,7 @@ Ranked by measured contribution:
 | early-fusion TCN (descriptors as broadcast input channels) | beats LATE CONCAT in a matched trunk (macroP +0.036 *) but **does not beat the reported model** — +0.021 at 20 splits collapses to +0.005 [−0.020, +0.028] at 40 (`early_fusion_confirm.md`) |
 | TCN over TIME on the raw waveform | macroP **−0.034 [−0.066, −0.004] ***; soft vote with the reported model −0.024 (`time_domain_deep.md`) |
 | TCN on analytic channels (envelope + IF stability) | precET **−0.192 ***, macroP **−0.076 ***; the worst deep input tried |
+| pruning the hardest N/PD training patients by difficulty | **worse than doing nothing AND worse than random removal** — precET −0.081 *, macroP −0.032 *, and hard-vs-random at k=5 is precET −0.065 * (`prune_training.md`). The hardest majority patients are boundary-defining, not mislabelled |
 | tuning the class priors for macro precision (the target metric) | macroP −0.049 and sd 0.068 → 0.149; F1's recall term is regularising the offset search (`prior_objective.md`) |
 | refining the offset grid 9×9 → 21×21 | slightly worse; coarseness is regularisation |
 | fine-tuning a small encoder at ≤28 minority patients | destroys it — frozen beats fine-tuned by precET +0.161 on PADS |
