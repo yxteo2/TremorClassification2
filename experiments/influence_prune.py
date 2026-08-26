@@ -157,11 +157,13 @@ def main():
           f"scored on a held-out {SCORE_FRAC:.0%} of the training fold")
     print("ET is never dropped; validation and test are never read\n", flush=True)
 
+    # Three arms, not five. This container reverts its working tree frequently
+    # and has already killed two long runs; k=5 is the configuration the question
+    # is about, and random-drop 5 is the control that decides it. Dose-response
+    # at k=15 is worth adding back only once this completes.
     ARMS = (("k=0 (baseline)", 0, "infl"),
             ("influence-drop 5", 5, "infl"),
-            ("influence-drop 15", 15, "infl"),
-            ("random-drop 5", 5, "rand"),
-            ("random-drop 15", 15, "rand"))
+            ("random-drop 5", 5, "rand"))
     res = {a: [] for a, _, _ in ARMS}
     dropped_all, frac_neg = [], []
 
@@ -181,7 +183,7 @@ def main():
         for lab, k, mode in ARMS:
             if mode == "infl":
                 tr2, drop = prune_by_influence(y, tr, infl, k)
-                if lab == "influence-drop 15":
+                if lab == "influence-drop 5":
                     dropped_all.append(drop)
             else:
                 drop = []
@@ -212,17 +214,15 @@ def main():
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
-    print("\ninfluence vs random at the same k — the comparison that decides it:")
-    for k in (5, 15):
-        print(f"  k={k}:")
-        for (dd, lo, hi), c in zip(paired(res[f"influence-drop {k}"],
-                                          res[f"random-drop {k}"]), NM):
-            star = "*" if lo > 0 or hi < 0 else " "
-            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+    print("\ninfluence vs random at k=5 — the comparison that decides it:")
+    for (dd, lo, hi), c in zip(paired(res["influence-drop 5"],
+                                      res["random-drop 5"]), NM):
+        star = "*" if lo > 0 or hi < 0 else " "
+        print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
     from collections import Counter
     cnt = Counter(int(i) for g in dropped_all for i in g)
-    print(f"\nmost frequently dropped at k=15 (of {SPLITS} splits):")
+    print(f"\nmost frequently dropped at k=5 (of {SPLITS} splits):")
     for i, c in cnt.most_common(12):
         tag = f"  {coh[i]}" if coh is not None and i < len(coh) else ""
         print(f"    idx {i:>4}  class {int(y[i])}  {c:>2}/{SPLITS} splits{tag}")
