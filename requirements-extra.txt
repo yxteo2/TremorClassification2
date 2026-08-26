@@ -1,1 +1,2 @@
-pycatch22>=0.4
+# Feature libraries used by individual experiments, not by the core pipeline.
+pycatch22>=0.4     # experiments/catch22_family.py, catch22_hybrid.py
