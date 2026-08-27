@@ -110,6 +110,12 @@ proxy.
   PD.** Every majority patient is roughly equally useful to the model, which is
   consistent with the boundary-defining result from criterion 1 — the ones that
   look worst are the ones doing the most work.
-* Untested follow-ups, in order of promise: remove the Atypical Parkinsonism
-  records by diagnosis rather than by score; raise the subset count to test
-  whether influence becomes stable.
+* **The follow-up proposed here has since been run, and the answer is the same.**
+  `influence_stable.md` replaces the Monte-Carlo estimate with **exact
+  leave-one-out harm averaged over 20 inner splits** and adds a split-half
+  reliability diagnostic calibrated against planted mislabels. The ranking is
+  weakly reproducible (top-k overlap 0.15 vs 0.04 chance, against 0.60 when a
+  harmful set really exists), and the drop test again lands null and negative on
+  four of five columns: LOO-harm vs random precET −0.023 [−0.084, +0.032],
+  macroP −0.008 [−0.029, +0.011]. Two independent estimators, one approximate and
+  one exact, agree. **The question is closed.**
