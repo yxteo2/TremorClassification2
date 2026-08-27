@@ -65,6 +65,22 @@ fitting logit offsets *per cohort* significantly worse (macroP −0.023 *). That
 a different operation — post-hoc thresholds fitted on ~20 validation patients per
 cohort — and its failure does not predict this one.
 
+## Half the ensemble cannot see the cohort ID, so both halves are reported
+
+The reported model is two families. `TwoStreamNet` takes the descriptor vector
+and therefore receives the cohort one-hot; `ResidualTCN` takes the spectrum
+alone, and appending three indicator columns to a spectrum would have them read
+as extra frequency bins by a 1-D convolution over that axis — wrong, so it is not
+done.
+
+Three of six members are therefore unchanged by construction, which **dilutes any
+effect by roughly half and would make a null ambiguous**: no gain could mean the
+cohort ID does not help, or that it helps in a place the other half drowns out.
+So the TwoStream family is also scored on its own, with and without the ID. That
+arm is where the input actually arrives, and it is the one that tests the
+mechanism cleanly. The full-ensemble arm answers the different, practical
+question of whether it improves *the reported model*.
+
 20 splits, paired, reported model. Run: ``python -m experiments.cohort_id_input``
 """
 
@@ -123,7 +139,9 @@ def main():
           flush=True)
 
     res = {a: [] for a in ARMS}
+    solo = {a: [] for a in ARMS}          # TwoStream family alone
     con = {a: {c: [] for c in COHORTS} for a in ARMS}
+    csolo = {a: {c: [] for c in COHORTS} for a in ARMS}
     pcoh = {a: {c: [] for c in COHORTS} for a in ARMS}
 
     for sp in range(SPLITS):
@@ -142,9 +160,20 @@ def main():
             arg = np.stack([T[i].argmax(1) for i in range(len(T))])
             unan = (arg == arg[0]).all(0)
             pred = (np.log(pt + 1e-12) + off).argmax(1)
+
+            # the TwoStream family alone -- the half that actually receives the
+            # cohort one-hot. fit_members returns family 1 first, then family 2.
+            nf = len(T) // 2
+            sv, st = V[:nf].mean(0), T[:nf].mean(0)
+            solo[a].append(score(st, tune_offsets(sv, y[va]), y[te]))
+            sarg = np.stack([T[i].argmax(1) for i in range(nf)])
+            sunan = (sarg == sarg[0]).all(0)
+
             for c in COHORTS:
                 m = coh[te] == c
                 con[a][c].append(float((~unan)[m].mean()) if m.any() else np.nan)
+                csolo[a][c].append(float((~sunan)[m].mean()) if m.any()
+                                   else np.nan)
                 pcoh[a][c].append(float((pred[m] == y[te][m]).mean())
                                   if m.any() else np.nan)
             line.append(f"{a} con2015 {con[a]['2015'][-1]:.2f} "
@@ -173,15 +202,31 @@ def main():
         star = "*" if lo > 0 or hi < 0 else " "
         print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
+    for a in solo:
+        solo[a] = np.array(solo[a])
+    print("\nTwoStream family ALONE -- the half that receives the cohort ID.")
+    print("A null in the full ensemble is ambiguous; this arm is not:")
+    print(f"{'arm':>14}" + "".join(f"{c:>9}" for c in NM))
+    for a in ARMS:
+        print(f"{a:>14}" + "".join(f"{v:>9.3f}" for v in solo[a].mean(0)))
+    for a in ("+ cohort ID", "+ random ID"):
+        print(f"  {a} vs baseline, TwoStream only:")
+        for (dd, lo, hi), c in zip(paired(solo[a], solo["baseline"]), NM):
+            star = "*" if lo > 0 or hi < 0 else " "
+            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+
     print("\nTHE PREDICTION -- contested rate per cohort, and its change:")
     print(f"{'cohort':>9}{'baseline':>11}{'+cohortID':>11}{'change':>9}"
-          f"{'acc base':>10}{'acc +ID':>9}")
+          f"{'acc base':>10}{'acc +ID':>9}{'solo base':>11}{'solo +ID':>10}")
     for c in COHORTS:
         b = np.nanmean(con["baseline"][c])
         k = np.nanmean(con["+ cohort ID"][c])
         ab = np.nanmean(pcoh["baseline"][c])
         ak = np.nanmean(pcoh["+ cohort ID"][c])
-        print(f"{c:>9}{b:>11.3f}{k:>11.3f}{k-b:>+9.3f}{ab:>10.3f}{ak:>9.3f}")
+        sb = np.nanmean(csolo["baseline"][c])
+        sk = np.nanmean(csolo["+ cohort ID"][c])
+        print(f"{c:>9}{b:>11.3f}{k:>11.3f}{k-b:>+9.3f}{ab:>10.3f}{ak:>9.3f}"
+              f"{sb:>11.3f}{sk:>10.3f}")
     print("\nthe prediction holds only if NewData's contested rate falls by")
     print("more than 2015's. Precision moving without that is the mechanism")
     print("being wrong even if the number goes up.")
