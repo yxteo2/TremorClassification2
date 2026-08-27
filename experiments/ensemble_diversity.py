@@ -69,7 +69,7 @@ def main():
     print(f"n={len(y)}  {SPLITS} splits, 6 members each "
           f"(2 families x 3 seeds)\n", flush=True)
 
-    rows = []
+    rows, by_class, by_coh = [], {}, {}
     for sp in range(SPLITS):
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(spec, key))
@@ -114,6 +114,20 @@ def main():
 
         rows.append([all_r, within, across, all_d, wd, ad, sd_et,
                      float(unan.mean()), acc_u, acc_c, m_u, m_c])
+
+        # Are the contested patients concentrated anywhere? If they cluster in a
+        # class or a cohort that is a handle; if they are spread evenly the
+        # ceiling is intrinsic to the task at this sample size.
+        for c in (0, 1, 2):
+            m = y[te] == c
+            by_class.setdefault(c, []).append(
+                [float((~unan)[m].mean()),
+                 float((pred[m & ~unan] == c).mean()) if (m & ~unan).any()
+                 else np.nan])
+        for cname in ("2015", "NewData", "PADS"):
+            m = np.array([k.rsplit("_", 1)[0] == cname for k in key[te]])
+            by_coh.setdefault(cname, []).append(
+                float((~unan)[m].mean()) if m.any() else np.nan)
         print(f"  split {sp+1}/{SPLITS}  r(pET) all {all_r:.3f} "
               f"(within-family {within:.3f}, across {across:.3f})   "
               f"disagree {all_d:.3f}", flush=True)
@@ -126,6 +140,15 @@ def main():
     print("\n" + "-" * 62)
     for i, l in enumerate(lab):
         print(f"{l:>26}  {a[:, i].mean():.3f}  (sd {a[:, i].std():.3f})")
+
+    print("\ncontested rate and recall-on-contested, by class:")
+    for c, nmc in ((0, "N"), (1, "PD"), (2, "ET")):
+        v = np.array(by_class[c], float)
+        print(f"  {nmc:>3}  contested {np.nanmean(v[:, 0]):.3f}   "
+              f"correct when contested {np.nanmean(v[:, 1]):.3f}")
+    print("\ncontested rate by cohort:")
+    for cname in ("2015", "NewData", "PADS"):
+        print(f"  {cname:>8}  {np.nanmean(by_coh[cname]):.3f}")
 
     print("\nreading it:")
     print("  High r with near-zero disagreement would mean the members are")
