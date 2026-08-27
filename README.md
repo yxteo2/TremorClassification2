@@ -129,7 +129,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         50 runnable studies. The ones that carry a result:
+experiments/         59 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -143,12 +143,15 @@ experiments/         50 runnable studies. The ones that carry a result:
                      binning.py                band coverage vs estimator
                      loco_pd_et.py             cross-cohort transfer
                      kinetic_task_audit.py     auditing lever #3
+                     ensemble_diversity.py     the ceiling's shape: 60/40 split
+                     contested_specialists.py  is the contested 40 % readable?
 
                      The rest are recorded negatives — SSL, attention, MIL,
                      time-domain TCNs, fusion points, rest/postural contrasts.
                      Every one has a report; none improved the reported model.
 
-reports/             58 findings, including every retraction and five failed predictions
+reports/             63 findings, including every retraction and a register
+                     of predictions made before the run (failed_predictions.md)
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
@@ -170,6 +173,17 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
   at the **score** level, not the feature level (`reports/oneclass_hybrid.md`).
 * **A frozen treatment needs a frozen control.** Changing two things at once cost
   this project a headline result (`reports/ssl_retraction.md`).
+* **Never judge a second model on a subset the first model's uncertainty
+  defined.** Conditioning on where model A is unsure selects patients A does
+  badly on and applies no such selection to model B, so B looks good by
+  construction. Only comparisons to a selection-independent baseline (chance)
+  are valid there. Stated as a caveat in `reports/contested_specialists.md` and
+  confirmed by `reports/contested_gating.md`, which found the apparent advantage
+  was not complementary signal at all.
+* **Do not select architectures on the validation split.** It is reliable for
+  2-parameter offsets and not for choosing between models: asked to weight a
+  one-vs-rest decomposition against the softmax, it picked the arm that is 0.162
+  worse on ET precision in **20 of 20 splits** (`reports/one_vs_rest.md`).
 * **Check what a reshape keeps.** `logbin` was exact on 64-column multitaper
   input and silently dropped 21 % of the band on 61-column welch input
   (`reports/band_truncation.md`).
@@ -179,6 +193,26 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 * **Macro precision >0.90 on three classes is unreachable at any coverage**
   (`reports/precision_ceiling.md`). ET precision gets *worse* under abstention,
   so no confidence threshold rescues it.
+* **The ceiling has a shape, and it is two populations.** The six ensemble
+  members agree on **59.5 %** of patients and are **68.8 %** correct there; on
+  the contested **40.5 %** they fall to **0.443 balanced accuracy** with a top-2
+  margin four times narrower (`reports/ensemble_diversity.md`). The members are
+  not near-copies — they disagree on 20.5 % of patient pairs — so the contested
+  set is a real boundary, not an artifact of a redundant ensemble. Contested
+  rate is **not** uniform: 0.573 for NewData against 0.307 for 2015, with class
+  composition controlled and near-identical across cohorts.
+* **Better uses of the current representation are exhausted.** Five families
+  have now been tested against matched controls and every one is null or
+  harmful: combination rule (7 pooling rules, `reports/pooling_rules.md`),
+  ensemble size and member diversity (`reports/balanced_bagging.md`), class
+  decomposition (`reports/one_vs_rest.md`, precET −0.162 *), training-set
+  pruning (`reports/prune_training.md`, `reports/influence_prune.md`), and
+  conditional routing on ensemble disagreement (`reports/contested_gating.md`,
+  +0.001 against its fusion control). The contested region *does* retain
+  structure — six of eight feature blocks clear chance there
+  (`reports/contested_specialists.md`) — but nothing tried sees structure the
+  deep model does not already see. What remains is a representation that
+  separates those patients, not a better rule over this one.
 * **PADS does not transfer to in-house patients** — it adds nothing to ET
   (+0.003) and significantly hurts PD (−0.082).
 * **NewData has 6 ET** — a training cohort, not an evaluation one.
