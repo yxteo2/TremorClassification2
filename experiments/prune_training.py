@@ -5,11 +5,14 @@ uninformative, and they drag the decision boundary across the minority class.
 Removing them should sharpen PD-vs-ET without costing anything, because N and PD
 are abundant (167 and 188) while ET is not (49) and is never touched.
 
-**There is direct reason to expect label noise in the majority classes here.**
-`extract_pads.py`'s own notes record that **20 PADS records labelled parkinsonian
-are Atypical Parkinsonism** — PSP, MSA, vascular parkinsonism — not idiopathic PD.
-Those patients carry the PD label and do not have PD's tremor. That is exactly
-the population this method is designed to remove.
+**CORRECTION — the motivating premise was wrong.** This was written expecting
+label noise in the majority classes, citing "20 PADS records labelled parkinsonian
+are Atypical Parkinsonism". The extracted manifest's `raw_label` takes exactly
+three values — "Parkinson's", "Healthy", "Essential Tremor" — so
+`extract_pads.py`'s strict exact-match has *already* excluded the atypical
+records; they sit in PADS's differential-diagnoses group, dropped except for ET.
+There is **no known majority-class label contamination left to remove.** The
+measured results below are unaffected; only the motivation was.
 
 ## The control that makes it interpretable
 

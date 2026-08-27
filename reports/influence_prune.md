@@ -74,6 +74,15 @@ This is an observation about the estimator's stability, **not a tested claim**
 that more subsets would fix it. Raising the subset count is the obvious check and
 has not been run.
 
+**CORRECTION.** This experiment's premise cited "20 PADS records labelled
+parkinsonian are Atypical Parkinsonism" as live contamination in the PD class.
+**That is wrong.** The extracted manifest's `raw_label` takes exactly three
+values — "Parkinson's" (552 rows), "Healthy" (158), "Essential Tremor" (56) — so
+`extract_pads.py`'s strict exact-match has *already* excluded the atypical
+records, which live in PADS's differential-diagnoses group and are dropped except
+for ET. There is no known majority-class label contamination left to remove, which
+weakens the motivation for pruning but does not change any measured result here.
+
 ## The cohort signal, such as it is
 
 Of the 30 most-dropped subjects: **PADS 17, 2015 7, NewData 6**. PADS is about

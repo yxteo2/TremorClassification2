@@ -6,6 +6,15 @@ Remove the N and PD patients the model finds hardest — presumed mislabelled,
 atypical or uninformative — so they stop dragging the boundary across the
 minority class. N and PD are abundant (167 and 188); ET (49) is never touched.
 
+**CORRECTION.** This experiment's premise cited "20 PADS records labelled
+parkinsonian are Atypical Parkinsonism" as live contamination in the PD class.
+**That is wrong.** The extracted manifest's `raw_label` takes exactly three
+values — "Parkinson's" (552 rows), "Healthy" (158), "Essential Tremor" (56) — so
+`extract_pads.py`'s strict exact-match has *already* excluded the atypical
+records, which live in PADS's differential-diagnoses group and are dropped except
+for ET. There is no known majority-class label contamination left to remove, which
+weakens the motivation for pruning but does not change any measured result here.
+
 There was a specific reason to expect majority-class label noise here.
 `common/extract_pads.py` records that **20 PADS records labelled parkinsonian are
 Atypical Parkinsonism** — PSP, MSA, vascular parkinsonism, not idiopathic PD.
