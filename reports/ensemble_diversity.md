@@ -57,6 +57,48 @@ members disagree, and where they disagree the answer is near chance. **Reorderin
 those patients changes which errors are made, not how many.** Every rule must
 therefore tie, which is exactly what was measured.
 
+## Where the contested patients are — they are not spread evenly
+
+By class:
+
+| class | contested rate | correct when contested |
+|---|---|---|
+| N | 0.294 | 0.379 |
+| PD | **0.497** | 0.555 |
+| ET | 0.420 | 0.397 |
+
+PD is contested half the time but is the most *recoverable* when contested
+(0.555) — unsurprising, since a coin flip on the boundary lands on the majority
+class often. N is contested least and recovered worst (0.379). **ET is contested
+on 42 % of its patients and recovered on only 40 % of those**, which is where ET
+recall is lost and, through it, the precision that the priors then have to buy
+back.
+
+By cohort — the larger effect:
+
+| cohort | n | N / PD / ET | contested, expected from class mix | contested, observed |
+|---|---|---|---|---|
+| 2015 | 151 | 61 / 75 / 15 | 0.407 | **0.307** |
+| NewData | 56 | 27 / 23 / 6 | 0.391 | **0.573** |
+| PADS | 197 | 79 / 90 / 28 | 0.405 | 0.432 |
+
+**The obvious confound is controlled.** The three cohorts have nearly identical
+class composition, so all three *expect* a contested rate of ~0.40 from the
+per-class rates alone. The observed spread — 0.307 to 0.573, a factor of 1.9 —
+is therefore a genuine cohort effect and not a class-mix artefact.
+
+The in-house 2025 cohort is where the model is least sure: **57 % of NewData
+patients are contested**, against 31 % for 2015. Two readings are available and
+this measurement does not separate them — NewData is only 14 % of the training
+data, so it may simply be under-fitted; or its acquisition differs enough to be a
+domain shift. Either way it is a concrete, localised handle rather than a diffuse
+ceiling, and it is the one place in this analysis where the contested set
+concentrates.
+
+Scale check before anyone gets excited: bringing NewData down to the 2015
+contested rate would move roughly **0.27 × 56 ≈ 15 patients** out of the
+coin-flip region, about 4 % of the merged cohort. Real, but small.
+
 ## The consequence, which is bigger than pooling
 
 The model decomposes cleanly into two populations:
@@ -98,7 +140,12 @@ are wrong 31 % of the time, so the ceiling is not solely a boundary problem.
 * This **lowers the prior on `balanced_bagging`** — recorded before that run
   landed. Bagging adds diversity of a kind already present in quantity and
   demonstrably not the binding constraint.
-* Untested follow-up worth having: whether contested patients are concentrated in
-  a cohort, a class, or a tremor-severity band. If they cluster, that is a
-  handle; if they are spread evenly, the ceiling is intrinsic to the task at this
-  sample size.
+* **The contested set concentrates in NewData** — 0.573 contested against 0.307
+  for 2015, with class composition controlled and nearly identical across
+  cohorts. That is the one localised handle this analysis found. Its ceiling is
+  ~15 patients, so it is worth trying and not worth over-selling.
+* Untested follow-ups, in order: whether cohort-conditional training closes the
+  NewData gap (`cohort_strategies.md` tested weighting and fine-tuning for
+  *accuracy*, never for contested rate); and whether contested patients cluster
+  by tremor severity or amplitude, which would be a mechanism rather than a
+  cohort label.
