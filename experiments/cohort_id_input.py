@@ -42,10 +42,32 @@ much better track record in this project than the second.
 ## The control that decides it
 
 A cohort one-hot is three extra input columns, and extra input capacity is itself
-a change. The **random-ID** arm gives each patient a fixed, randomly assigned
-3-level label and one-hots it identically. Same dimensionality, same everything,
-no cohort information. If random-ID does as well, the gain is capacity and not
+a change. The **random-ID** arm gives each patient a randomly assigned 3-level
+label and one-hots it identically. Same dimensionality, same everything, no
+cohort information. If random-ID does as well, the gain is capacity and not
 cohort knowledge.
+
+**A fixed random draw is not a valid null control, and the first version of this
+experiment used one.** With a single draw reused across all 20 splits, any chance
+association between the random label and the class is *constant*, so the paired
+bootstrap over splits cannot see it — the bias sits inside every split equally.
+Measured on the original seed: the draw's association with ET reached
+**p = 0.051**, with the ET rate varying 0.067 / 0.137 / 0.159 across the three
+levels (a 2.4x spread), and only **5.3 %** of random draws are at least that
+ET-associated. That draw was a weak ET prior, which is the most likely reason it
+scored precET +0.090 [+0.019, +0.168] on the solo arm — *better than the true
+cohort ID*.
+
+So there are two random arms now:
+
+  random ID (fixed)      one draw, reused across splits -- the flawed control,
+                         kept deliberately to demonstrate the artifact
+  random ID (per split)  re-drawn every split, so chance label association
+                         averages out -- the valid control
+
+If the fixed arm outperforms the per-split arm, that is the artifact made
+visible, and it is a result worth having in its own right: **any fixed random
+feature used as a control in this project is unsafe.**
 
 ## Two caveats that belong in any writeup of this
 
@@ -123,13 +145,14 @@ def main():
     coh = np.array([k.rsplit("_", 1)[0] for k in key])
     cid = np.array([COHORTS.index(c) for c in coh])
 
-    rng = np.random.default_rng(7)
-    rid = rng.integers(0, 3, len(y))          # fixed random 3-level label
+    rid = np.random.default_rng(7).integers(0, 3, len(y))   # the flawed control
 
+    BASE = np.hstack([desc, A])
     ARMS = {
-        "baseline": np.hstack([desc, A]),
-        "+ cohort ID": np.hstack([desc, A, onehot(cid)]),
-        "+ random ID": np.hstack([desc, A, onehot(rid)]),
+        "baseline": BASE,
+        "+ cohort ID": np.hstack([BASE, onehot(cid)]),
+        "+ rand ID fixed": np.hstack([BASE, onehot(rid)]),
+        "+ rand ID/split": None,        # rebuilt per split; see the loop
     }
 
     print(f"n={len(y)}  {SPLITS} splits   "
@@ -153,6 +176,9 @@ def main():
         tr, va = tv[t0], tv[v0]
         line = []
         for a, D in ARMS.items():
+            if D is None:               # re-drawn every split: the valid control
+                r = np.random.default_rng(50000 + sp).integers(0, 3, len(y))
+                D = np.hstack([BASE, onehot(r)])
             V, T = fit_members(spec, D, traj, y, tr, va, te)
             pv, pt = V.mean(0), T.mean(0)
             off = tune_offsets(pv, y[va])
@@ -190,15 +216,23 @@ def main():
 
     base = res["baseline"]
     print("\npaired vs baseline:")
-    for a in ("+ cohort ID", "+ random ID"):
+    for a in [k for k in ARMS if k != "baseline"]:
         print(f"  {a}:")
         for (dd, lo, hi), c in zip(paired(res[a], base), NM):
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
-    print("\nTHE CONTROL -- cohort ID vs random ID at the same input width:")
-    for (dd, lo, hi), c in zip(paired(res["+ cohort ID"], res["+ random ID"]),
-                               NM):
+    print("\nTHE CONTROL -- cohort ID vs the VALID random control (per split):")
+    for (dd, lo, hi), c in zip(paired(res["+ cohort ID"],
+                                      res["+ rand ID/split"]), NM):
+        star = "*" if lo > 0 or hi < 0 else " "
+        print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+
+    print("\nTHE ARTIFACT -- fixed random draw vs re-drawn per split.")
+    print("Both carry zero cohort information; a gap here is chance label")
+    print("association frozen into every split by reusing one draw:")
+    for (dd, lo, hi), c in zip(paired(res["+ rand ID fixed"],
+                                      res["+ rand ID/split"]), NM):
         star = "*" if lo > 0 or hi < 0 else " "
         print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
@@ -209,7 +243,7 @@ def main():
     print(f"{'arm':>14}" + "".join(f"{c:>9}" for c in NM))
     for a in ARMS:
         print(f"{a:>14}" + "".join(f"{v:>9.3f}" for v in solo[a].mean(0)))
-    for a in ("+ cohort ID", "+ random ID"):
+    for a in [k for k in ARMS if k != "baseline"]:
         print(f"  {a} vs baseline, TwoStream only:")
         for (dd, lo, hi), c in zip(paired(solo[a], solo["baseline"]), NM):
             star = "*" if lo > 0 or hi < 0 else " "
