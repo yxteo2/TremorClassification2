@@ -63,10 +63,17 @@ contested region.** The ceiling there is not a labelling floor.
 **TRAJ contributes nothing on contested patients** — 0.303, below chance, with an
 interval spanning zero. The instantaneous-frequency trajectory is one of the two
 blocks the reported model adds beyond the spectrum, and on exactly the patients
-that decide the ceiling it carries no usable signal on its own. That does not
-mean it is useless in the deep model, where it is combined rather than used
-alone, but it does say the trajectory stream is not what will rescue the
-contested set.
+that decide the ceiling it carries no usable signal on its own.
+
+**This does not contradict the headline, and the two should not be read against
+each other.** `headline_audit.md` verifies the trajectory stream at 40 splits and
+it survives — precET **+0.068 [+0.030, +0.110]** *, macroP **+0.022 [+0.010,
++0.037]** *. Both statements are true, and together they locate where the
+trajectory earns its keep: **on the patients the ensemble is already confident
+about, not on the contested boundary.** A component can be significant overall
+and useless in the hardest 40 %, and this one is. What follows is only that the
+trajectory stream is not the thing that will rescue the contested set — not that
+it should be removed, which the audit says clearly it should not.
 
 **"all blocks" (+0.052) is far worse than DESC alone (+0.187)** — the
 concatenation of everything underperforms its best member by a wide margin. This
