@@ -74,16 +74,22 @@ mildly *under*-confident on average — sharpening was the right direction, and 
 still bought nothing.
 
 **Geometric vs arithmetic is not absorbed** — it is not a monotone rescaling, and
-it genuinely reorders patients when members disagree. That it changes nothing
-says the members **do not disagree enough for the reordering to reach any
-patient near the threshold**. Three seeds within a family differ only in weight
-initialisation: same architecture, same features, same training data, same
-early-stopping split. The natural conclusion is that the six members are close to
-copies, and every pooling rule is averaging over almost nothing.
+it genuinely reorders patients when members disagree. So why does it change
+nothing?
 
-That is an inference from the null, not a measurement, so it is measured
-separately in `ensemble_diversity.md` — mean pairwise correlation of p(ET) and
-argmax disagreement across the six members.
+The first explanation to reach for is that the members are near-copies: three
+seeds within a family differ only in weight initialisation, so perhaps every
+pooling rule is averaging over almost nothing. **That explanation is wrong, and
+it was measured rather than assumed.** `ensemble_diversity.md` reports mean
+pairwise correlation of p(ET) at **0.859**, and the six members disagree on the
+argmax for **20.5 % of test patients** (23.7 % across the two architectures).
+One patient in five is contested. There is plenty for a pooling rule to reorder.
+
+The surviving explanation is therefore the other one: the contested patients sit
+in a region where **no rule can do better than any other**, so reordering them
+changes *which* errors are made rather than how many. That is tested directly in
+`ensemble_diversity.md` by scoring the pooled prediction separately on unanimous
+and contested patients.
 
 **The split-level win rates are the other tell.** Most alternatives win on
 *fewer* than half the splits (geometric 0.25 on macroP) while their mean deltas
@@ -97,9 +103,11 @@ of **ties**: on many splits the arms produce identical predictions outright.
 * **Do not report a calibration step.** Temperature scaling before the priors is
   a no-op here because the validation-fitted offsets already do that job with
   more freedom.
-* **The combination rule is not where the headroom is.** If ensembling is to buy
-  anything, the members have to differ in the **data** they see, not in their
-  initialisation — which is what `balanced_bagging.py` tests directly.
+* **The combination rule is not where the headroom is**, and the reason is not a
+  lack of ensemble diversity — the members already disagree on 20 % of patients.
+  This *lowers* the prior on `balanced_bagging.py`: bagging adds more of a kind
+  of diversity that is already present in quantity and is demonstrably not the
+  binding constraint. Recorded here as a prediction before that run finishes.
 * The single positive point estimate in the table — trimmed mean, precET +0.008
   [−0.021, +0.038] — is a fifth the width of its own interval and should not be
   quoted as anything.

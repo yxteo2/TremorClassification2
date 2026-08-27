@@ -94,7 +94,26 @@ def main():
                             for j in range(3, 6)]))
         sd_et = float(np.std(np.stack(et), 0).mean())
 
-        rows.append([all_r, within, across, all_d, wd, ad, sd_et])
+        # Where does the disagreement sit, and is it resolvable? Split the test
+        # fold into patients the six members label unanimously and patients they
+        # do not, and score the pooled prediction on each. If the contested
+        # patients are near-chance, no pooling rule can win them and every rule
+        # must tie -- which is the alternative explanation for the pooling null.
+        A = np.stack(arg)
+        unan = (A == A[0]).all(0)
+        pooled = np.mean(T, 0)
+        pred = pooled.argmax(1)
+        acc_u = float((pred[unan] == y[te][unan]).mean()) if unan.any() else np.nan
+        acc_c = float((pred[~unan] == y[te][~unan]).mean()) if (~unan).any() \
+            else np.nan
+        # margin between top-2 pooled probabilities: how close to the boundary?
+        s = np.sort(pooled, 1)
+        marg = s[:, -1] - s[:, -2]
+        m_u = float(marg[unan].mean()) if unan.any() else np.nan
+        m_c = float(marg[~unan].mean()) if (~unan).any() else np.nan
+
+        rows.append([all_r, within, across, all_d, wd, ad, sd_et,
+                     float(unan.mean()), acc_u, acc_c, m_u, m_c])
         print(f"  split {sp+1}/{SPLITS}  r(pET) all {all_r:.3f} "
               f"(within-family {within:.3f}, across {across:.3f})   "
               f"disagree {all_d:.3f}", flush=True)
@@ -102,16 +121,19 @@ def main():
     a = np.array(rows)
     lab = ("r(pET) all pairs", "r within family", "r across families",
            "disagreement all", "disagreement within", "disagreement across",
-           "mean sd of p(ET)")
-    print("\n" + "-" * 58)
+           "mean sd of p(ET)", "fraction unanimous", "accuracy | unanimous",
+           "accuracy | contested", "top-2 margin | unanim", "top-2 margin | contest")
+    print("\n" + "-" * 62)
     for i, l in enumerate(lab):
-        print(f"{l:>24}  {a[:, i].mean():.3f}  (sd {a[:, i].std():.3f})")
+        print(f"{l:>26}  {a[:, i].mean():.3f}  (sd {a[:, i].std():.3f})")
 
     print("\nreading it:")
-    print("  r near 1.00 and disagreement near 0 -> the members are copies and")
-    print("  no pooling rule can distinguish itself, which is what")
-    print("  pooling_rules.md measured. Diversity would then have to come from")
-    print("  the DATA the members see, not their initialisation.")
+    print("  High r with near-zero disagreement would mean the members are")
+    print("  copies, and no pooling rule could distinguish itself. If instead")
+    print("  they disagree substantially, the pooling null in pooling_rules.md")
+    print("  needs the other explanation: the contested patients are near")
+    print("  chance, so reordering them changes WHICH errors are made, not how")
+    print("  many. The accuracy-on-contested row is what decides between the two.")
     print("\nMARKER_DONE", flush=True)
 
 
