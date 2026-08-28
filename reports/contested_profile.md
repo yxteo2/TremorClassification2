@@ -1,4 +1,4 @@
-# Contested patients are the slow ones — a uniform effect, not class confusion
+# Contested patients are the slow ones — but the mechanism claim is retracted
 
 ## What was asked
 
@@ -47,7 +47,48 @@ patient becomes contested when theirs looks normal** (broad, high-entropy, flat)
 That is the model being confused by patients who resemble another class — true,
 unsurprising, and not a handle.
 
-## The part that is not circular
+## CORRECTION — the "not circular" argument below is wrong
+
+**This section originally claimed the frequency effect could not be class
+confusion. That argument does not hold, and the correction is recorded here
+rather than by rewriting the section.**
+
+The argument was: class confusion produces *opposing* signs, so a descriptor
+correlating in the same direction in all three classes must be describing
+something else. **That is only true when the class means straddle the
+descriptor's range.** Here they are monotonically ordered — mean frequency N
+8.16, PD 7.51, ET 7.04 Hz — so moving *down* in frequency moves an N patient
+toward PD and ET, and a PD patient toward ET. Both acquire the same sign. ET,
+already the slowest class, has nowhere further to move and should show no effect.
+
+That is exactly what is measured, magnitudes included:
+
+| class | mean frequency | within-class rho |
+|---|---|---|
+| N | 8.16 Hz | **−0.385** |
+| PD | 7.51 Hz | −0.241 |
+| ET | 7.04 Hz | **−0.051** |
+
+The effect size falls monotonically with the class's own mean frequency and
+vanishes for the slowest class. **That is the signature of class confusion, not
+of uniform degradation**, which would predict comparable magnitudes in all three.
+
+What survives, and it is not nothing: the pooled gradient is **much larger than
+class composition alone explains**. Expected contested rate from each tercile's
+class mix is 0.424 / 0.395 / 0.375 (spread 0.049) against an observed 0.515 /
+0.416 / 0.253 (spread 0.262) — composition accounts for under a fifth of it. But
+the remainder is consistent with *within-class* confusion, which is what the rho
+column measures, so this does not rescue the original claim.
+
+**Standing after the correction:** the frequency gradient is real, large and
+reproducible, and there is no longer good evidence that it is anything other than
+class confusion expressed through a monotone class ordering. Treat the section
+below as the measurement, not the interpretation. The test that would separate
+the two accounts is untried: whether contested rate tracks *distance toward the
+nearest other class mean* — which for ET means **faster**, not slower — better
+than it tracks raw frequency.
+
+## The part that was claimed to be non-circular
 
 Three descriptors break the pattern. **Every frequency-location descriptor is
 negatively associated with contestedness in all three classes, with no sign
@@ -62,13 +103,10 @@ flip:**
 **Lower tremor frequency means more contested, regardless of class.** `mean_freq`
 is the strongest within-class association in the whole table (−0.226).
 
-This one cannot be class confusion, because class confusion produces opposing
-signs — a patient made ambiguous by looking like another class must move *toward*
-that class's typical value, and N, PD and ET have different typical frequencies
-(mean frequency here: N 8.16, PD 7.51, ET 7.04 Hz). A descriptor that predicts
-contestedness in the *same direction* for all three classes is describing
-something that degrades the representation uniformly, not something that blurs
-one class into another.
+~~This one cannot be class confusion, because class confusion produces opposing
+signs.~~ **Retracted — see the correction above.** The class means are
+monotonically ordered (N 8.16, PD 7.51, ET 7.04 Hz), so confusion produces the
+*same* sign for N and PD and none for ET, which is what is measured.
 
 **Nor is it the cohort effect in disguise**, which is the other confound this
 project would expect. Mean frequency is essentially identical across the three
@@ -110,9 +148,13 @@ separates the SNR account from the cycle-count account.
 * **Most of that signal is circular** — the sign-flipping descriptors are
   measuring "this patient resembles another class", which restates the decision
   boundary. Do not report those correlations as a finding about tremor.
-* **The frequency-location effect is not circular** and is the one result here
-  worth building on: lower mean frequency, more contested, in every class, with
-  `mean_freq` the strongest within-class association measured (−0.226).
+* **The frequency-location effect is real but its interpretation is retracted.**
+  Lower mean frequency does mean more contested, in every class, with `mean_freq`
+  the strongest within-class association measured (−0.226), and the pooled
+  gradient exceeds what class composition explains by a factor of five. But the
+  within-class effect sizes fall monotonically with each class's own mean
+  frequency and vanish for ET, which is the signature of class confusion. Do not
+  build on this as a uniform representation failure.
 * Untested follow-ups in order: separate the SNR account from the cycle-count
   account by matching on recording length; check whether widening or shifting the
   3–15 Hz band changes the contested rate for low-frequency patients

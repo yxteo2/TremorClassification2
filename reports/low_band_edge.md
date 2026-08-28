@@ -2,10 +2,17 @@
 
 ## What was tested and why
 
-`contested_profile.md` found the one non-circular handle on the ceiling: **lower
-tremor frequency means more contested, in every class**, with no sign flip and
-independent of cohort. It recorded two physical accounts, and this tests the
-first.
+`contested_profile.md` found that **lower tremor frequency means more contested,
+in every class**, independent of cohort. It recorded two physical accounts, and
+this tests the first.
+
+**Note added after this run.** `contested_profile.md` also claimed the effect
+could not be class confusion, on the grounds that confusion produces opposing
+signs. That claim is now retracted — the class means are monotonically ordered
+(N 8.16, PD 7.51, ET 7.04 Hz), so confusion produces the *same* sign for N and
+PD and none for ET, which is exactly the measured pattern (rho −0.385 / −0.241 /
+−0.051). The measurements in this report are unaffected; the motivation for
+testing a physical mechanism is weaker than it appeared.
 
 The analysis grid starts at 3.0 Hz and everything below is discarded by
 `interp(..., left=0.0)` — which is where voluntary movement and postural drift
@@ -97,7 +104,13 @@ halving their frequency would.
 * **The frequency gradient is confirmed and quantified**: contested rate 0.515 /
   0.416 / 0.253 across mean-frequency terciles, 20 splits, balanced groups.
 * **Band-edge contamination is refuted as the mechanism.** Recorded in
-  `failed_predictions.md` — the fourth mechanism-story prediction to fail this
-  session, against one measurement-derived prediction that held.
-* Next: the recording-truncation test of the cycle-count account, which is the
-  remaining explanation and the one that would say what to build.
+  `failed_predictions.md`.
+* **The cycle-count follow-up named below is no longer the obvious next step.**
+  Two things undercut it. `contested_profile.md`'s non-circularity claim is
+  retracted, so the gradient may simply be class confusion; and the spectral
+  estimators use a *fixed* analysis window (multitaper `nperseg=128`, welch
+  `nperseg=512`), so relative frequency resolution does not depend on recording
+  length at all — truncation would test temporal averaging, not resolution.
+  `tf_window_length.md` separately measured that **shorter** windows help on
+  PADS (AUC 0.825 at 0.64 s against 0.716 at 5.12 s), which is the opposite of
+  what a resolution account predicts.

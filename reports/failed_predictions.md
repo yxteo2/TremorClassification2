@@ -25,11 +25,19 @@ measurements of this dataset have a better one.**
 | 10 | a dedicated ET detector beats ET's column in the 3-class softmax | `one_vs_rest.md` | **inverted** — precET −0.162 [−0.249, −0.073], and worse as a pure ranker (AUC 0.750 vs 0.770) |
 | 11 | routing contested patients to a second model should help | `contested_gating.md` | failed — +0.001 against the fusion control that ignores the gate |
 | 12 | slow patients are contested because their signal is entangled with drift at the 3 Hz band edge; extending the band down should help them specifically | `low_band_edge.md` | failed — slow-tercile contested rate rose slightly (+0.005 at 2 Hz, +0.019 at 1.5 Hz) and precision was null on every column |
+| 13 | the frequency-contested gradient cannot be class confusion, because confusion produces opposing signs | `contested_profile.md` | **refuted by re-reading my own numbers** — that holds only when the class means straddle the range. They are monotonically ordered (8.16 / 7.51 / 7.04 Hz), so confusion gives the same sign for N and PD and none for ET, and the measured effect sizes (−0.385 / −0.241 / −0.051) fall monotonically with each class's own mean frequency. |
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
 and it still failed. **Sub-component gains on this dataset are not evidence about
 the composite task.**
+
+Prediction 13 is the second wrong *explanation* in this register, after #9, and
+both were caught the same way: by checking whether a competing account predicted
+the numbers **including their magnitudes**, not just their signs. #9 was caught
+by measuring ensemble disagreement; #13 by noticing that the three effect sizes
+were ordered exactly as the rival account required. A sign test is weak evidence
+when a magnitude ordering is available.
 
 Prediction 12 is worth separating from the rest. It failed, but the experiment
 was built so that its failure *eliminated* one of two named accounts rather than
