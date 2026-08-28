@@ -65,10 +65,26 @@ is the strongest within-class association in the whole table (−0.226).
 This one cannot be class confusion, because class confusion produces opposing
 signs — a patient made ambiguous by looking like another class must move *toward*
 that class's typical value, and N, PD and ET have different typical frequencies
-(PADS max frequency: N 7.20, PD 7.07, ET 6.16 Hz). A descriptor that predicts
+(mean frequency here: N 8.16, PD 7.51, ET 7.04 Hz). A descriptor that predicts
 contestedness in the *same direction* for all three classes is describing
 something that degrades the representation uniformly, not something that blurs
 one class into another.
+
+**Nor is it the cohort effect in disguise**, which is the other confound this
+project would expect. Mean frequency is essentially identical across the three
+cohorts, while contested rate is not:
+
+| cohort | n | mean_freq (sd) | contested rate |
+|---|---|---|---|
+| 2015 | 151 | 7.714 (1.168) | 0.356 |
+| NewData | 56 | 7.791 (1.104) | **0.498** |
+| PADS | 197 | 7.706 (1.038) | 0.401 |
+
+The cohorts differ in contested rate by a factor of 1.4 while differing in mean
+frequency by 1 %. **Cohort and frequency are independent contributors.** If
+anything the cohort effect works *against* the frequency effect here — NewData
+has the highest mean frequency and the highest contested rate — so the
+within-class frequency correlation is understated rather than inflated by it.
 
 ## What that points at, stated as a hypothesis and not a result
 
