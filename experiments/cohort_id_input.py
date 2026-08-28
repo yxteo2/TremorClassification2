@@ -249,6 +249,20 @@ def main():
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
+    # The decisive solo contrasts. Comparing each arm to the BASELINE is not
+    # enough: the question is whether cohort information beats an equally wide
+    # but meaningless input, and whether the fixed draw beats the honest one.
+    print("\n  DECISIVE, TwoStream only -- cohort ID vs the VALID control:")
+    for (dd, lo, hi), c in zip(paired(solo["+ cohort ID"],
+                                      solo["+ rand ID/split"]), NM):
+        star = "*" if lo > 0 or hi < 0 else " "
+        print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+    print("\n  THE ARTIFACT, TwoStream only -- fixed draw vs re-drawn:")
+    for (dd, lo, hi), c in zip(paired(solo["+ rand ID fixed"],
+                                      solo["+ rand ID/split"]), NM):
+        star = "*" if lo > 0 or hi < 0 else " "
+        print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+
     print("\nTHE PREDICTION -- contested rate per cohort, and its change:")
     print(f"{'cohort':>9}{'baseline':>11}{'+cohortID':>11}{'change':>9}"
           f"{'acc base':>10}{'acc +ID':>9}{'solo base':>11}{'solo +ID':>10}")
