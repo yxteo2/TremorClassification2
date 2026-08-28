@@ -67,7 +67,10 @@ from experiments.final_model import build
 from experiments.pooling_rules import fit_members
 from frequency.descriptors import DESCRIPTOR_NAMES
 
-SPLITS = 20
+# 30 rather than the usual 20: the per-patient contested rate is k/appearances,
+# so at 20 splits it takes only ~5 distinct values and the median split used for
+# the AUC is badly tied. 30 splits gives ~6 appearances and a finer rate.
+SPLITS = 30
 COHORTS = ("2015", "NewData", "PADS")
 
 
@@ -166,6 +169,20 @@ def main():
         aucs2.append(roc_auc_score(hi[b], m.predict_proba(Xc[b])[:, 1]))
     print(f"  + true class label               AUC {np.mean(aucs2):.3f} "
           f"(sd {np.std(aucs2):.3f})")
+
+    # The median split is tied when the rate takes few values, so also predict
+    # the rate itself and score by rank correlation, which uses all of it.
+    from sklearn.linear_model import RidgeCV
+    r = rate[ok]
+    pred = np.zeros(len(r))
+    from sklearn.model_selection import KFold
+    for a, b in KFold(5, shuffle=True, random_state=0).split(X):
+        m = make_pipeline(StandardScaler(), RidgeCV(alphas=np.logspace(-2, 3, 20)))
+        m.fit(X[a], r[a])
+        pred[b] = m.predict(X[b])
+    rho = spearmanr(pred, r).correlation
+    print(f"  descriptors -> contested RATE    Spearman rho {rho:+.3f} "
+          f"(out-of-fold)")
     print("\n  AUC near 0.5 means contestedness is not a property of these")
     print("  descriptors, and the mechanism has to be sought in the raw")
     print("  waveform, recording length or recording count instead.")
