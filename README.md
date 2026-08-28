@@ -173,6 +173,12 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
   at the **score** level, not the feature level (`reports/oneclass_hybrid.md`).
 * **A frozen treatment needs a frozen control.** Changing two things at once cost
   this project a headline result (`reports/ssl_retraction.md`).
+* **Never use a fixed random draw as a null control — re-draw it per split.**
+  A frozen draw's chance association with the label is *constant* across splits,
+  so the paired bootstrap cannot see it; pairing protects against split-to-split
+  noise, not against a quietly informative fixed feature. One 5th-percentile
+  draw manufactured precET +0.090 [+0.019, +0.168] from three meaningless
+  columns (`reports/cohort_id_input.md`).
 * **Never judge a second model on a subset the first model's uncertainty
   defined.** Conditioning on where model A is unsure selects patients A does
   badly on and applies no such selection to model B, so B looks good by
