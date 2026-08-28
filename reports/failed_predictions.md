@@ -24,11 +24,19 @@ measurements of this dataset have a better one.**
 | 9 | the pooling null is explained by the six members being near-copies | `ensemble_diversity.md` | **refuted by measurement** — they disagree on 20.5 % of patient pairs |
 | 10 | a dedicated ET detector beats ET's column in the 3-class softmax | `one_vs_rest.md` | **inverted** — precET −0.162 [−0.249, −0.073], and worse as a pure ranker (AUC 0.750 vs 0.770) |
 | 11 | routing contested patients to a second model should help | `contested_gating.md` | failed — +0.001 against the fusion control that ignores the gate |
+| 12 | slow patients are contested because their signal is entangled with drift at the 3 Hz band edge; extending the band down should help them specifically | `low_band_edge.md` | failed — slow-tercile contested rate rose slightly (+0.005 at 2 Hz, +0.019 at 1.5 Hz) and precision was null on every column |
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
 and it still failed. **Sub-component gains on this dataset are not evidence about
 the composite task.**
+
+Prediction 12 is worth separating from the rest. It failed, but the experiment
+was built so that its failure *eliminated* one of two named accounts rather than
+just returning nothing — the rival account (cycle count) is untouched by a band
+change, so the null moved it from one-of-two to the live explanation. A
+prediction designed so that either outcome is informative is worth more than one
+that only pays out when it holds.
 
 Predictions 6 and 10 share a shape worth naming: both identified something that
 *looked* like a handicap for the minority class (hard patients dragging the
