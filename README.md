@@ -129,7 +129,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         63 runnable studies. The ones that carry a result:
+experiments/         64 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -150,7 +150,7 @@ experiments/         63 runnable studies. The ones that carry a result:
                      time-domain TCNs, fusion points, rest/postural contrasts.
                      Every one has a report; none improved the reported model.
 
-reports/             67 findings, including every retraction and a register
+reports/             68 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
@@ -159,6 +159,10 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 ## Conventions that matter
 
 * **Patient-level splits only.** Never split one patient's recordings.
+* **A rank correlation is the wrong instrument for a non-monotone effect.**
+  Estimator smoothing has an interior optimum; Spearman read −0.600 and a canned
+  line called it "smoother is better" when the table showed a peak at the current
+  setting (). Read the table.
 * **Report per-class precision with the test set's prevalence.** Precision is
   not comparable across differently-composed test sets — a cap sweep once
   produced a clean monotone trend that was entirely a prevalence artifact.
