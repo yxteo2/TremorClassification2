@@ -118,7 +118,13 @@ def q_ceiling(fn):
 
 
 def spec_for(fn, recs_by_cohort, keep):
-    """Per-patient spectrum on the shared grid, exactly as final_model does."""
+    """Per-patient spectrum on the shared grid, exactly as final_model does.
+
+    Mirrors `final_model.method_table`: per-recording spectrum interpolated onto
+    FM.GRID, sum-normalised, averaged within patient, patients sorted by
+    subject id. `keep` is build()'s PADS cap, computed identically so the row
+    order matches `build()["y"]`.
+    """
     def table(recs, ch):
         rows, lab = defaultdict(list), {}
         for r in recs:
@@ -135,6 +141,27 @@ def spec_for(fn, recs_by_cohort, keep):
     rA, rB, rC = recs_by_cohort
     return logbin(np.vstack([table(rA, slice(3, 6)), table(rB, slice(3, 6)),
                              table(rC, slice(0, 3))[keep]]))
+
+
+def load_cohorts():
+    """The three cohorts and build()'s PADS cap, replicated exactly."""
+    from common.loaders import load_pads_extracted
+    from common.load_2025 import load_2025_all
+    from common.quaternion_data import load_quaternion_recordings
+    from frequency.tables import spectrum_table
+
+    rA = load_quaternion_recordings("Data", action="OUT",
+                                    mode="angular_velocity")
+    rB = load_2025_all(conditions=("OUT",))
+    rC = load_pads_extracted("pads_stretchhold")
+
+    C0 = spectrum_table(rC, ch=slice(0, 3))
+    rng = np.random.default_rng(0)                 # build() uses seed 0
+    keep = []
+    for c in (0, 1, 2):
+        i = np.flatnonzero(C0[1] == c)
+        keep.extend(rng.choice(i, min(90, len(i)), replace=False))
+    return (rA, rB, rC), np.array(sorted(keep))
 
 
 def score(pt, off, yte):
@@ -161,37 +188,26 @@ def main():
     traj = d["TRAJ"]
 
     # rebuild the raw recordings once so each estimator can be applied to them
-    import os
-    from common.loaders import load_pads_extracted
-    from common.load_2025 import load_2025_all
-    from common.quaternion_data import load_quaternion_recordings
-    rA = load_quaternion_recordings("Data", action="OUT",
-                                    mode="angular_velocity")
-    rB = load_2025_all()
-    rC = load_pads_extracted()
+    recs, keep = load_cohorts()
 
     SPEC = {}
     for a, fn in ARMS.items():
         print(f"building spectra: {a} ...", flush=True)
-        try:
-            S = spec_for(fn, (rA, rB, rC), slice(None))
-            if len(S) != len(y):
-                print(f"  patient count {len(S)} != {len(y)}; "
-                      f"falling back to build() for this arm")
-                S = None
-        except Exception as e:                       # noqa: BLE001
-            print(f"  failed: {type(e).__name__}: {e}")
-            S = None
-        if S is None and a in ("welch", "welch n512", "MT nw2.5 K4 [now]"):
-            S = d["SPEC"]["welch" if "welch" in a else "multitaper"]
+        S = spec_for(fn, recs, keep)
+        assert len(S) == len(y), f"{a}: {len(S)} patients, expected {len(y)}"
         SPEC[a] = S
 
-    usable = [a for a in ARMS if SPEC[a] is not None
-              and len(SPEC[a]) == len(y)]
-    print(f"\nusable arms: {usable}\n", flush=True)
-    if len(usable) < 2:
-        print("too few usable arms; aborting\nMARKER_DONE", flush=True)
-        return
+    # The reconstruction must reproduce build()'s own multitaper bit-for-bit,
+    # otherwise the "current" arm is not the reported model and none of the
+    # comparisons mean what they claim.
+    ref = d["SPEC"]["multitaper"]
+    got = SPEC["MT nw2.5 K4 [now]"]
+    dev = float(np.abs(got - ref).max())
+    print(f"\nreconstruction check vs build()'s multitaper: max|diff| = {dev:.2e}"
+          f"  {'OK' if dev < 1e-6 else 'MISMATCH -- comparisons are invalid'}")
+    assert dev < 1e-6, "reconstructed multitaper does not match build()"
+    usable = list(ARMS)
+    print(flush=True)
 
     res = {a: [] for a in usable}
     for sp in range(SPLITS):
