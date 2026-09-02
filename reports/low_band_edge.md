@@ -108,8 +108,9 @@ halving their frequency would.
 * **The cycle-count follow-up named below is no longer the obvious next step.**
   Two things undercut it. `contested_profile.md`'s non-circularity claim is
   retracted, so the gradient may simply be class confusion; and the spectral
-  estimators use a *fixed* analysis window (multitaper `nperseg=128`, welch
-  `nperseg=512`), so relative frequency resolution does not depend on recording
+  estimators use a *fixed* analysis window (multitaper `nperseg=256` in
+  `m_multitaper`, welch `nperseg=512` in `spectrum_table`), so relative
+  frequency resolution does not depend on recording
   length at all — truncation would test temporal averaging, not resolution.
   `tf_window_length.md` separately measured that **shorter** windows help on
   PADS (AUC 0.825 at 0.64 s against 0.716 at 5.12 s), which is the opposite of
