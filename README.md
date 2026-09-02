@@ -160,7 +160,10 @@ experiments/         66 runnable studies. The ones that carry a result:
 
                      The rest are recorded negatives — SSL, attention, MIL,
                      time-domain TCNs, fusion points, rest/postural contrasts.
-                     Every one has a report; none improved the reported model.
+                     None improved the reported model. Most have a report under
+                     a different name; a handful were never written up.
+                     experiments/INDEX.md maps every study to the reports that
+                     cite it, and names the unreported ones honestly.
 
 reports/             70 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
