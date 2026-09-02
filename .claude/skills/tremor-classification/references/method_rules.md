@@ -63,9 +63,21 @@ signs.
 
 **Relative safeguards cannot see a defect every arm shares.** The 1 % frequency-
 axis stretch survived 68 reports because patient-level splits, paired
-bootstraps and permutation nulls all compare arms. It was found by checking a
-reconstructed axis against the one the estimator actually used. Once a year,
-check something absolute.
+bootstraps and permutation nulls all compare arms. Then a synthetic-signal
+sweep of every stage found two more that had also survived everything: a
+Q-factor that spanned every supra-half-max bin instead of the peak (a tone with
+a 0.8-amplitude harmonic read Q 0.94 instead of 15, and under the correct
+definition PADS has *no* ET-vs-PD Q gap), and IF-trajectory end points that
+were band-pass transients (2.7 Hz of noise on a 0.5 Hz signal, at points 0 and
+63 of every patient's input). `experiments/verify_preprocessing.py` is the
+absolute check; run it after touching `signal_processing/`, `frequency/` or
+`common/cohorts.py`, and add a check whenever a stage is added.
+
+**A synthetic test can be wrong too — check its own physics first.** The
+quaternion path initially "failed" at 18.7 % error. The code was correct; the
+test's Euler integrator advanced with the previous sample's rate, a half-sample
+lag that the code's phase-free central difference faithfully reported. An
+analytic quaternion sequence gave 2.35 %, exactly the central-difference bound.
 
 **Below-chance AUC at small n is the low tail of a wide null, not
 anti-prediction.** [0.298, 0.655] at 21 ET; [0.195, 0.819] at 6 ET. NewData once

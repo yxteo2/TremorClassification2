@@ -31,9 +31,11 @@ common/             loaders per cohort, cohorts (merge, logbin), protocol (split
                     train loop, tune_offsets), extract_pads
 models/             architectures.py — every network
 experiments/        final_model.py (reported model, build()), headline_audit.py
-                    (40-split re-check), pooling_rules.fit_members (reusable
-                    6-member trainer), estimator_smoothing.load_cohorts /
-                    spec_for (rebuild spectra from raw recordings)
+                    (40-split re-check), verify_preprocessing.py (every stage
+                    vs synthetic ground truth; exit code = failures),
+                    pooling_rules.fit_members (reusable 6-member trainer),
+                    estimator_smoothing.load_cohorts / spec_for (rebuild
+                    spectra from raw recordings)
 ```
 
 `python -m experiments.final_model` reproduces the reported model. New
