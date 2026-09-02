@@ -42,12 +42,23 @@ deliberate: it removes between-recording jitter while preserving the patient's
 absolute tremor frequency, which is itself discriminative (N 8.16, PD 7.51, ET
 7.04 Hz). Aligning everything to a common frequency would throw that away.
 
-## The control that decides it
+## Two comparisons, answering two different questions
 
-Shifting and re-interpolating is itself an operation — it smooths. The
-**random-shift** arm applies shifts of the *same magnitudes* in random
-directions, so it carries identical interpolation smoothing with no alignment.
-If random-shift does as well, the gain is the resampling and not the alignment.
+**Aligned vs the plain mean decides adoption.** If alignment is worse than doing
+nothing, it does not go in, whatever the control says.
+
+**Aligned vs random-shift decides attribution.** The random arm applies shifts of
+the *same magnitudes* with random signs and assignment — the same resampling, the
+same displacement budget, but not chosen to align anything. It is the honest
+counterfactual for "were the shifts worth choosing well?", and a gain over it
+attributes the effect to alignment rather than to the interpolation.
+
+An earlier version of this docstring called the random comparison "the one that
+decides it". **That was wrong** and is corrected here: beating a deliberately
+scrambled arm is a low bar, and the 1-split smoke test made that obvious — random
+shift cost precET −0.300 while alignment cost −0.050 against the plain mean, so
+"aligned beats random by +0.250" would have read as a triumph while alignment was
+in fact losing to doing nothing.
 
 ## The prediction, recorded before the run — deliberately cautious
 
@@ -60,7 +71,7 @@ task."*
 
 So the prediction on record is only this: **aligned should beat random-shift on
 precET if the mechanism is real**, whether or not either beats the plain mean.
-That is the comparison the control exists for, and it is the one to read.
+Adoption is decided separately, by aligned vs plain.
 
 20 splits, paired. Run: ``python -m experiments.peak_aligned_average``
 """
@@ -195,8 +206,10 @@ def main():
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
 
-    print("\nTHE COMPARISON THAT DECIDES IT -- aligned vs random-shift.")
-    print("Same interpolation smoothing, same shift magnitudes, no alignment:")
+    print("\nATTRIBUTION -- aligned vs random-shift. Same resampling and the")
+    print("same displacement budget, not chosen to align. A gain here says the")
+    print("effect is alignment, not interpolation. ADOPTION is decided by the")
+    print("aligned-vs-plain rows above, not by this one:")
     for (dd, lo, hi), c in zip(paired(res["peak-aligned"],
                                       res["random-shift (control)"]), NM):
         star = "*" if lo > 0 or hi < 0 else " "
