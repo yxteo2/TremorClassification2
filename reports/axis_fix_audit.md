@@ -80,6 +80,35 @@ been re-run at 40 splits against the fixed transform for exactly that reason.
 preserve a point estimate whose difference is inside the noise, and any physical
 frequency quoted from the multitaper path was ~1 % high.
 
+## The re-audit: the headline survives, marginally stronger
+
+`headline_audit.py` re-run at 40 splits on the corrected transform:
+
+| model | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| welch + desc + asym (baseline) | 0.638 | 0.636 | 0.566 | 0.613 | 0.570 |
+| multitaper + desc + asym | 0.650 | 0.653 | 0.611 | 0.638 | 0.591 |
+| **multitaper + trajectory (reported)** | 0.653 | 0.655 | **0.669** | **0.659** | 0.603 |
+
+| claim | before the fix | after the fix |
+|---|---|---|
+| headline macroP | +0.043 [+0.024, +0.062] | **+0.046 [+0.023, +0.067]** * |
+| headline precET | +0.097 [+0.047, +0.146] | **+0.103 [+0.040, +0.161]** * |
+| trajectory precET | +0.068 [+0.030, +0.110] | +0.057 [+0.015, +0.103] * |
+| transform precET | +0.029 [−0.020, +0.075] | +0.045 [+0.001, +0.087] * |
+| macroP win rate | 0.75 | 0.80 |
+
+**Everything survives and the headline is marginally stronger.** The welch
+baseline row is bit-identical to the pre-fix report, as it must be — welch always
+took its axis from SciPy.
+
+**And the 20-split A/B was noise, as its own interval said.** That A/B read
+precET −0.031 [−0.087, +0.015] for the fix; at 40 splits the fixed model sits
++0.006 *above* the old one. This is the third time in this project that a
+difference of ~0.03 has flipped sign on doubling the splits, which is precisely
+why `headline_audit.md` exists and why 20 splits is documented as resolving only
+~0.04.
+
 ## Standing
 
 * **Fixed and asserted.** `_kept_rfftfreq` reconstructs the axis the estimators

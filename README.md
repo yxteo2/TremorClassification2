@@ -52,18 +52,23 @@ prevalence; the axis gain is not significant at 21 ET patients.
 | model | precN | precPD | precET | macro P |
 |---|---|---|---|---|
 | welch baseline | 0.638 | 0.636 | 0.566 | 0.613 |
-| **multitaper + IF trajectory** | 0.651 | 0.654 | **0.663** | **0.656** |
+| **multitaper + IF trajectory** | 0.653 | 0.655 | **0.669** | **0.659** |
 
-Paired **+0.043 [+0.024, +0.062] macro precision** and **+0.097 [+0.047, +0.146]
-ET precision** over the welch baseline, at **40 splits**, winning on 75 % of them
+Paired **+0.046 [+0.023, +0.067] macro precision** and **+0.103 [+0.040, +0.161]
+ET precision** over the welch baseline, at **40 splits**, winning on 80 % of them
 (`reports/headline_audit.md`).
 
-> **These numbers predate the multitaper frequency-axis fix and are being
-> re-derived** (`reports/axis_fix_audit.md`). The axis was stretched 1.05 %; the
-> paired effect of fixing it is null (macroP −0.008 [−0.029, +0.010]) but the
-> point estimates move (macroP 0.660 → 0.652, precET 0.685 → 0.654 at 20
-> splits), so quote nothing from the multitaper path until the re-audit lands.
-> Welch and `DESC`/`stft512` numbers are unaffected.
+Both ranked components remain significant on the corrected pipeline: trajectory
+precET +0.057 [+0.015, +0.103] / macroP +0.021 [+0.005, +0.037]; transform alone
+precET +0.045 [+0.001, +0.087] / macroP +0.025 [+0.009, +0.041].
+
+> **Re-derived on the corrected multitaper frequency axis**
+> (`reports/axis_fix_audit.md`). The old axis was stretched 1.05 %; fixing it
+> left the headline essentially unchanged and marginally stronger (macroP +0.043
+> → +0.046, precET +0.097 → +0.103), and the welch baseline row is bit-identical
+> because welch was never affected. A 20-split A/B of the fix alone read precET
+> −0.031 [−0.087, +0.015]; at 40 splits the fixed model is +0.006 above the old
+> one — the 20-split reading was noise, exactly as its interval said.
 >
 > Quoted at 40 rather than the original 20 splits. The claim was re-audited
 > because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
