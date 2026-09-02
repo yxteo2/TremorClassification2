@@ -28,6 +28,7 @@ measurements of this dataset have a better one.**
 | 13 | the frequency-contested gradient cannot be class confusion, because confusion produces opposing signs | `contested_profile.md` | **refuted by re-reading my own numbers** — that holds only when the class means straddle the range. They are monotonically ordered (8.16 / 7.51 / 7.04 Hz), so confusion gives the same sign for N and PD and none for ET, and the measured effect sizes (−0.385 / −0.241 / −0.051) fall monotonically with each class's own mean frequency. |
 | 14 | cohort ID should cut NewData's contested rate more than 2015's, absorbing a domain shift | `cohort_id_input.md` | failed — contested rate moved −0.002 / −0.009 / −0.007 across cohorts, no differential effect; the precN gain it did produce is unexplained by this mechanism |
 | 15 | model performance should rise monotonically as the spectral estimator gets smoother | `estimator_smoothing.md` | failed — the relationship is an inverted U peaking at the *current* nw 2.5. Sharper loses (ar16 macroP −0.031 *) and smoother loses (nw6 −0.016); there is no free gain either way. |
+| 16 | trimming the PADS arm-raising onset should raise PADS-to-in-house PD-vs-ET transfer, because the onset is a PADS-only class-ordered signature the in-house cohorts lack | `pads_onset_trim.md` | failed — transfer AUC 0.578 → 0.563, −0.015 [−0.042, +0.009]; every arm below the 0.655 floor. The onset is real (mechanism held) but is second-order on a cohort gap far larger than it. |
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
@@ -59,9 +60,11 @@ more often doing work than not.
 | # | prediction | where | what happened |
 |---|---|---|---|
 | A | thirteen feature families would not beat the best single one | `tcn_fusion.md` | held |
-| D | peak-aligned averaging should beat the random-shift control on precET if the misalignment mechanism is real (deliberately NOT a prediction of improvement over the plain mean) | `peak_aligned_average.md` | held — +0.119 [+0.018, +0.226] * — while adoption was null (+0.007 precET vs the plain mean). A narrow prediction that held and still produced no gain. |
-| C | fixing the multitaper frequency axis would change little or nothing, because the distortion was uniform across every recording and the model was fitted and evaluated on it consistently | `axis_fix_audit.md` | held — macroP −0.008 [−0.029, +0.010], nothing significant on any column |
 | B | balanced bagging would be null, because the members already disagree on 20.5 % of patients so data diversity is not the binding constraint | `balanced_bagging.md` | held — macroP +0.001 [−0.015, +0.019], and +0.007 against the matched seed control |
+| C | fixing the multitaper frequency axis would change little or nothing, because the distortion was uniform across every recording and the model was fitted and evaluated on it consistently | `axis_fix_audit.md` | held — macroP −0.008 [−0.029, +0.010], nothing significant on any column |
+| D | peak-aligned averaging should beat the random-shift control on precET if the misalignment mechanism is real (deliberately NOT a prediction of improvement over the plain mean) | `peak_aligned_average.md` | held — +0.119 [+0.018, +0.226] * — while adoption was null (+0.007 precET vs the plain mean). A narrow prediction that held and still produced no gain. |
+| E | trimming the PADS onset collapses the N > PD > ET first-1.5 s excess and the length-matched trim-end control does not | `pads_onset_trim.md` | held — 1.39/1.33/1.06 → 1.10/1.04/0.96; control 1.40/1.33/1.05 |
+| F | the mixed-cohort headline effect of trimming the onset is small with uncertain sign | `pads_onset_trim.md` | held — macroP −0.006 [−0.031, +0.022], null on every column |
 
 Prediction B is the contrast that makes the register worth keeping. It was
 recorded in writing in two reports before the run finished, and unlike the failed

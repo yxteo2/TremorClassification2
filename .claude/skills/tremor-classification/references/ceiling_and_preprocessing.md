@@ -95,7 +95,12 @@ unpaired PADS-only comparison. Trimming collapses the ordering (1.10 / 1.04 /
 0.96) and sharpens N and PD peaks slightly, but PADS→in-house PD-vs-ET transfer
 is at chance with or without it (0.578 / 0.563 / 0.592, all below the 0.655
 floor). The onset is a second-order contamination on top of a cohort gap much
-larger than it. Mixed-cohort headline effect: `pads_onset_trim.md`.
+larger than it. Mixed-cohort headline effect of trimming it: macroP −0.006
+[−0.031, +0.022], null on every column, while the length-matched *trim-end*
+control significantly costs N precision (−0.037 \*) — the tail of a PADS
+recording carries something the model uses for N; the head does not. Leave
+`--trim-start` at 0 and record the onset as a cohort inconsistency, not a
+confound that was fixed (`pads_onset_trim.md`).
 
 ## Estimator resolution, measured on a pure tone
 

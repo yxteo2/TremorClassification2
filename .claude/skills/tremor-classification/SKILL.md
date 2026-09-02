@@ -18,7 +18,7 @@ reference file that matches the task:
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
 `reports/` holds ~70 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (15 failed, 4 held); `experiments/INDEX.md` maps
+predictions made before the run (16 failed, 6 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -63,7 +63,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 8. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here; mechanism stories have failed thirteen times.
+   have held here; mechanism stories have failed fourteen times.
 
 ## Cohorts and merging (settled)
 
@@ -145,9 +145,10 @@ patient's own recordings far more than with the label. Untried.
   NewData resamples quaternions *before* the sign-continuity fix (latent — no
   flips exist in the raw streams); **PADS carries an untrimmed arm-raising onset
   that is class-ordered** (first-1.5 s in-band RMS ratio N 1.39, PD 1.33, ET
-  1.06; absent elsewhere). Trimming removes it but does not lift PADS→in-house
-  transfer, which sits below the chance floor with or without it. Headline
-  effect: see `ceiling_and_preprocessing.md`.
+  1.06; absent elsewhere). Trimming removes it (→ 1.10 / 1.04 / 0.96) but
+  changes nothing: headline macroP −0.006 [−0.031, +0.022], and PADS→in-house
+  transfer sits below the chance floor with or without it. Leave
+  `--trim-start` at 0; do not trim the *end* (precN −0.037 \*).
 
 ## Before proposing an improvement
 

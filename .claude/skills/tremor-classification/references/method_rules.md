@@ -85,10 +85,10 @@ n the model does not care about what a descriptor says it should.
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to
-`reports/failed_predictions.md`.** Fifteen failed, four held. The four that held
+`reports/failed_predictions.md`.** Sixteen failed, six held. The six that held
 were all derived from a *measurement of this dataset* (ensemble disagreement,
-uniform axis distortion, a mechanism check); the thirteen mechanism stories all
-failed. Two supposed handicaps for the minority class — hard patients, ET's
+uniform axis distortion, mechanism checks, a "small and uncertain" headline
+call); the fourteen mechanism stories all failed. Two supposed handicaps for the minority class — hard patients, ET's
 diluted logit — turned out to be load-bearing.
 
 **Design the experiment so either outcome is informative.** The band-edge test

@@ -73,8 +73,8 @@ precET +0.045 [+0.001, +0.087] / macroP +0.025 [+0.009, +0.041].
 > Quoted at 40 rather than the original 20 splits. The claim was re-audited
 > because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
 > on doubling. It held and its interval **tightened** (from [+0.014, +0.067]).
-> Note ET precision reads 0.685 at 20 splits and 0.663 at 40 — sd is 0.183, so the
-> two agree, but **0.663 is the figure to quote**.
+> Note ET precision reads 0.654 at 20 splits and 0.669 at 40 on the corrected
+> axis — sd is 0.183, so the two agree, but **0.669 is the figure to quote**.
 
 ### N vs Tremor — the one place >0.90 is reached
 
@@ -141,7 +141,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         66 runnable studies. The ones that carry a result:
+experiments/         65 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -165,7 +165,7 @@ experiments/         66 runnable studies. The ones that carry a result:
                      experiments/INDEX.md maps every study to the reports that
                      cite it, and names the unreported ones honestly.
 
-reports/             70 findings, including every retraction and a register
+reports/             71 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
