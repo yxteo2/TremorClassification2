@@ -34,6 +34,30 @@ def _band(f, P, f_min=F_MIN, f_max=F_MAX):
     return f[k], P[k]
 
 
+def _kept_rfftfreq(nfft, fs, f_max=F_MAX):
+    """The frequency axis ``apply_multitaper`` / ``apply_sst`` actually kept.
+
+    Both build their grid with ``np.fft.rfftfreq(nfft, 1/fs)`` and then crop to
+    ``f <= f_max``, returning magnitudes only. Reconstructing that axis as
+    ``linspace(0, f_max, n_freq)`` -- which is what this module used to do -- is
+    **wrong**, because the last kept bin is the largest multiple of ``fs/nfft``
+    that does not exceed ``f_max``, not ``f_max`` itself.
+
+    At ``nfft=256, fs=100`` the kept bins run 0 to 14.8438 Hz in steps of
+    0.390625, while the linspace ran 0 to 15.0 in steps of 0.394737 -- a **1.05 %
+    stretch of the whole frequency axis**, reaching +0.156 Hz at the top of the
+    band. That is 14 % of the N-vs-ET mean-frequency gap (8.16 vs 7.04 Hz).
+
+    The error was uniform across patients and cohorts, so it biased no class and
+    no site, which is why it went unnoticed. It did put the multitaper spectrum
+    on a different frequency scale from every other branch of the pipeline --
+    ``m_welch`` and ``m_stft`` take their axes from SciPy and were always
+    correct, and the descriptor table is built from ``stft512``.
+    """
+    f = np.fft.rfftfreq(int(nfft), d=1.0 / fs)
+    return f[f <= f_max]
+
+
 # --------------------------------------------------------------------------- #
 # Each method returns (freqs, power_spectrum) averaged over channels and time.
 # --------------------------------------------------------------------------- #
@@ -60,8 +84,9 @@ def m_multitaper(x, fs=FS, nperseg=256, **kw):
     n_ch = np.atleast_2d(x).shape[0]
     n_freq = np.asarray(S).shape[0] // n_ch
     P = _per_freq_mean(S, n_freq, n_ch, square=True)
-    # apply_multitaper already cropped to f_max, so the grid runs 0..F_MAX
-    return _band(np.linspace(0.0, F_MAX, n_freq), P)
+    f = _kept_rfftfreq(n, fs)
+    assert len(f) == n_freq, f"axis {len(f)} != spectrum {n_freq}"
+    return _band(f, P)
 
 
 def m_cwt(x, fs=FS, w0=6.0, step=0.25, **kw):
@@ -106,7 +131,9 @@ def m_sst(x, fs=FS, nperseg=256, **kw):
     n_ch = np.atleast_2d(x).shape[0]
     n_freq = np.asarray(S).shape[0] // n_ch
     P = _per_freq_mean(S, n_freq, n_ch, square=True)
-    return _band(np.linspace(0.0, F_MAX, n_freq), P)
+    f = _kept_rfftfreq(n, fs)
+    assert len(f) == n_freq, f"axis {len(f)} != spectrum {n_freq}"
+    return _band(f, P)
 
 
 def m_wavelet_packet(x, fs=FS, level=5, wavelet="db4", **kw):
