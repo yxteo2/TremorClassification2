@@ -52,19 +52,26 @@ prevalence; the axis gain is not significant at 21 ET patients.
 
 | model | precN | precPD | precET | macro P |
 |---|---|---|---|---|
-| welch baseline | 0.638 | 0.636 | 0.566 | 0.613 |
-| **multitaper + IF trajectory** | 0.653 | 0.655 | **0.669** | **0.659** |
+| welch baseline | 0.640 | 0.635 | 0.550 | 0.608 |
+| **multitaper + IF trajectory** | 0.648 | 0.654 | **0.654** | **0.652** |
 
-Paired **+0.046 [+0.023, +0.067] macro precision** and **+0.103 [+0.040, +0.161]
-ET precision** over the welch baseline, at **40 splits**, winning on 80 % of them
+Paired **+0.044 [+0.020, +0.068] macro precision** and **+0.104 [+0.041, +0.169]
+ET precision** over the welch baseline, at **40 splits**, winning on 72 % of them
 (`reports/headline_audit.md`).
 
-Both ranked components remain significant on the corrected pipeline: trajectory
-precET +0.057 [+0.015, +0.103] / macroP +0.021 [+0.005, +0.037]; transform alone
-precET +0.045 [+0.001, +0.087] / macroP +0.025 [+0.009, +0.041].
+The decomposition changed once the descriptor and trajectory defects were fixed
+(`reports/descriptor_trajectory_fix.md`): the transform alone is now precET
++0.078 [+0.022, +0.132] * / macroP +0.031 [+0.011, +0.053] *, while the
+**trajectory stream is no longer significant** — precET +0.026 [−0.009, +0.068],
+macroP +0.012 [−0.000, +0.027]. The two still sum to the whole. Do not describe
+the trajectory as a verified component; it is a plausible one whose earlier
+significance did not survive removing its transient end points.
 
-> **Re-derived on the corrected multitaper frequency axis**
-> (`reports/axis_fix_audit.md`). The old axis was stretched 1.05 %; fixing it
+> **Re-derived twice**: on the corrected multitaper frequency axis
+> (`reports/axis_fix_audit.md`), and again after the Q-factor and IF-trajectory
+> fixes (`reports/descriptor_trajectory_fix.md`), which moved the baseline too
+> because both models consume the descriptors. On the first re-derivation the old
+> axis was stretched 1.05 %; fixing it
 > left the headline essentially unchanged and marginally stronger (macroP +0.043
 > → +0.046, precET +0.097 → +0.103), and the welch baseline row is bit-identical
 > because welch was never affected. A 20-split A/B of the fix alone read precET
@@ -74,8 +81,10 @@ precET +0.045 [+0.001, +0.087] / macroP +0.025 [+0.009, +0.041].
 > Quoted at 40 rather than the original 20 splits. The claim was re-audited
 > because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
 > on doubling. It held and its interval **tightened** (from [+0.014, +0.067]).
-> Note ET precision reads 0.654 at 20 splits and 0.669 at 40 on the corrected
-> axis — sd is 0.183, so the two agree, but **0.669 is the figure to quote**.
+> After all three fixes the reported model reads precET **0.654** / macroP
+> **0.652** at 40 splits; **those are the figures to quote**. sd(precET) is 0.19,
+> so every figure between 0.65 and 0.69 quoted earlier in this project is the
+> same number under noise.
 
 ### N vs Tremor — the one place >0.90 is reached
 

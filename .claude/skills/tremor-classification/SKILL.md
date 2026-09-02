@@ -95,13 +95,16 @@ with `ResidualTCN`; 3 seeds each; per-class logit offsets tuned on validation.
 
 | | precN | precPD | precET | macroP |
 |---|---|---|---|---|
-| welch baseline | 0.638 | 0.636 | 0.566 | 0.613 |
-| **reported** | 0.653 | 0.655 | **0.669** | **0.659** |
+| welch baseline | 0.640 | 0.635 | 0.550 | 0.608 |
+| **reported** | 0.648 | 0.654 | **0.654** | **0.652** |
 
-Paired **+0.046 [+0.023, +0.067] macroP**, **+0.103 [+0.040, +0.161] precET**,
-winning 80 % of splits. Trajectory +0.057 [+0.015, +0.103] precET; transform
-alone +0.045 [+0.001, +0.087]. **Quote precET 0.669.** These numbers are on the
-fixed frequency axis (below); anything quoting 0.663 / 0.685 predates it.
+Paired **+0.044 [+0.020, +0.068] macroP**, **+0.104 [+0.041, +0.169] precET**,
+winning 72 % of splits. Transform alone +0.078 [+0.022, +0.132] precET \*;
+**the trajectory stream is no longer significant** (+0.026 [−0.009, +0.068])
+once its transient end points were removed — treat it as plausible, not
+verified. **Quote precET 0.654 / macroP 0.652.** These are on the fixed axis,
+fixed Q-factor and guarded trajectory; anything quoting 0.663 / 0.669 / 0.685
+predates one of those fixes.
 
 Every component of that recipe has now been swept and sits at an interior
 optimum: the 3 Hz low edge, nw 2.5 (a 23× sharpness sweep from ar16 to nw 6
