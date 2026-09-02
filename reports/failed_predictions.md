@@ -59,6 +59,7 @@ more often doing work than not.
 | # | prediction | where | what happened |
 |---|---|---|---|
 | A | thirteen feature families would not beat the best single one | `tcn_fusion.md` | held |
+| D | peak-aligned averaging should beat the random-shift control on precET if the misalignment mechanism is real (deliberately NOT a prediction of improvement over the plain mean) | `peak_aligned_average.md` | held — +0.119 [+0.018, +0.226] * — while adoption was null (+0.007 precET vs the plain mean). A narrow prediction that held and still produced no gain. |
 | C | fixing the multitaper frequency axis would change little or nothing, because the distortion was uniform across every recording and the model was fitted and evaluated on it consistently | `axis_fix_audit.md` | held — macroP −0.008 [−0.029, +0.010], nothing significant on any column |
 | B | balanced bagging would be null, because the members already disagree on 20.5 % of patients so data diversity is not the binding constraint | `balanced_bagging.md` | held — macroP +0.001 [−0.015, +0.019], and +0.007 against the matched seed control |
 

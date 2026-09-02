@@ -141,7 +141,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         64 runnable studies. The ones that carry a result:
+experiments/         66 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -162,7 +162,7 @@ experiments/         64 runnable studies. The ones that carry a result:
                      time-domain TCNs, fusion points, rest/postural contrasts.
                      Every one has a report; none improved the reported model.
 
-reports/             68 findings, including every retraction and a register
+reports/             70 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
