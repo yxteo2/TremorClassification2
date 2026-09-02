@@ -29,6 +29,7 @@ measurements of this dataset have a better one.**
 | 14 | cohort ID should cut NewData's contested rate more than 2015's, absorbing a domain shift | `cohort_id_input.md` | failed — contested rate moved −0.002 / −0.009 / −0.007 across cohorts, no differential effect; the precN gain it did produce is unexplained by this mechanism |
 | 15 | model performance should rise monotonically as the spectral estimator gets smoother | `estimator_smoothing.md` | failed — the relationship is an inverted U peaking at the *current* nw 2.5. Sharper loses (ar16 macroP −0.031 *) and smoother loses (nw6 −0.016); there is no free gain either way. |
 | 16 | trimming the PADS arm-raising onset should raise PADS-to-in-house PD-vs-ET transfer, because the onset is a PADS-only class-ordered signature the in-house cohorts lack | `pads_onset_trim.md` | failed — transfer AUC 0.578 → 0.563, −0.015 [−0.042, +0.009]; every arm below the 0.655 floor. The onset is real (mechanism held) but is second-order on a cohort gap far larger than it. |
+| 17 | the old IF trajectory's significant gain lived in its transient end points reading the class-ordered PADS onset (point 0 sits on the onset) | `descriptor_trajectory_fix.md` | failed — the pre-fix point-0 magnitude is ~1.0 Hz for every class on PADS (N 1.01 / PD 0.89 / ET 1.01) and correlates with the onset ratio at +0.032. Class-agnostic noise. |
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
@@ -65,6 +66,8 @@ more often doing work than not.
 | D | peak-aligned averaging should beat the random-shift control on precET if the misalignment mechanism is real (deliberately NOT a prediction of improvement over the plain mean) | `peak_aligned_average.md` | held — +0.119 [+0.018, +0.226] * — while adoption was null (+0.007 precET vs the plain mean). A narrow prediction that held and still produced no gain. |
 | E | trimming the PADS onset collapses the N > PD > ET first-1.5 s excess and the length-matched trim-end control does not | `pads_onset_trim.md` | held — 1.39/1.33/1.06 → 1.10/1.04/0.96; control 1.40/1.33/1.05 |
 | F | the mixed-cohort headline effect of trimming the onset is small with uncertain sign | `pads_onset_trim.md` | held — macroP −0.006 [−0.031, +0.022], null on every column |
+| G | the 0.25 s guard on the IF trajectory would be null, because the corrupted points are the same two positions for every patient and their magnitude does not depend on class | `descriptor_trajectory_fix.md` | held — macroP −0.004 [−0.027, +0.021], precET −0.004 [−0.068, +0.071] |
+| H | the contiguous Q-factor fix would be small with uncertain sign, because the mislabelled feature nevertheless carried class-correlated information | `descriptor_trajectory_fix.md` | held — macroP +0.012 [−0.003, +0.034], precET +0.036 [−0.012, +0.097]; trended positive rather than the leaned-toward negative, which was explicitly not the claim |
 
 Prediction B is the contrast that makes the register worth keeping. It was
 recorded in writing in two reports before the run finished, and unlike the failed

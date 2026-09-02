@@ -97,10 +97,13 @@ n the model does not care about what a descriptor says it should.
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to
-`reports/failed_predictions.md`.** Sixteen failed, six held. The six that held
-were all derived from a *measurement of this dataset* (ensemble disagreement,
-uniform axis distortion, mechanism checks, a "small and uncertain" headline
-call); the fourteen mechanism stories all failed. Two supposed handicaps for the minority class — hard patients, ET's
+`reports/failed_predictions.md`.** Seventeen failed, eight held. The eight that
+held were all derived from a *measurement of this dataset* (ensemble
+disagreement, uniform axis distortion, mechanism checks, "small and uncertain"
+calls for the onset trim and the Q fix, a guard on two class-agnostic points);
+the fifteen mechanism stories all failed — most recently "the trajectory's gain
+was its transient end points reading the PADS onset", which measured at rho
++0.03. Two supposed handicaps for the minority class — hard patients, ET's
 diluted logit — turned out to be load-bearing.
 
 **Design the experiment so either outcome is informative.** The band-edge test

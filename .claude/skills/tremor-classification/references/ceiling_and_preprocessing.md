@@ -75,6 +75,26 @@ trajectory (frequency marginal).
 headline re-derived and marginally stronger; welch row bit-identical as it must
 be. `_kept_rfftfreq` now asserts.
 
+Two more from the synthetic sweep (`descriptor_trajectory_fix.md`).
+`describe()`'s Q-factor spanned every supra-half-max bin rather than the
+contiguous peak — a tone with a 0.8-amplitude harmonic read Q 0.94 instead of
+15, and the supra-half set is non-contiguous for 85 % of PADS N, 74 % of PD and
+30 % of ET, so the old `q_factor` measured "no clear peak" and "secondary
+content" in a class-ordered way. Under the contiguous definition **PADS has no
+ET-vs-PD Q gap** (ET 21.0 / PD 22.1 / N 22.8; 2015 ratio 1.44 → 1.18). The
+headline `peak_sharp` (peak over mean power) is a different quantity and
+stands. And the IF trajectory's points 0 and 63 were band-pass transients — a
+steady tone read 0.36 Hz of wander at point 0, a ±0.5 Hz FM tone read 2.7 Hz at
+point 63, interior correct to 0.06 Hz; a 0.25 s guard removes them. Paired
+against the reconstructed pre-fix model: Q fix +0.012 [−0.003, +0.034] macroP,
+guard −0.004 [−0.027, +0.021], both −0.006 [−0.026, +0.019]. The headline
+survives at +0.044 / +0.104, but **the trajectory stream is no longer
+significant on its own** (precET +0.057 * → +0.026 [−0.009, +0.068]); the story
+that its old gain was the transients reading the PADS onset was measured and is
+wrong (point-0 magnitude ~1.0 Hz for every class, rho +0.03 with the onset).
+`experiments/verify_preprocessing.py` is the regression test: 41 checks, exit
+code = failures.
+
 **Checked and cleared.** All cohorts are gyroscope angular velocity — no unit
 mismatch. Missing detrend in the multitaper path: 5×10⁻⁵ effect, because
 quaternion differentiation removes DC. NewData's epoch selection is documented

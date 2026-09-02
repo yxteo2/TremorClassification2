@@ -18,7 +18,7 @@ reference file that matches the task:
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
 `reports/` holds ~70 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (16 failed, 6 held); `experiments/INDEX.md` maps
+predictions made before the run (17 failed, 8 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -65,7 +65,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 8. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here; mechanism stories have failed fourteen times.
+   have held here; mechanism stories have failed fifteen times.
 
 ## Cohorts and merging (settled)
 
@@ -141,6 +141,17 @@ patient's own recordings far more than with the label. Untried.
   re-derived. `_kept_rfftfreq` now asserts axis length equals spectrum length.
   **Relative safeguards cannot see a defect every arm shares** — only an absolute
   check against ground truth does.
+* **Two more defects, found by `verify_preprocessing.py`, fixed, null.**
+  `describe()`'s Q-factor spanned every supra-half-max bin instead of the peak
+  (a tone with a 0.8-amplitude harmonic read Q 0.94, not 15); under the correct
+  definition PADS shows **no ET-vs-PD Q gap** (ET 21.0 / PD 22.1 / N 22.8, ratio
+  1.90 → 0.95), so that descriptor's class contrast was definitional — the
+  headline `peak_sharp` is a different, sound quantity and stands. And the IF
+  trajectory's points 0 and 63 were band-pass transients (2.7 Hz of noise on a
+  0.5 Hz signal); a 0.25 s guard removes them. Paired against the reconstructed
+  pre-fix model: Q fix +0.012 [−0.003, +0.034] macroP, guard −0.004 [−0.027,
+  +0.021], both together −0.006 [−0.026, +0.019]. Headline intact; the
+  trajectory stream's own significance did not survive (see above).
 * **Verified fine:** unit/modality consistency across cohorts; 3 Hz low edge
   (sub-3 Hz carries nothing usable); DC in the multitaper path (5×10⁻⁵ effect);
   noise-dominated recordings (≤ 8 % of any class); wrist averaging (aligning
