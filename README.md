@@ -58,6 +58,13 @@ Paired **+0.043 [+0.024, +0.062] macro precision** and **+0.097 [+0.047, +0.146]
 ET precision** over the welch baseline, at **40 splits**, winning on 75 % of them
 (`reports/headline_audit.md`).
 
+> **These numbers predate the multitaper frequency-axis fix and are being
+> re-derived** (`reports/axis_fix_audit.md`). The axis was stretched 1.05 %; the
+> paired effect of fixing it is null (macroP −0.008 [−0.029, +0.010]) but the
+> point estimates move (macroP 0.660 → 0.652, precET 0.685 → 0.654 at 20
+> splits), so quote nothing from the multitaper path until the re-audit lands.
+> Welch and `DESC`/`stft512` numbers are unaffected.
+>
 > Quoted at 40 rather than the original 20 splits. The claim was re-audited
 > because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
 > on doubling. It held and its interval **tightened** (from [+0.014, +0.067]).

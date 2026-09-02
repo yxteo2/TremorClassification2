@@ -59,6 +59,7 @@ more often doing work than not.
 | # | prediction | where | what happened |
 |---|---|---|---|
 | A | thirteen feature families would not beat the best single one | `tcn_fusion.md` | held |
+| C | fixing the multitaper frequency axis would change little or nothing, because the distortion was uniform across every recording and the model was fitted and evaluated on it consistently | `axis_fix_audit.md` | held — macroP −0.008 [−0.029, +0.010], nothing significant on any column |
 | B | balanced bagging would be null, because the members already disagree on 20.5 % of patients so data diversity is not the binding constraint | `balanced_bagging.md` | held — macroP +0.001 [−0.015, +0.019], and +0.007 against the matched seed control |
 
 Prediction B is the contrast that makes the register worth keeping. It was
