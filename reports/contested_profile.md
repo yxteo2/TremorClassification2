@@ -23,6 +23,8 @@ this is not the class-prevalence effect in disguise.
 
 ## The caveat that has to come first
 
+> **Correction (post `descriptor_trajectory_fix.md`).** The `q_factor` row below used the pre-fix `describe()`, which spanned every supra-half-max bin. Its within-class correlations therefore partly measure "has secondary content / no clear peak" rather than peak sharpness. `peak_share`, `spectral_entropy` and `spectral_spread` are unaffected and carry the same sign-flip pattern, so the section's conclusion stands.
+
 **Much of this is close to circular, and the report would be misleading without
 saying so.** The descriptors that predict contestedness are descriptors the model
 itself consumes. "The ensemble is unsure when its own inputs are ambiguous" is

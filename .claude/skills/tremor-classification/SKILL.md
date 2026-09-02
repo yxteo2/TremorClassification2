@@ -138,9 +138,10 @@ patient's own recordings far more than with the label. Untried.
   check against ground truth does.
 * **Verified fine:** unit/modality consistency across cohorts; 3 Hz low edge
   (sub-3 Hz carries nothing usable); DC in the multitaper path (5×10⁻⁵ effect);
-  noise-dominated recordings (≤ 8 % of any class); wrist averaging (costs 33 % of
-  the ET–PD sharpness gap at descriptor level, but the model sits below the
-  misalignment knee — aligning is null, doubling jitter costs −0.071).
+  noise-dominated recordings (≤ 8 % of any class); wrist averaging (aligning
+  peaks before the mean is null; the model sits below the misalignment knee —
+  doubling jitter costs −0.071. The "33 % of the sharpness gap" that motivated
+  it was measured with the pre-fix Q-factor and is withdrawn).
 * **Known and open:** cohort-dependent frame averaging (21 / 13 / 12 frames);
   NewData resamples quaternions *before* the sign-continuity fix (latent — no
   flips exist in the raw streams); **PADS carries an untrimmed arm-raising onset

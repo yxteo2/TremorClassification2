@@ -135,7 +135,7 @@ def patient_table(recs, ch=slice(0, 3), fs=100.0, **kw):
 # Trajectories -- the deep-learning form of the same idea
 # --------------------------------------------------------------------------- #
 def if_trajectory(x, fs=100.0, f_lo=3.0, f_hi=15.0, bw=2.0, n_out=64,
-                  smooth=5):
+                  smooth=5, guard_s=0.25):
     """Instantaneous-frequency and envelope TRAJECTORY for a deep model.
 
     :func:`stability_features` compresses the instantaneous frequency to six
@@ -174,6 +174,17 @@ def if_trajectory(x, fs=100.0, f_lo=3.0, f_hi=15.0, bw=2.0, n_out=64,
     z = hilbert(xb)
     inst_f = np.diff(np.unwrap(np.angle(z))) * fs / (2 * np.pi)
     amp = np.abs(z)[1:]
+    # Drop the band-pass / Hilbert edge transient. Measured on a synthetic tone
+    # the instantaneous frequency is wrong for the first and last 10-16 samples,
+    # and because the series is resampled to n_out points the raw ends land
+    # exactly on trajectory points 0 and n_out-1: a rock-steady 6 Hz tone read
+    # 0.36 Hz of wander at point 0, and a 6 +/- 0.5 Hz FM tone read 2.7 Hz at
+    # point 63, against an interior that was correct to 0.06 Hz. A 4 Hz-wide
+    # 4th-order filter settles in ~0.25 s, so that is the guard; guard_s=0
+    # reproduces the pre-fix behaviour for the paired audit.
+    gd = int(round(guard_s * fs))
+    if gd > 0 and len(inst_f) > 4 * gd:
+        inst_f, amp = inst_f[gd:-gd], amp[gd:-gd]
     ok = (inst_f > f_lo * 0.5) & (inst_f < f_hi * 1.5)
     if ok.sum() < 20:
         return out

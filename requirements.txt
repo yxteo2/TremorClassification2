@@ -11,3 +11,8 @@ PyWavelets>=1.4    # wavelet_packet transform, used by final_model.build()
 EMD-signal>=1.5    # hht, emd
 vmdpy>=0.2         # vmd
 stockwell>=1.2     # S-transform
+
+# optional -- benchmark-only transforms in signal_processing/transforms.py (hht, hht_imf2plus, vmd);
+# not used by the reported model. Uncomment to run the full 12-transform benchmark.
+# EMD-signal>=1.5
+# vmdpy>=0.2

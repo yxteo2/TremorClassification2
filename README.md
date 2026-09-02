@@ -19,6 +19,7 @@ Two lines of work:
 ```bash
 python -m frequency.characteristics     # characteristics + frequency classification
 python -m experiments.final_model       # the merged deep model, paired vs baseline
+python -m experiments.verify_preprocessing  # every stage vs synthetic ground truth (exit = failures)
 python -m experiments.own_data_10et     # in-house patients, 10 ET per test set
 python -m experiments.inhouse_axes      # rotation-invariant axis features in-house
 ```
@@ -174,6 +175,14 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 ## Conventions that matter
 
 * **Patient-level splits only.** Never split one patient's recordings.
+* **Every safeguard above is relative — keep one absolute check.** Patient-level
+  splits, paired bootstraps and permutation nulls all compare arms, so a defect
+  shared by every arm is invisible to all of them. Three survived that way: a
+  1 % frequency-axis stretch, a Q-factor that spanned every supra-half-max bin
+  instead of the peak, and IF-trajectory end points that were filter transients.
+  `experiments/verify_preprocessing.py` pushes synthetic signals with known
+  answers through every stage; run it after touching `signal_processing/`,
+  `frequency/` or `common/cohorts.py` (`reports/descriptor_trajectory_fix.md`).
 * **A rank correlation is the wrong instrument for a non-monotone effect.**
   Estimator smoothing has an interior optimum; Spearman read −0.600 and a canned
   line called it "smoother is better" when the table showed a peak at the current

@@ -2,6 +2,8 @@
 
 ## The setup
 
+> **Correction (post `descriptor_trajectory_fix.md`).** Every `q_factor` figure in this report was computed with the pre-fix `describe()`, whose half-power width spanned every supra-half-max bin rather than the contiguous peak. Under the corrected definition the PADS ET-vs-PD Q gap is **not** 1.45 but ≈ 0 (ET 21.0, PD 22.1, N 22.8), so the "third of the sharpness gap" that averaging destroyed was mostly the definitional artifact — the old Q was tracking secondary spectral content and the absence of a peak, not sharpness. The model-level conclusion (alignment is null) is unaffected; the descriptor-level motivation is withdrawn.
+
 `method_table` normalises each recording's spectrum then takes a plain mean over
 the patient's recordings — for PADS, over the left and right wrist. Those spectra
 do not peak at the same frequency. Measured across all 383 PADS patients, the

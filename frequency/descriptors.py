@@ -19,6 +19,17 @@ DESCRIPTOR_NAMES = [
 ]
 
 
+#: Half-power bandwidth of the CONTIGUOUS peak (True) or the span of every bin
+#: above half-max anywhere in the band (False -- the behaviour before the fix).
+#: The span definition collapses Q whenever a second component (a harmonic, a
+#: second oscillator) clears half-max: a 6 Hz tone with a 0.8-amplitude 12 Hz
+#: harmonic reads Q 0.94 instead of 15. On real recordings that happens to 85 %
+#: of PADS N, 74 % of PD and 30 % of ET (stft512), so the old ``q_factor`` was
+#: measuring "has secondary spectral content" as much as peak sharpness, and
+#: doing so in a class-ordered way. Kept switchable for the paired audit.
+Q_CONTIGUOUS = True
+
+
 def describe(freqs, power):
     """Interpretable descriptors of one spectrum. Returns a dict."""
     f = np.asarray(freqs, dtype=float)
@@ -48,9 +59,19 @@ def describe(freqs, power):
     spread = float(np.sqrt(((f - mean_freq) ** 2 * w).sum()))
     entropy = float(-(w * np.log(w + EPS)).sum() / np.log(len(w) + EPS))
 
-    # Q-factor: peak frequency / half-power bandwidth
+    # Q-factor: peak frequency / half-power bandwidth of the peak itself
     half = P[pk] / 2.0
-    above = np.where(P >= half)[0]
+    if Q_CONTIGUOUS:
+        lo = pk
+        while lo > 0 and P[lo - 1] >= half:
+            lo -= 1
+        hi = pk
+        while hi < len(P) - 1 and P[hi + 1] >= half:
+            hi += 1
+        above = np.arange(lo, hi + 1)
+    else:                                  # pre-fix: span of ALL supra-half bins
+        above = np.where(P >= half)[0]
+    # a peak narrower than one bin is reported at one bin's width, never zero
     bw = float(f[above[-1]] - f[above[0]]) if len(above) > 1 else float(np.diff(f).mean())
     q = max_freq / (bw + EPS)
 

@@ -80,11 +80,13 @@ mismatch. Missing detrend in the multitaper path: 5×10⁻⁵ effect, because
 quaternion differentiation removes DC. NewData's epoch selection is documented
 and its tremor-blind alternative was worse. No sign flips exist in raw NewData
 quaternions, so resampling before the sign fix is a latent hazard only.
-Noise-dominated recordings: ≤ 8 % of any class. Wrist averaging costs 33 % of
-the ET–PD sharpness gap at descriptor level (per-wrist Q 3.77 vs 2.32 → 2.82 vs
-1.86; between-wrist peak mismatch median 0.78 Hz N/PD, 0.39 Hz ET, bin width
-0.39 Hz) — but the model sits below the misalignment knee: aligned 0.650, plain
-0.652, doubled jitter 0.581 macroP.
+Noise-dominated recordings: ≤ 8 % of any class. Wrist averaging: between-wrist
+peak mismatch is a median 0.78 Hz for N/PD and 0.39 Hz for ET against a 0.39 Hz
+bin, but the model sits below the misalignment knee — aligned 0.650, plain
+0.652, doubled jitter 0.581 macroP. (The "33 % of the ET–PD sharpness gap"
+that motivated the test was measured with the pre-fix span-Q and is withdrawn;
+under the contiguous definition PADS shows no ET-vs-PD Q gap at all: ET 21.0,
+PD 22.1, N 22.8.)
 
 **Found and open.** Frames averaged differ by cohort (2015 21, PADS 13, NewData
 12) purely from recording length. PADS carries an untrimmed arm-raising onset in
