@@ -45,7 +45,22 @@ Arms: baseline (class weights), tau = 0.5, tau = 1.0. The two corrections are
 mutually exclusive by construction in `train` — applying both would correct the
 same imbalance twice — so there is no "both" arm.
 
-20 splits, paired, checkpointed per split (`_resume`) because the container has
+## Outcome of the 20-split pass, and why it was extended
+
+The prediction above was **wrong in direction**. Both taus came out positive on
+every column, tau = 0.5 giving macroP +0.023 [−0.002, +0.050] and precET +0.053
+[−0.013, +0.120], with sd(macroP) dropping 0.074 → 0.064 and a macroP win rate
+of 0.70. Nothing is significant — every interval spans zero — so this is a
+*candidate*, not a result.
+
+It is, however, exactly the profile this project's own convention says to
+re-audit: a paired macroP interval that barely touches zero at 20 splits, where
+20 resolves only ~0.04 and 40 resolves ~0.025. `headline_audit.md` exists for
+this case, and three ~0.03 differences here have flipped sign on doubling. So
+`SPLITS` is now 40; the per-split checkpoint reuses splits 0–19 rather than
+recomputing them.
+
+40 splits, paired, checkpointed per split (`_resume`) because the container has
 killed a run at split 18 of 20.
 Run: ``python -m experiments.logit_adjustment``
 """
@@ -66,7 +81,11 @@ from models.architectures import (ResidualTCN, Spectrum1DCNN, TRUNKS,
                                   TwoStreamNet)
 
 NM = ("precN", "precPD", "precET", "macroP", "macroF1")
-SPLITS, SEEDS = 20, (0, 1, 2)
+# 40, not 20: the 20-split result trended positive on every column with
+# macroP +0.023 [-0.002, +0.050] -- exactly the case this project's
+# convention says to re-audit, since 20 splits resolves only ~0.04.
+# The per-split checkpoint means splits 0-19 are reused, not recomputed.
+SPLITS, SEEDS = 40, (0, 1, 2)
 
 
 def fit_arm(spec, desc, traj, y, tr, va, te, logit_adj):
