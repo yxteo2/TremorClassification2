@@ -30,6 +30,7 @@ measurements of this dataset have a better one.**
 | 15 | model performance should rise monotonically as the spectral estimator gets smoother | `estimator_smoothing.md` | failed — the relationship is an inverted U peaking at the *current* nw 2.5. Sharper loses (ar16 macroP −0.031 *) and smoother loses (nw6 −0.016); there is no free gain either way. |
 | 16 | trimming the PADS arm-raising onset should raise PADS-to-in-house PD-vs-ET transfer, because the onset is a PADS-only class-ordered signature the in-house cohorts lack | `pads_onset_trim.md` | failed — transfer AUC 0.578 → 0.563, −0.015 [−0.042, +0.009]; every arm below the 0.655 floor. The onset is real (mechanism held) but is second-order on a cohort gap far larger than it. |
 | 17 | the old IF trajectory's significant gain lived in its transient end points reading the class-ordered PADS onset (point 0 sits on the onset) | `descriptor_trajectory_fix.md` | failed — the pre-fix point-0 magnitude is ~1.0 Hz for every class on PADS (N 1.01 / PD 0.89 / ET 1.01) and correlates with the onset ratio at +0.032. Class-agnostic noise. |
+| 18 | training-time logit adjustment would lean NEGATIVE on precET, because prior_objective measured precET −0.236 when this project's imbalance correction was aimed at balanced accuracy and logit adjustment is Fisher-consistent for that objective | `logit_adjustment.md` | **wrong in direction, right in magnitude** — τ = 0.5 came out +0.034 precET / +0.012 macroP at 40 splits, positive but null. The flaw: post-hoc offset tuning and training-time adjustment share an objective but not a failure mode; the offset search moves a threshold on a fixed representation, adjustment shapes the representation. The sub-prediction τ = 0.5 > τ = 1.0 held. |
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
@@ -49,6 +50,14 @@ just returning nothing — the rival account (cycle count) is untouched by a ban
 change, so the null moved it from one-of-two to the live explanation. A
 prediction designed so that either outcome is informative is worth more than one
 that only pays out when it holds.
+
+Prediction 18 adds a distinct failure mode to the two above: **sharing an
+objective does not make two methods share a failure mode.** Post-hoc offset
+tuning and training-time logit adjustment both target balanced error, and the
+first had failed badly here, so the second was predicted to fail too. It did not
+— it came out positive, just not significantly. The methods differ in what they
+can overfit: the offset search sees ~11 validation ET patients, adjustment sees
+none.
 
 Predictions 6 and 10 share a shape worth naming: both identified something that
 *looked* like a handicap for the minority class (hard patients dragging the
