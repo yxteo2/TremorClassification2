@@ -89,22 +89,33 @@ Report prevalence or lift. Print the permutation null beside any in-house
 precision — at 21 ET every model sits inside it, so differences describe where
 the threshold fell.
 
-**Sub-component gains do not compose.** Measured three times: a
-measurement-derived two-stage prediction (#5), the short-window binary gains,
-and a 33 % descriptor-level sharpness recovery that gave +0.007 precET. At this
-n the model does not care about what a descriptor says it should.
+**Sub-component gains do not compose — but sub-component damage does.**
+Gains have failed three times: a measurement-derived two-stage prediction (#5),
+the short-window binary gains, and a 33 % descriptor-level sharpness recovery
+that gave +0.007 precET. At this n the model does not care about what a
+descriptor says it should. **The reverse is not true.** PCEN's destruction of
+the spectrum was measurable in two label-free statistics of the 16-bin spectrum
+(entropy 0.905 → 0.992, peak/mean 3.08 → 1.14) and composed perfectly to macroP
+−0.101 \*. So:
+
+> **Run the cheap label-free diagnostic of what a transform does to the
+> representation before spending the fits.** It cannot promise a gain — that is
+> the asymmetry — but it can rule one out for minutes instead of hours, and here
+> it called the direction and rough magnitude of the largest negative in the
+> project where the reasoned prediction called neither.
 
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to
-`reports/failed_predictions.md`.** Seventeen failed, eight held. The eight that
+`reports/failed_predictions.md`.** Twenty failed, ten held. The ten that
 held were all derived from a *measurement of this dataset* (ensemble
 disagreement, uniform axis distortion, mechanism checks, "small and uncertain"
-calls for the onset trim and the Q fix, a guard on two class-agnostic points);
-the fifteen mechanism stories all failed — most recently "the trajectory's gain
-was its transient end points reading the PADS onset", which measured at rho
-+0.03. Two supposed handicaps for the minority class — hard patients, ET's
-diluted logit — turned out to be load-bearing.
+calls for the onset trim and the Q fix, a guard on two class-agnostic points,
+MiniRocket's dimensionality, HPSS's harmonic-over-percussive ordering); the
+mechanism stories almost all failed — most recently "PCEN will be small and
+uncertain in sign", which came in at macroP −0.101 \*. Two supposed handicaps
+for the minority class — hard patients, ET's diluted logit — turned out to be
+load-bearing.
 
 **Design the experiment so either outcome is informative.** The band-edge test
 was built so that a null *eliminated* one of two named accounts. A prediction

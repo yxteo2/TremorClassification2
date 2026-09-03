@@ -18,7 +18,7 @@ reference file that matches the task:
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
 `reports/` holds ~70 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (19 failed, 9 held); `experiments/INDEX.md` maps
+predictions made before the run (20 failed, 10 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -69,7 +69,12 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here; mechanism stories have failed seventeen times.
+   have held here (ten of ten); mechanism stories have failed twenty times.
+10. **Run the cheap label-free diagnostic before the fits** when a proposal
+    changes the representation. Two statistics of the 16-bin spectrum, taken in
+    minutes, called PCEN's failure that a reasoned prediction got backwards
+    (`_pcen_alpha_diagnostic.py`). It can rule a method out; it cannot promise
+    a gain — see the asymmetry in `method_rules.md`.
 
 ## Cohorts and merging (settled)
 
@@ -162,6 +167,18 @@ patient's own recordings far more than with the label. Untried.
   peaks before the mean is null; the model sits below the misalignment knee —
   doubling jitter costs −0.071. The "33 % of the sharpness gap" that motivated
   it was measured with the pre-fix Q-factor and is withdrawn).
+* **The time-average is doing more than averaging.** Explicit
+  harmonic–percussive separation confirms the physics — harmonic 0.660 >
+  dense-hop control 0.639 > percussive 0.523 precET, the percussive arm
+  significantly worse than its own control (−0.117 \*), so **class information
+  sits in the sustained component** — yet adopting HPSS is null (+0.018 n.s.).
+  `P.mean(0)` already divides a transient by the frame count while a sustained
+  oscillation contributes to every frame, so it is a weak separator already.
+  Same shape as the PADS onset: a real, class-ordered artifact that changed
+  nothing after averaging. **PCEN is the opposite and must not be used**
+  (precET −0.233 \*, macroP −0.101 \*): dividing each band by a smoothed copy of
+  itself destroys *which band* has energy, which is the entire signal here.
+  A dense 0.16 s hop, needed for anything on the time axis, is free.
 * **Known and open:** cohort-dependent frame averaging (21 / 13 / 12 frames);
   NewData resamples quaternions *before* the sign-continuity fix (latent — no
   flips exist in the raw streams); **PADS carries an untrimmed arm-raising onset
@@ -178,9 +195,11 @@ pooling rule, ensemble size, balanced bagging, one-vs-rest (harmful, −0.162
 precET), gating on disagreement, three subject-pruning criteria, band edge,
 estimator sharpness, peak-aligned averaging, cohort-ID input, feature unions,
 learned pooling over recordings, SSL, time-domain networks, mixup, prior
-objective, and everything in the older table. **Descriptor-level gains do not
-compose to the model** — three separate instances now, including a 33 %
-sharpness recovery that produced +0.007 precET.
+objective, MiniRocket/ROCKET, logit adjustment, PCEN, HPSS, and everything in
+the older table. **Descriptor-level gains do not compose to the model** — three
+separate instances now, including a 33 % sharpness recovery that produced
++0.007 precET. **Descriptor-level damage does compose**, which is why the
+label-free diagnostic is worth running first.
 
 What remains genuinely open: feature-level cohort harmonisation (ComBat-style,
 fitted on train only), physiology-preserving ET augmentation with a

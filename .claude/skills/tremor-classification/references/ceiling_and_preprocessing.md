@@ -168,6 +168,13 @@ rest condition — it may be cheaper than more ET patients.
   feature extraction, vs 70.4 % for TSI; their TSI matches ours (0.757 on PADS).
 * A 2026 preprint claiming 87 % on PADS uses class-dependent window overlap —
   preprocessing that reads the label; not a comparator.
+* **Audio front-ends transfer badly, for a stateable reason.** PCEN (Lostanlen,
+  *IEEE SPL* 26(1) 2019) and HPSS both assume the discriminative information is
+  *when* energy appears in a band, with the band's own long-run level as
+  background to remove. Here it is *which band* has energy. PCEN, which acts on
+  exactly that assumption, is the largest negative in the project; HPSS, which
+  only removes transients, is null because averaging already did it. Test the
+  assumption an imported method encodes before importing the method.
 * For a Transactions submission, the defensible framing is "where the ceiling
   is and why it coincides with label reliability", supported by ~70 disciplined
   negatives with matched controls, rather than "a classifier that reaches 0.66".

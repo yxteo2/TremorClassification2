@@ -50,6 +50,9 @@ table.
 | catch22 hybrid | AUC +0.014 \* but precET −0.028 \* — rank-averaging dilutes the top of the ranking | `catch22_waveform_features.md` |
 | MiniRocket/ROCKET on the waveform | macroP −0.088 \* and −0.085 \*; **worse than the learned TCN on the same input** (0.555 vs 0.626); fusion null with validation choosing weight 0 in 10/20 splits | `rocket_waveform.md` |
 | training-time logit adjustment (Menon et al.) | null at 40 splits — τ=0.5 macroP +0.012 [−0.003, +0.027], and the effect halved on doubling from 20 splits while the precET win rate fell to 0.42 | `logit_adjustment.md` |
+| **PCEN** (Lostanlen, *IEEE SPL* 2019) on a dense-hop surface | **precET −0.233 [−0.351, −0.121] \*, macroP −0.101 \*** — the largest negative measured. Structural: dividing each band by a smoothed copy of itself is exactly what destroys *which band* has energy. No α fixes it | `pcen_hpss.md` |
+| **HPSS**, harmonic component | +0.018 [−0.056, +0.093] precET — null for adoption, but the ordering held (see below) | `pcen_hpss.md` |
+| dense 0.16 s hop (13 → 49 frames) | free: +0.004 macroP, null on every column. Resample to it if anything ever needs the time axis | `pcen_hpss.md` |
 
 ## Task and structure
 
@@ -83,9 +86,36 @@ MiniRocket is unlearned and lost to the learned TCN. The repaired rule is:
 Dimensionality remains a first-order constraint, now measured at its most
 extreme: 9 996 features on ~260 training patients.
 
+## What HPSS established even though it was null
+
+Adoption was null, but the attribution control was not. The recorded ordering
+held exactly — harmonic 0.660 > dense control 0.639 > **percussive 0.523**, the
+percussive arm significantly worse than the control it is matched against
+(precET −0.117 \*, macroP −0.046 \*). So:
+
+> **Class information sits in the sustained, tonal component; the broadband
+> transient component carries significantly less of it.**
+
+That is the first direct confirmation of the assumption the whole front-end
+rests on. It also explains the null: `P.mean(0)` is already a weak
+harmonic–percussive separator — a transient occupies a few frames out of 49 and
+gets divided by the frame count, while a sustained oscillation contributes in
+every frame. HPSS removes explicitly what averaging removes implicitly. Same
+shape as `pads_onset_trim.md` from the other direction: a real, class-ordered
+artifact that changed nothing once the pipeline averaged over time.
+
 ## Standing rule on sub-component gains
 
 A gain measured on a component — a descriptor, a binary axis, a sharpness gap —
 is **not** evidence about the 3-class model. Failed prediction #5, then the
 short-window composition, then peak alignment (33 % sharpness recovery →
 +0.007 precET). Treat such gains as motivation to test, never as a result.
+
+**The rule is asymmetric.** Gains have failed to compose three times; a
+descriptor-level *destruction* composed perfectly the first time it was tried.
+PCEN's damage was visible in two label-free statistics of the 16-bin spectrum
+before any model was fitted (`_pcen_alpha_diagnostic.py`: entropy 0.905 → 0.992,
+peak/mean 3.08 → 1.14), and that diagnostic called both the direction and the
+rough magnitude where the reasoned prediction called neither. **Run the cheap
+label-free measurement of what a transform does to the representation before
+spending the fits** — it cannot promise a gain, but it can rule one out.
