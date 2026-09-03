@@ -78,6 +78,37 @@ background, and this pipeline's recordings are short, already band-passed to
 3–15 Hz, and sum-normalised — three reasons the thing PCEN removes may largely
 be gone already.
 
+### A pre-run diagnostic that reframes the PCEN arm
+
+The 1-split smoke test scored PCEN at precET 0.000 with **zero** ET recall, so
+before spending fits on more settings the alpha sweep was measured directly on
+40 real recordings (no model, no labels):
+
+    arm          entropy (1 = flat)   peak/mean
+    no PCEN            0.9051            3.08
+    alpha = 0.98       0.9920            1.14
+    alpha = 0.8        0.9873            1.39
+    alpha = 0.5        0.9634            2.00
+    alpha = 0.3        0.9411            2.44
+
+**PCEN flattens this spectrum monotonically in alpha**, and at the published
+default it removes the peak almost entirely (peak-to-mean 3.08 → 1.14).
+
+The mechanism is a clean conceptual mismatch, not a tuning problem. For a
+stationary band the smoother tracks the signal, so `E / M^alpha → E^(1-alpha)`
+— at alpha = 0.98 that is `E^0.02`, nearly constant. In audio the discriminative
+information is *when* energy appears in a band and the per-band average is
+background to be divided out. **Here the discriminative information is *which
+band* has energy**, and dividing each band by its own average is precisely the
+operation that destroys it.
+
+So the family is parametrised from "no PCEN" (alpha = 0) to "fully flattened"
+(alpha → 1) with **no setting that adds structure**, and extra alpha arms would
+only interpolate. One arm at the published default is kept, because a
+descriptor-level observation is not a model-level result — standing rule #5 in
+this project is that the two do not reliably agree — but the diagnostic is the
+explanation for whatever it produces.
+
 Neither is predicted to beat the reported model. The spectrum has been a
 near-sufficient statistic at this n, and the honest question is whether a
 principled denoiser reaches the contested 40 % that every reshuffling method has
