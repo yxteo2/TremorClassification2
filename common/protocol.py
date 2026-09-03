@@ -22,8 +22,19 @@ from models.architectures import DescriptorFusion, ResidualTCN, Spectrum1DCNN, T
 
 
 def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
-          wd=1e-3, nc=3, sw=None, pre=None, ft_lr=1e-3, ft_epochs=80):
-    """Full-batch trainer. ``sw`` weights samples; ``pre`` pretrains first."""
+          wd=1e-3, nc=3, sw=None, pre=None, ft_lr=1e-3, ft_epochs=80,
+          logit_adj=None):
+    """Full-batch trainer. ``sw`` weights samples; ``pre`` pretrains first.
+
+    ``logit_adj`` (float tau) switches the loss from inverse-frequency class
+    weighting to **training-time logit adjustment** (Menon et al., ICLR 2021):
+    the loss becomes ``CE(z + tau * log(prior), y)`` with no class weight, and
+    inference uses ``z`` unadjusted. The two are different corrections for the
+    same imbalance -- weighting rescales each example's gradient, adjustment
+    shifts the decision boundary inside the loss and is Fisher-consistent for
+    balanced error. ``None`` (default) keeps the class-weighted path exactly as
+    it was, so every existing result is bit-reproducible.
+    """
     torch.manual_seed(seed)
     T = lambda z: torch.tensor(z, dtype=torch.float32)
     xt, yt = T(Xtr), torch.tensor(ytr, dtype=torch.long)
@@ -33,6 +44,12 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
     def wt(yy):
         c = np.bincount(yy, minlength=nc).astype(float)
         return torch.tensor(c.sum() / (nc * np.maximum(c, 1)), dtype=torch.float32)
+
+    la = None
+    if logit_adj is not None:
+        c = np.bincount(ytr, minlength=nc).astype(float)
+        prior = np.maximum(c, 1) / max(c.sum(), 1)
+        la = torch.tensor(logit_adj * np.log(prior), dtype=torch.float32)
 
     if pre is not None:
         Xp, yp = pre
@@ -46,6 +63,10 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
         lr, epochs = ft_lr, ft_epochs
 
     w = wt(ytr)
+    # logit adjustment replaces class weighting; applying both would correct the
+    # same imbalance twice
+    cw = None if la is not None else w
+    adj = (lambda z: z + la) if la is not None else (lambda z: z)
     opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=wd)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
     swt = T(sw) if sw is not None else None
@@ -53,14 +74,14 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
     for _ in range(epochs):
         m.train(); opt.zero_grad()
         if swt is None:
-            loss = nn.CrossEntropyLoss(weight=w)(m(xt), yt)
+            loss = nn.CrossEntropyLoss(weight=cw)(adj(m(xt)), yt)
         else:
-            per = nn.CrossEntropyLoss(weight=w, reduction="none")(m(xt), yt)
+            per = nn.CrossEntropyLoss(weight=cw, reduction="none")(adj(m(xt)), yt)
             loss = (per * swt).sum() / swt.sum()
         loss.backward(); opt.step(); sch.step()
         m.eval()
         with torch.no_grad():
-            v = float(nn.CrossEntropyLoss(weight=w)(m(xv), yv))
+            v = float(nn.CrossEntropyLoss(weight=cw)(adj(m(xv)), yv))
         if v < best:
             best = v
             state = {k: t.detach().clone() for k, t in m.state_dict().items()}
