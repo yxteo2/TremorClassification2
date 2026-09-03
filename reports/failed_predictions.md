@@ -32,6 +32,15 @@ measurements of this dataset have a better one.**
 | 17 | the old IF trajectory's significant gain lived in its transient end points reading the class-ordered PADS onset (point 0 sits on the onset) | `descriptor_trajectory_fix.md` | failed — the pre-fix point-0 magnitude is ~1.0 Hz for every class on PADS (N 1.01 / PD 0.89 / ET 1.01) and correlates with the onset ratio at +0.032. Class-agnostic noise. |
 | 18 | training-time logit adjustment would lean NEGATIVE on precET, because prior_objective measured precET −0.236 when this project's imbalance correction was aimed at balanced accuracy and logit adjustment is Fisher-consistent for that objective | `logit_adjustment.md` | **wrong in direction, right in magnitude** — τ = 0.5 came out +0.034 precET / +0.012 macroP at 40 splits, positive but null. The flaw: post-hoc offset tuning and training-time adjustment share an objective but not a failure mode; the offset search moves a threshold on a fixed representation, adjustment shapes the representation. The sub-prediction τ = 0.5 > τ = 1.0 held. |
 | 19 | MiniRocket, being unlearned like catch22, should beat the learned TCN on the same waveform | `rocket_waveform.md` | **refuted** — macroP 0.555/0.558 against the TCN's 0.626, and significantly worse than the reported model (−0.088 *, −0.085 *). It broke the standing rule it was built on: "unlearned" is the wrong abstraction; the repaired rule is "few features, selected for classification". |
+| 20 | PCEN would be small and uncertain in sign, since the recordings are short, band-passed and sum-normalised so the stationary background it removes is largely gone | `pcen_hpss.md` | **wrong — large and significantly negative**: precET −0.233 [−0.351, −0.121] *, macroP −0.101 *, winning macroP in 3/20 splits. A pre-run label-free diagnostic had already measured PCEN flattening the spectrum (peak/mean 3.08 → 1.14) and correctly anticipated the failure. |
+
+Prediction 20 is the clearest case yet for running a cheap diagnostic before the
+fits. The reasoned prediction ("PCEN small and uncertain") was wrong; a
+label-free measurement of what PCEN does to the spectrum, taken before the run,
+called both the direction and the rough magnitude. It also marks an
+**asymmetry in standing rule #5**: descriptor-level *gains* have failed to
+compose to the model three times, but a descriptor-level *destruction* composed
+perfectly.
 
 Prediction 5 was the most sobering of the early batch because it was the
 disciplined kind — built from measured sub-component gains rather than a story —
@@ -79,6 +88,7 @@ more often doing work than not.
 | G | the 0.25 s guard on the IF trajectory would be null, because the corrupted points are the same two positions for every patient and their magnitude does not depend on class | `descriptor_trajectory_fix.md` | held — macroP −0.004 [−0.027, +0.021], precET −0.004 [−0.068, +0.071] |
 | H | the contiguous Q-factor fix would be small with uncertain sign, because the mislabelled feature nevertheless carried class-correlated information | `descriptor_trajectory_fix.md` | held — macroP +0.012 [−0.003, +0.034], precET +0.036 [−0.012, +0.097]; trended positive rather than the leaned-toward negative, which was explicitly not the claim |
 | I | MiniRocket's failure is dimensionality, so reducing 9 996 features to ~22 should help substantially, with the optimum nearer 22–64 than 9 996 | `rocket_waveform.md` | held — PCA 22 gives macroP +0.046 [+0.013, +0.076] * and precET +0.086 [+0.006, +0.155] *, optimum exactly at 22. It does not rescue the method (0.605 vs the reported 0.643), so dimensionality is necessary but not sufficient. |
+| J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
 
 Prediction B is the contrast that makes the register worth keeping. It was
 recorded in writing in two reports before the run finished, and unlike the failed
