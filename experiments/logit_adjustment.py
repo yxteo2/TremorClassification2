@@ -41,11 +41,13 @@ about the threshold. If LA helps, it must help *through the representation*, and
 the signature of that is a gain that survives the offsets — which is what the
 paired comparison here measures.
 
-Arms: baseline (class weights), tau = 0.5, tau = 1.0, and tau = 1.0 with class
-weights restored on top — the last one over-corrects on purpose, to show the two
-mechanisms are not additive.
+Arms: baseline (class weights), tau = 0.5, tau = 1.0. The two corrections are
+mutually exclusive by construction in `train` — applying both would correct the
+same imbalance twice — so there is no "both" arm.
 
-20 splits, paired. Run: ``python -m experiments.logit_adjustment``
+20 splits, paired, checkpointed per split (`_resume`) because the container has
+killed a run at split 18 of 20.
+Run: ``python -m experiments.logit_adjustment``
 """
 
 from __future__ import annotations
@@ -57,6 +59,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 import experiments.final_model as FM
 from common.protocol import TEST_FRAC, VAL_FRAC, train, tune_offsets
+from experiments._resume import resume_load, resume_save
 from experiments.alltasks_final import paired
 from experiments.final_model import NBIN, TL
 from models.architectures import (ResidualTCN, Spectrum1DCNN, TRUNKS,
@@ -106,9 +109,11 @@ def main():
 
     ARMS = {"baseline (class weights)": None, "logit adj tau=0.5": 0.5,
             "logit adj tau=1.0": 1.0}
-    res = {a: [] for a in ARMS}
+    res, done = resume_load("logit_adjustment", list(ARMS))
 
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(y[:, None],
                                                                     key))
@@ -119,6 +124,7 @@ def main():
         for a, tau in ARMS.items():
             pv, pt = fit_arm(spec, D, traj, y, tr, va, te, tau)
             res[a].append(score(pt, tune_offsets(pv, y[va]), y[te]))
+        resume_save("logit_adjustment", res, sp)
         print(f"  split {sp+1}/{SPLITS}", flush=True)
 
     for a in res:

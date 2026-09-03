@@ -73,6 +73,7 @@ from sklearn.preprocessing import StandardScaler
 
 import experiments.final_model as FM
 from common.protocol import TEST_FRAC, VAL_FRAC, tune_offsets
+from experiments._resume import resume_load, resume_save
 from experiments.alltasks_final import paired
 from experiments.estimator_smoothing import load_cohorts
 from experiments.pooling_rules import fit_members
@@ -137,10 +138,12 @@ def main():
 
     ARMS = ("reported model", "MiniRocket + ridge", "MiniRocket + logreg",
             "score fusion (w on val)")
-    res = {a: [] for a in ARMS}
+    res, done = resume_load("rocket_waveform", list(ARMS))
     ws = []
 
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(y[:, None],
                                                                     key))
@@ -191,6 +194,7 @@ def main():
         res["score fusion (w on val)"].append(
             score(mix(pt_d, pt_r), tune_offsets(mix(pv_d, pv_r), y[va]), y[te]))
         ws.append(w)
+        resume_save("rocket_waveform", res, sp, extra={"w": ws})
         print(f"  split {sp+1}/{SPLITS}  rocket features {Ftr.shape[1]}  "
               f"fusion w={w:.1f}", flush=True)
 
