@@ -48,6 +48,8 @@ table.
 | HHT / hht_imf2plus | worst of the estimators | `signal_processing_summary.md` |
 | ImageNet backbones, frozen ViT | at chance | `frozen_vit.md`, `pretrained_backbones.md` |
 | catch22 hybrid | AUC +0.014 \* but precET −0.028 \* — rank-averaging dilutes the top of the ranking | `catch22_waveform_features.md` |
+| MiniRocket/ROCKET on the waveform | macroP −0.088 \* and −0.085 \*; **worse than the learned TCN on the same input** (0.555 vs 0.626); fusion null with validation choosing weight 0 in 10/20 splits | `rocket_waveform.md` |
+| training-time logit adjustment (Menon et al.) | null at 40 splits — τ=0.5 macroP +0.012 [−0.003, +0.027], and the effect halved on doubling from 20 splits while the precET win rate fell to 0.42 | `logit_adjustment.md` |
 
 ## Task and structure
 
@@ -66,6 +68,20 @@ table.
 `axes + stability`, and `logreg + one-class Mahalanobis` rank-averaged — both
 two-member, both members individually decent, combined at the score level.
 Combine only when members are comparable and you cannot tell which will win.
+
+## The time-domain rule, repaired
+
+The old rule — "time-domain information is only reachable through estimators
+that do not have to be learned from this cohort" — is **wrong as stated**.
+MiniRocket is unlearned and lost to the learned TCN. The repaired rule is:
+
+> **few features, selected for classification.** catch22 satisfies both (22
+> statistics chosen on 93 datasets); MiniRocket satisfies neither. Supplying
+> only the low-dimensional half via PCA to 22 dims is worth macroP +0.046 \* —
+> significant, and still short of both the TCN and the reported model.
+
+Dimensionality remains a first-order constraint, now measured at its most
+extreme: 9 996 features on ~260 training patients.
 
 ## Standing rule on sub-component gains
 

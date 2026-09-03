@@ -18,7 +18,7 @@ reference file that matches the task:
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
 `reports/` holds ~70 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (17 failed, 8 held); `experiments/INDEX.md` maps
+predictions made before the run (19 failed, 9 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -54,18 +54,22 @@ arm — several results here were only valid because that assert passed.
    resolves ~0.04, 40 resolves ~0.025. Three differences of ~0.03 have flipped
    sign on doubling the splits this project, most recently the axis fix (precET
    −0.031 at 20 splits, +0.006 at 40).
-5. **One-split smoke tests are not evidence.** Four this session inverted or
+5. **Print the split-level win rate beside every paired mean.** A positive mean
+   with a sub-0.5 win rate is a few favourable folds, not a method that helps —
+   logit adjustment read precET +0.034 with a win rate of 0.42
+   (`logit_adjustment.md`).
+6. **One-split smoke tests are not evidence.** Four this session inverted or
    evaporated at 20 splits, including a Spearman of +1.000 that became an
    inverted U. Use them to catch crashes, not to read direction.
-6. **Every comparison needs a matched control that isolates one thing.** The
+7. **Every comparison needs a matched control that isolates one thing.** The
    control decides attribution; the plain baseline decides adoption. They are
    different questions — see `method_rules.md` for the time they were confused.
-7. **A permutation null for any single-model claim.** In-house PD-vs-ET null
+8. **A permutation null for any single-model claim.** In-house PD-vs-ET null
    spans [0.298, 0.655] at 21 ET; nothing below AUC 0.66 there is
    distinguishable from chance.
-8. **Record the prediction in the docstring before launching**, then append the
+9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here; mechanism stories have failed fifteen times.
+   have held here; mechanism stories have failed seventeen times.
 
 ## Cohorts and merging (settled)
 

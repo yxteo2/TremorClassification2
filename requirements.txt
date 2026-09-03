@@ -16,3 +16,9 @@ stockwell>=1.2     # S-transform
 # not used by the reported model. Uncomment to run the full 12-transform benchmark.
 # EMD-signal>=1.5
 # vmdpy>=0.2
+
+# optional -- ROCKET/MiniRocket experiments (experiments/rocket_*.py).
+# Refuted as an input (reports/rocket_waveform.md); kept so the result is
+# reproducible. numba is a hard transitive dependency of MiniRocket.
+# sktime>=1.1
+# numba>=0.57

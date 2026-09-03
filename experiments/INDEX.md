@@ -32,13 +32,14 @@ An empty reports column means the study was run but never written up, or was sup
 | `fewshot_oneclass` | 2026-08-19 | **none** |
 | `final_model` | 2026-08-19 | `band_truncation.md`, `contested_specialists.md`, `final_model.md` |
 | `frozen_backbone` | 2026-08-19 | `frozen_vit.md` |
-| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `estimator_smoothing.md`, `headline_audit.md` |
+| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `estimator_smoothing.md`, `headline_audit.md`, `logit_adjustment.md` |
 | `influence_prune` | 2026-08-26 | `balanced_bagging.md`, `failed_predictions.md`, `influence_stable.md` |
 | `influence_stable` | 2026-08-27 | `estimator_smoothing.md`, `influence_prune.md` |
 | `inhouse_axes` | 2026-08-19 | `band_truncation.md` |
 | `inhouse_shortwindow` | 2026-08-22 | `inhouse_shortwindow.md` |
 | `kinetic_task_audit` | 2026-08-21 | `headline_audit.md`, `kinetic_task_audit.md` |
 | `loco_pd_et` | 2026-08-19 | `pd_vs_et_transfer.md` |
+| `logit_adjustment` | 2026-09-03 | `failed_predictions.md` |
 | `low_band_edge` | 2026-08-28 | `failed_predictions.md`, `low_band_edge.md` |
 | `masked_pretrain` | 2026-08-19 | `band_truncation.md`, `ssl_retraction.md` |
 | `mil_recordings` | 2026-08-19 | `mil_recordings.md`, `peak_aligned_average.md`, `task_averaging.md` |
@@ -51,9 +52,11 @@ An empty reports column means the study was run but never written up, or was sup
 | `pd_vs_et_deep` | 2026-08-19 | **none** |
 | `peak_aligned_average` | 2026-09-02 | `descriptor_trajectory_fix.md`, `failed_predictions.md` |
 | `pooling_rules` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `prior_objective` | 2026-08-19 | `one_vs_rest.md`, `prior_objective.md` |
+| `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
 | `prune_training` | 2026-08-27 | `balanced_bagging.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md` |
 | `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md` |
+| `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
+| `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
 | `selection_and_calibration` | 2026-08-19 | **none** |
 | `shortwindow_binary_deep` | 2026-08-20 | `tf_window_length.md` |
@@ -73,4 +76,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-08-19 | **none** |
 
-**67 experiments, 12 with no report:** `analytic_deep`, `attention_test`, `audio_techniques`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`, `window_training`
+**70 experiments, 12 with no report:** `analytic_deep`, `attention_test`, `audio_techniques`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`, `window_training`
