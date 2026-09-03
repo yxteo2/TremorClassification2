@@ -78,7 +78,7 @@ from experiments.estimator_smoothing import load_cohorts
 from experiments.pooling_rules import fit_members
 from signal_processing.waveform import patient_tensor
 
-NM = ("precN", "precPD", "precET", "macroP", "macroF1")
+NM = ("precN", "precPD", "precET", "macroP", "macroF1", "recET", "nETpred")
 SPLITS = 20
 WGRID = np.linspace(0.0, 1.0, 11)
 # time_domain_deep.md, the learned model on this same input
@@ -90,10 +90,18 @@ def _norm(P):
 
 
 def score(pt, off, yte):
+    """Per-class precision plus ET recall and the ET prediction count.
+
+    Precision alone is degenerate at 12 % prevalence: a model that predicts ET
+    once and happens to be right scores precET 1.000. The 1-split smoke test did
+    exactly that (precET 1.000 with macroF1 0.440), so ET recall and the number
+    of ET predictions are reported alongside and any precET figure must be read
+    with them.
+    """
     pred = (np.log(pt + 1e-12) + off).argmax(1)
-    P, _, F, _ = precision_recall_fscore_support(yte, pred, labels=[0, 1, 2],
+    P, R, F, _ = precision_recall_fscore_support(yte, pred, labels=[0, 1, 2],
                                                  zero_division=0)
-    return [P[0], P[1], P[2], P.mean(), F.mean()]
+    return [P[0], P[1], P[2], P.mean(), F.mean(), R[2], float((pred == 2).sum())]
 
 
 def _val_f1(pv, off, yva):
@@ -195,6 +203,10 @@ def main():
               + f"{res[a][:, 3].std():>12.3f}")
     print(f"{'TCN on this waveform':>26}{'':>9}{'':>9}{TCN_PRECET:>9.3f}"
           f"{TCN_MACROP:>9.3f}   (time_domain_deep.md, for reference)")
+    n_et = int(round(float((y == 2).mean()) * len(y) * TEST_FRAC))
+    print(f"\n  ~{n_et} ET patients per test fold. Read precET beside recET and "
+          f"nETpred: a high\n  precET with near-zero recall is the degenerate "
+          f"corner, not a result.")
 
     base = res["reported model"]
     print("\npaired vs the reported model:")
