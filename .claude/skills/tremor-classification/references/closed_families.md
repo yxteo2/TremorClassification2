@@ -55,6 +55,7 @@ table.
 | dense 0.16 s hop (13 → 49 frames) | free: +0.004 macroP, null on every column. Resample to it if anything ever needs the time axis | `pcen_hpss.md` |
 | **patient-level Euclidean Alignment** (He & Wu, *IEEE TBME* 2020) | closed **without fitting anything**: PD-vs-ET AUC 0.702 → 0.558 (inside its null) on 2015, 0.713 → 0.574 on PADS. A patient here carries one label, so their own mean covariance *is* their class signature | `euclidean_alignment.md` |
 | **cropped / window training** (Schirrmeister, HBM 2017), 9.2× rows | null — macroP +0.016 **while losing 11 of 20 splits**; precET sd 0.178, the noisiest column in the project. The 9.2× is 9.2× of *correlated* rows | `window_training.md` |
+| **Riemannian tangent space** on the 3×3 band covariance (Barachant, *IEEE TBME* 2012) | null — and a **within-cohort shuffle of the same six columns scores as well** (+0.003 macroP each). Real orientation buys precPD +0.024 \* against the shuffle but +0.016 n.s. against the baseline: attribution positive, adoption null | `riemann_axes.md` |
 
 ## Task and structure
 
@@ -87,6 +88,24 @@ MiniRocket is unlearned and lost to the learned TCN. The repaired rule is:
 
 Dimensionality remains a first-order constraint, now measured at its most
 extreme: 9 996 features on ~260 training patients.
+
+## Both routes into inter-axis structure are closed, by different mechanisms
+
+`method_table` averages the three gyroscope axes, discarding the direction the
+limb oscillates in. Two ways back to it, both null:
+
+* **rotation-invariant scalars** (λ₁, polarisation) — null because
+  sum-normalisation removes what lives in absolute amplitude
+  (`spectral_representation.md`);
+* **the rotation-covariant full covariance** (tangent space) — null for a
+  *different* reason: on PD-vs-ET it is **redundant with the ten descriptors**
+  (PADS union 0.797 vs descriptors 0.795), so there was nothing new to compose
+  (`riemann_axes.md`).
+
+The orientation itself is real — anisotropy 0.65–0.81, axis reproducible to
+15.8° within a patient against 40.2° between, PD-vs-ET AUC 0.702 / 0.713 beyond
+permutation nulls. **Real and unusable are different findings**, and this is the
+cleanest example in the project.
 
 ## What HPSS established even though it was null
 

@@ -56,7 +56,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
 | `prune_training` | 2026-08-27 | `balanced_bagging.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md` |
 | `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
-| `riemann_axes` | 2026-09-04 | `euclidean_alignment.md` |
+| `riemann_axes` | 2026-09-04 | `euclidean_alignment.md`, `failed_predictions.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
 | `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
@@ -64,7 +64,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `shortwindow_binary_deep` | 2026-08-20 | `tf_window_length.md` |
 | `shortwindow_deep` | 2026-08-20 | **none** |
 | `shortwindow_twostage` | 2026-08-21 | `tf_window_length.md` |
-| `spectral_representation` | 2026-08-19 | `spectral_representation.md` |
+| `spectral_representation` | 2026-08-19 | `riemann_axes.md`, `spectral_representation.md` |
 | `ssl_leakage` | 2026-08-19 | `ssl_retraction.md` |
 | `ssl_matched` | 2026-08-19 | `ssl_retraction.md` |
 | `tabular_models` | 2026-08-19 | `resampling.md`, `tabular_models.md` |

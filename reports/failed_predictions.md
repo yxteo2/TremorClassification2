@@ -35,6 +35,21 @@ measurements of this dataset have a better one.**
 | 20 | PCEN would be small and uncertain in sign, since the recordings are short, band-passed and sum-normalised so the stationary background it removes is largely gone | `pcen_hpss.md` | **wrong — large and significantly negative**: precET −0.233 [−0.351, −0.121] *, macroP −0.101 *, winning macroP in 3/20 splits. A pre-run label-free diagnostic had already measured PCEN flattening the spectrum (peak/mean 3.08 → 1.14) and correctly anticipated the failure. |
 | 21 | cropped training would be NEGATIVE on precET, because window-to-patient aggregation was already measured to *help* and training on windows makes the network fit un-denoised rows | `window_training.md` | failed — +0.026 precET, positive and null on every column. The denoising argument does not transfer from evaluation to training: the window arm still aggregates at inference, so only its gradient signal is noisier. Its designed-to-be-informative sub-prediction (gain largest for the scarcest class if rows bind) also failed to pay out — ET does gain most, but the ordering is not monotone in class size and nothing is significant. |
 
+Prediction 22 is the first failure in this register that a **shuffled control**,
+rather than an interval, decided. Every column of the fusion arm was null anyway,
+but the finding is that six columns of permuted noise reproduced the real
+feature exactly (+0.003 macroP against +0.003). Had the arm come out at +0.03
+the control would still have said the same thing. **Report a shuffled control on
+every appended feature block** — without one this would have been written up as
+"+0.003 macroP, +0.016 precPD, promising".
+
+It also shows the limit of the pre-run diagnostic that invariant 10 asks for. The
+diagnostic was right — the orientation information is real, AUC 0.702 / 0.713
+against permutation nulls — and the method still failed, because *existing* is
+not *being new*. The missing measurement was complementarity against the features
+the model already has, and on PD-vs-ET the union beat the descriptors by +0.002.
+**Ask whether a feature is redundant, not only whether it is informative.**
+
 Prediction 21 is the first time the **win rate**, not the interval, carried the
 verdict. Every column came out positive and null, which on the means alone reads
 as "promising, needs more splits". macroP was positive while losing 11 of 20
@@ -82,6 +97,8 @@ boundary; ET's logit diluted by two majority columns) and both turned out to be
 **load-bearing**. A structure that looks wasteful at 404 patients with 49 ET is
 more often doing work than not.
 
+| 22 | the fusion gain would be larger on precPD **and** precET than on precN, because the model-free diagnostic separated PD from ET (AUC 0.702 / 0.713) far better than it separated N from tremor on PADS (0.579) | `riemann_axes.md` | failed on the half that mattered — precN −0.000, precPD +0.016, precET **−0.006**. The mechanism reasoning was sound and the pre-run measurement was real; what it could not anticipate is that the tangent vector is **redundant with the ten descriptors** on PD-vs-ET (PADS union 0.797 vs descriptors 0.795), so there was nothing new for the model to compose on that contrast. |
+
 ## Held
 
 | # | prediction | where | what happened |
@@ -96,6 +113,7 @@ more often doing work than not.
 | H | the contiguous Q-factor fix would be small with uncertain sign, because the mislabelled feature nevertheless carried class-correlated information | `descriptor_trajectory_fix.md` | held — macroP +0.012 [−0.003, +0.034], precET +0.036 [−0.012, +0.097]; trended positive rather than the leaned-toward negative, which was explicitly not the claim |
 | I | MiniRocket's failure is dimensionality, so reducing 9 996 features to ~22 should help substantially, with the optimum nearer 22–64 than 9 996 | `rocket_waveform.md` | held — PCA 22 gives macroP +0.046 [+0.013, +0.076] * and precET +0.086 [+0.006, +0.155] *, optimum exactly at 22. It does not rescue the method (0.605 vs the reported 0.643), so dimensionality is necessary but not sufficient. |
 | K | patient-level Euclidean Alignment collapses PD-vs-ET AUC to chance while cohort-level alignment does not, because unlike the BCI setting EA was designed for, each patient here carries exactly one label | `euclidean_alignment.md` | held on both halves — patient-level 0.702 → 0.558 (inside its null, p = 0.300) on 2015 and 0.713 → 0.574 (p = 0.050) on PADS; cohort-level holds 0.679 and 0.708, both p < 0.001. Closed a method before any fits were spent. |
+| L | the tangent-space arm loses to the reported model, because six band-limited numbers cannot match a 16-bin spectrum | `riemann_axes.md` | held — macroP −0.009, precET −0.032. Weakly, though: the arm turned out to *substitute* for the descriptors rather than stand alone, and swapping ten descriptors for six covariance numbers costs only −0.009. |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
 
 Prediction K is the cheapest thing in this register. It closed a published

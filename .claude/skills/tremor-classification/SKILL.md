@@ -17,8 +17,8 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~70 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (20 failed, 10 held); `experiments/INDEX.md` maps
+`reports/` holds ~78 findings; `reports/failed_predictions.md` is the register of
+predictions made before the run (22 failed, 12 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -69,7 +69,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here (eleven of eleven); mechanism stories have failed 21 times.
+   have held here (twelve of twelve); mechanism stories have failed 22 times.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
     called PCEN's failure that a reasoned prediction got backwards
@@ -77,7 +77,19 @@ arm — several results here were only valid because that assert passed.
     closed Euclidean Alignment without fitting anything
     (`_euclidean_alignment_diagnostic.py`). It can rule a method out; it cannot
     promise a gain — see the asymmetry in `method_rules.md`.
-11. **An adaptive normaliser is safe only when the unit it normalises over
+11. **Put a shuffled control on every appended feature block**, permuted within
+    cohort and redrawn per split. Six tangent-space columns gave +0.003 macroP
+    and +0.016 precPD; six *permuted* columns of the same block gave +0.003 and
+    beat it on precET (`riemann_axes.md`). Appending columns moves numbers by
+    dimensionality alone — six random ones cut ET predictions by −1.55/split
+    [−3.35, −0.15] \*.
+12. **Ask whether a feature is redundant, not only whether it is informative.**
+    The pre-run diagnostic correctly showed the tremor's orientation separates
+    PD from ET (AUC 0.702 / 0.713 vs permutation nulls) and the method still
+    failed, because on that contrast it duplicated the ten descriptors the model
+    already had (PADS union 0.797 vs 0.795). *Existing* is not *being new* — the
+    cheap union-vs-best-member test is what distinguishes them.
+13. **An adaptive normaliser is safe only when the unit it normalises over
     contains every class.** Three methods have died on this: PCEN (a band
     divided by its own time-average — erases *which band* has energy),
     patient-level Euclidean Alignment (a patient divided by their own
@@ -205,8 +217,9 @@ pooling rule, ensemble size, balanced bagging, one-vs-rest (harmful, −0.162
 precET), gating on disagreement, three subject-pruning criteria, band edge,
 estimator sharpness, peak-aligned averaging, cohort-ID input, feature unions,
 learned pooling over recordings, SSL, time-domain networks, mixup, prior
-objective, MiniRocket/ROCKET, logit adjustment, PCEN, HPSS, and everything in
-the older table. **Descriptor-level gains do not compose to the model** — three
+objective, MiniRocket/ROCKET, logit adjustment, PCEN, HPSS, cropped training,
+Euclidean Alignment, Riemannian tangent space, and everything in the older
+table. **Descriptor-level gains do not compose to the model** — three
 separate instances now, including a 33 % sharpness recovery that produced
 +0.007 precET. **Descriptor-level damage does compose**, which is why the
 label-free diagnostic is worth running first.
