@@ -19,6 +19,34 @@ patient-level, with a patient's windows averaged in probability space.
 
 Splits remain patient-disjoint: a patient's windows are all in one fold, so no
 window of a test patient is ever seen in training.
+
+## Where it comes from
+
+This is the **cropped training** of the EEG deep-learning literature
+(Schirrmeister et al., *Human Brain Mapping* 38(11) 2017), the standard answer
+to a data-limited decoder: train on many overlapping crops of each trial, score
+per crop, aggregate at inference. It is a training device, not a representation
+change, which is why it is separable from every windowing result already closed
+here.
+
+## The prediction, recorded before the run
+
+**Negative on precET, and that is the informative outcome either way.**
+
+The argument for the method is that it multiplies training rows 9.2x. If rows
+are what binds, the gain should be **largest for the class with fewest of them**
+— ET, at 49 patients. If instead precET is where it loses, then the 9.2x is
+9.2x of *correlated* rows, the effective n is still 404 patients, and **the
+binding constraint is patients, not rows** — which would explain in one number
+why every capacity, augmentation and resampling arm in this project has failed.
+
+The reason to expect the loss: `window_vs_patient_level.md` already measured
+that aggregating windows to patients *helps* (bal-acc +0.041 on both in-house
+cohorts), because averaging the spectrum over a whole recording is a denoising
+step. Window training makes the network fit the un-denoised rows.
+
+The control is the same architecture on patient-averaged rows over the same
+splits, so nothing but the training unit differs.
 """
 
 from __future__ import annotations
@@ -34,6 +62,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedShuffleSplit
 
 from common.protocol import NBIN, TEST_FRAC, VAL_FRAC, tune_offsets
+from experiments._resume import resume_load, resume_save
 from models.architectures import Spectrum1DCNN
 
 SPLITS = 20
@@ -171,8 +200,20 @@ def main():
     print("stratification key counts:", dict(collections.Counter(key.tolist())))
     mk = lambda: Spectrum1DCNN(NBIN, num_classes=3, ch=8)
 
-    out = []
+    # Patient-level rows for the control, built once: each patient's window
+    # spectra averaged. Identical features, so the only difference between the
+    # two arms is whether a training row is a window or a patient.
+    Xp, yp, ids = [], [], []
+    for pid in pats:
+        m_ = pw == pid
+        Xp.append(Xw[m_].mean(0)); yp.append(yw[m_][0]); ids.append(pid)
+    Xp = np.array(Xp, np.float32); yp = np.array(yp); ids = np.array(ids)
+
+    ARMS = ("window", "patient")
+    res, done = resume_load("window_training", ARMS)
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(pats, key))
         t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
@@ -197,27 +238,13 @@ def main():
         pred = (np.log(pt + 1e-12) + tune_offsets(pv, yv)).argmax(1)
         P, _, F, _ = precision_recall_fscore_support(yt, pred, labels=[0, 1, 2],
                                                      zero_division=0)
-        out.append([P[0], P[1], P[2], P.mean(), F.mean()])
-    win = np.array(out)
+        res["window"].append([P[0], P[1], P[2], P.mean(), F.mean()])
 
-    # --- PAIRED CONTROL -----------------------------------------------------
-    # Same model, same features, same splits -- the only difference is whether
-    # training rows are windows or patient averages. Without this the comparison
-    # would measure the features the final model has and this one does not.
-    ctrl = []
-    for sp in range(SPLITS):
-        tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
-                                             random_state=sp).split(pats, key))
-        t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
-                                             random_state=sp).split(pats[tv],
-                                                                    key[tv]))
-        tr_p, va_p, te_p = set(pats[tv[t0]]), set(pats[tv[v0]]), set(pats[te])
-        # patient-level rows: average each patient's window spectra
-        Xp, yp, ids = [], [], []
-        for pid in pats:
-            m_ = pw == pid
-            Xp.append(Xw[m_].mean(0)); yp.append(yw[m_][0]); ids.append(pid)
-        Xp = np.array(Xp, np.float32); yp = np.array(yp); ids = np.array(ids)
+        # --- PAIRED CONTROL -------------------------------------------------
+        # Same model, same features, same split -- the only difference is
+        # whether training rows are windows or patient averages. Without this
+        # the comparison would measure the features the reported model has and
+        # this one does not.
         itr = np.array([p in tr_p for p in ids])
         iva = np.array([p in va_p for p in ids])
         ite = np.array([p in te_p for p in ids])
@@ -234,8 +261,11 @@ def main():
         P, _, F, _ = precision_recall_fscore_support(yp[ite], pred,
                                                      labels=[0, 1, 2],
                                                      zero_division=0)
-        ctrl.append([P[0], P[1], P[2], P.mean(), F.mean()])
-    ctrl = np.array(ctrl)
+        res["patient"].append([P[0], P[1], P[2], P.mean(), F.mean()])
+        resume_save("window_training", res, sp)
+        print(f"  split {sp + 1}/{SPLITS} done", flush=True)
+
+    win, ctrl = np.array(res["window"]), np.array(res["patient"])
 
     print(f"{'config':>36}{'precN':>9}{'precPD':>9}{'precET':>9}{'macroP':>9}"
           f"{'macroF1':>9}  |{'  sd':>7}")
@@ -245,7 +275,9 @@ def main():
         print(f"{nm:>36}" + "".join(f"{m_[i]:>9.3f}" for i in range(5))
               + "  |" + "".join(f"{s_[i]:>7.3f}" for i in range(5)))
 
-    print(f"\npaired, window - patient, same {SPLITS} splits and same model:")
+    print(f"\npaired, window - patient, same {SPLITS} splits and same model.")
+    print("The WIN RATE is the column that decides this one: a positive mean")
+    print("with a sub-0.5 win rate is a few favourable folds, not a method.")
     d = win - ctrl
     for i, nm in enumerate(("precN", "precPD", "precET", "macroP", "macroF1")):
         boot = [np.mean(np.random.default_rng(s).choice(d[:, i], len(d),
@@ -253,8 +285,10 @@ def main():
                 for s in range(4000)]
         lo, hi = np.percentile(boot, [2.5, 97.5])
         star = "*" if lo > 0 or hi < 0 else " "
-        print(f"  {nm:>8} {d[:, i].mean():+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
-    np.save("scratch/window_training_scores.npy", np.stack([win, ctrl]))
+        wr = float((win[:, i] > ctrl[:, i]).mean())
+        tie = float((win[:, i] == ctrl[:, i]).mean())
+        print(f"  {nm:>8} {d[:, i].mean():+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}"
+              f"   win {wr:.2f}  tie {tie:.2f}")
     print("\nMARKER_DONE", flush=True)
 
 

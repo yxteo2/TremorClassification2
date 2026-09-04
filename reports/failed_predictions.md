@@ -33,6 +33,13 @@ measurements of this dataset have a better one.**
 | 18 | training-time logit adjustment would lean NEGATIVE on precET, because prior_objective measured precET −0.236 when this project's imbalance correction was aimed at balanced accuracy and logit adjustment is Fisher-consistent for that objective | `logit_adjustment.md` | **wrong in direction, right in magnitude** — τ = 0.5 came out +0.034 precET / +0.012 macroP at 40 splits, positive but null. The flaw: post-hoc offset tuning and training-time adjustment share an objective but not a failure mode; the offset search moves a threshold on a fixed representation, adjustment shapes the representation. The sub-prediction τ = 0.5 > τ = 1.0 held. |
 | 19 | MiniRocket, being unlearned like catch22, should beat the learned TCN on the same waveform | `rocket_waveform.md` | **refuted** — macroP 0.555/0.558 against the TCN's 0.626, and significantly worse than the reported model (−0.088 *, −0.085 *). It broke the standing rule it was built on: "unlearned" is the wrong abstraction; the repaired rule is "few features, selected for classification". |
 | 20 | PCEN would be small and uncertain in sign, since the recordings are short, band-passed and sum-normalised so the stationary background it removes is largely gone | `pcen_hpss.md` | **wrong — large and significantly negative**: precET −0.233 [−0.351, −0.121] *, macroP −0.101 *, winning macroP in 3/20 splits. A pre-run label-free diagnostic had already measured PCEN flattening the spectrum (peak/mean 3.08 → 1.14) and correctly anticipated the failure. |
+| 21 | cropped training would be NEGATIVE on precET, because window-to-patient aggregation was already measured to *help* and training on windows makes the network fit un-denoised rows | `window_training.md` | failed — +0.026 precET, positive and null on every column. The denoising argument does not transfer from evaluation to training: the window arm still aggregates at inference, so only its gradient signal is noisier. Its designed-to-be-informative sub-prediction (gain largest for the scarcest class if rows bind) also failed to pay out — ET does gain most, but the ordering is not monotone in class size and nothing is significant. |
+
+Prediction 21 is the first time the **win rate**, not the interval, carried the
+verdict. Every column came out positive and null, which on the means alone reads
+as "promising, needs more splits". macroP was positive while losing 11 of 20
+splits. Invariant 5 was added to the skill three experiments earlier, after
+logit adjustment showed the same shape; this is it working.
 
 Prediction 20 is the clearest case yet for running a cheap diagnostic before the
 fits. The reasoned prediction ("PCEN small and uncertain") was wrong; a

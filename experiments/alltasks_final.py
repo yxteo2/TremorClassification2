@@ -143,12 +143,19 @@ def evaluate(spec, desc, traj, y, key, splits=SPLITS):
 
 
 def paired(a, b, n=4000):
-    d = a - b
+    """Paired bootstrap mean and 95 % CI per column of ``a - b``.
+
+    Widths come from the data, not from this module's ``NM``: callers score
+    more columns than the five here (``recET`` and ``nETpred`` were added after
+    a MiniRocket arm read precision 1.000 off a single ET prediction), and
+    keying on ``NM`` silently dropped them from every paired table.
+    """
+    d = np.asarray(a) - np.asarray(b)
     return [(d[:, i].mean(),
              *np.percentile([np.mean(np.random.default_rng(s).choice(
                  d[:, i], len(d), replace=True)) for s in range(n)],
                  [2.5, 97.5]))
-            for i in range(len(NM))]
+            for i in range(d.shape[1])]
 
 
 def main():
