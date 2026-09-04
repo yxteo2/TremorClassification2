@@ -53,6 +53,8 @@ table.
 | **PCEN** (Lostanlen, *IEEE SPL* 2019) on a dense-hop surface | **precET −0.233 [−0.351, −0.121] \*, macroP −0.101 \*** — the largest negative measured. Structural: dividing each band by a smoothed copy of itself is exactly what destroys *which band* has energy. No α fixes it | `pcen_hpss.md` |
 | **HPSS**, harmonic component | +0.018 [−0.056, +0.093] precET — null for adoption, but the ordering held (see below) | `pcen_hpss.md` |
 | dense 0.16 s hop (13 → 49 frames) | free: +0.004 macroP, null on every column. Resample to it if anything ever needs the time axis | `pcen_hpss.md` |
+| **patient-level Euclidean Alignment** (He & Wu, *IEEE TBME* 2020) | closed **without fitting anything**: PD-vs-ET AUC 0.702 → 0.558 (inside its null) on 2015, 0.713 → 0.574 on PADS. A patient here carries one label, so their own mean covariance *is* their class signature | `euclidean_alignment.md` |
+| **cropped / window training** (Schirrmeister, HBM 2017), 9.2× rows | null — macroP +0.016 **while losing 11 of 20 splits**; precET sd 0.178, the noisiest column in the project. The 9.2× is 9.2× of *correlated* rows | `window_training.md` |
 
 ## Task and structure
 

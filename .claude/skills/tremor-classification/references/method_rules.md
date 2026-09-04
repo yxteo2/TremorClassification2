@@ -104,14 +104,35 @@ the spectrum was measurable in two label-free statistics of the 16-bin spectrum
 > it called the direction and rough magnitude of the largest negative in the
 > project where the reasoned prediction called neither.
 
+## Adaptive normalisers, and the assumption they all smuggle in
+
+Every per-unit normaliser divides a unit by its own average. That is safe only
+when **the unit contains every class**. Three have died here on exactly this:
+
+| method | unit it normalises over | what that erased |
+|---|---|---|
+| PCEN | a frequency band, over time | *which band* has energy |
+| patient-level Euclidean Alignment | a patient, over their recordings | *which direction* their tremor points |
+| per-cohort priors | a cohort, over its class mix | the prior the pooled model needs |
+
+BCI methods are the ones to watch, because there a subject supplies trials of
+**all** classes and the assumption holds silently. **Here a patient carries
+exactly one label**, so every per-subject normaliser imported from that
+literature inverts into a class-signature remover. Cohort-level versions can
+survive — cohort-level EA preserved the AUC that patient-level destroyed — but
+that only makes them not-yet-refuted, not useful.
+
+The check costs one diagnostic and needs no model.
+
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to
-`reports/failed_predictions.md`.** Twenty failed, ten held. The ten that
+`reports/failed_predictions.md`.** Twenty-one failed, eleven held. The eleven that
 held were all derived from a *measurement of this dataset* (ensemble
 disagreement, uniform axis distortion, mechanism checks, "small and uncertain"
 calls for the onset trim and the Q fix, a guard on two class-agnostic points,
-MiniRocket's dimensionality, HPSS's harmonic-over-percussive ordering); the
+MiniRocket's dimensionality, HPSS's harmonic-over-percussive ordering,
+Euclidean Alignment's dependence on a unit that holds every class); the
 mechanism stories almost all failed — most recently "PCEN will be small and
 uncertain in sign", which came in at macroP −0.101 \*. Two supposed handicaps
 for the minority class — hard patients, ET's diluted logit — turned out to be

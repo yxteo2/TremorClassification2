@@ -69,12 +69,22 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here (ten of ten); mechanism stories have failed twenty times.
-10. **Run the cheap label-free diagnostic before the fits** when a proposal
-    changes the representation. Two statistics of the 16-bin spectrum, taken in
-    minutes, called PCEN's failure that a reasoned prediction got backwards
-    (`_pcen_alpha_diagnostic.py`). It can rule a method out; it cannot promise
-    a gain — see the asymmetry in `method_rules.md`.
+   have held here (eleven of eleven); mechanism stories have failed 21 times.
+10. **Run the cheap diagnostic before the fits** when a proposal changes the
+    representation. Two statistics of the 16-bin spectrum, taken in minutes,
+    called PCEN's failure that a reasoned prediction got backwards
+    (`_pcen_alpha_diagnostic.py`); a 6-feature AUC against a permutation null
+    closed Euclidean Alignment without fitting anything
+    (`_euclidean_alignment_diagnostic.py`). It can rule a method out; it cannot
+    promise a gain — see the asymmetry in `method_rules.md`.
+11. **An adaptive normaliser is safe only when the unit it normalises over
+    contains every class.** Three methods have died on this: PCEN (a band
+    divided by its own time-average — erases *which band* has energy),
+    patient-level Euclidean Alignment (a patient divided by their own
+    covariance — erases *which direction* their tremor points), and per-cohort
+    priors. A patient here carries exactly one label, which is what breaks
+    every per-subject normaliser imported from BCI, where subjects supply all
+    classes. Check this before importing; the check is one diagnostic.
 
 ## Cohorts and merging (settled)
 

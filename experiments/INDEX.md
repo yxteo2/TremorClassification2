@@ -5,7 +5,7 @@ An empty reports column means the study was run but never written up, or was sup
 
 | experiment | last commit | reports that cite it |
 |---|---|---|
-| `alltasks_final` | 2026-08-19 | `mil_recordings.md`, `task_averaging.md` |
+| `alltasks_final` | 2026-09-04 | `mil_recordings.md`, `task_averaging.md` |
 | `amplitude_contrast` | 2026-08-19 | `rest_postural_contrast.md`, `task_averaging.md` |
 | `analytic_deep` | 2026-08-20 | **none** |
 | `analytic_if_control` | 2026-08-20 | `time_domain_deep.md` |
@@ -55,7 +55,8 @@ An empty reports column means the study was run but never written up, or was sup
 | `pooling_rules` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
 | `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
 | `prune_training` | 2026-08-27 | `balanced_bagging.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md` |
-| `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md` |
+| `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
+| `riemann_axes` | 2026-09-04 | `euclidean_alignment.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
 | `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
@@ -75,6 +76,6 @@ An empty reports column means the study was run but never written up, or was sup
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
 | `verify_preprocessing` | 2026-09-02 | `descriptor_trajectory_fix.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
-| `window_training` | 2026-08-19 | **none** |
+| `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**71 experiments, 11 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`, `window_training`
+**72 experiments, 10 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`
