@@ -95,7 +95,16 @@ more often doing work than not.
 | G | the 0.25 s guard on the IF trajectory would be null, because the corrupted points are the same two positions for every patient and their magnitude does not depend on class | `descriptor_trajectory_fix.md` | held — macroP −0.004 [−0.027, +0.021], precET −0.004 [−0.068, +0.071] |
 | H | the contiguous Q-factor fix would be small with uncertain sign, because the mislabelled feature nevertheless carried class-correlated information | `descriptor_trajectory_fix.md` | held — macroP +0.012 [−0.003, +0.034], precET +0.036 [−0.012, +0.097]; trended positive rather than the leaned-toward negative, which was explicitly not the claim |
 | I | MiniRocket's failure is dimensionality, so reducing 9 996 features to ~22 should help substantially, with the optimum nearer 22–64 than 9 996 | `rocket_waveform.md` | held — PCA 22 gives macroP +0.046 [+0.013, +0.076] * and precET +0.086 [+0.006, +0.155] *, optimum exactly at 22. It does not rescue the method (0.605 vs the reported 0.643), so dimensionality is necessary but not sufficient. |
+| K | patient-level Euclidean Alignment collapses PD-vs-ET AUC to chance while cohort-level alignment does not, because unlike the BCI setting EA was designed for, each patient here carries exactly one label | `euclidean_alignment.md` | held on both halves — patient-level 0.702 → 0.558 (inside its null, p = 0.300) on 2015 and 0.713 → 0.574 (p = 0.050) on PADS; cohort-level holds 0.679 and 0.708, both p < 0.001. Closed a method before any fits were spent. |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
+
+Prediction K is the cheapest thing in this register. It closed a published
+method **without fitting a single model**, by naming in advance the one
+structural assumption the method makes — that the unit it normalises over
+contains every class — and then measuring whether this data satisfies it. It
+does not: a patient here carries one label. The same shape had already sunk PCEN
+(a band divided by its own time-average) and per-cohort priors, which makes it a
+family rather than a coincidence.
 
 Prediction B is the contrast that makes the register worth keeping. It was
 recorded in writing in two reports before the run finished, and unlike the failed
