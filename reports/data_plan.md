@@ -28,7 +28,33 @@ either branch below.** Every patient in this project has ≥ 1 repeat recording
 (2015 and NewData repeat the same arm; PADS gives both wrists), so the
 measurement is available today at no collection cost.
 
-## 1. ET patients — the number, and why this number
+## 1. ET patients — the number, and which ET
+
+**Correction to an earlier draft of this section.** It set the target in
+*merged* ET (49 → 150). That is the wrong denominator, and
+`own_data_reality_check.md` is why:
+
+> The merged ET precision of 0.685 was substantially **PADS predicting PADS**.
+> Scored on in-house patients only, PADS in training contributes nothing to ET
+> (+0.003) and significantly *degrades* PD precision (−0.082 \*).
+
+On in-house patients the model's ET precision is **0.193**, not 0.654.
+Improving the merged pool mostly improves PADS-predicting-PADS, which is a
+number the paper should be careful about leaning on. **The quantity to move is
+in-house ET, which stands at 21** — and the new patients have to be collected
+*on the in-house system* to move it. Buying more of a fixed external cohort is
+not available, and would not transfer if it were.
+
+Per cohort, honestly:
+
+| cohort | does this plan improve it? | why |
+|---|---|---|
+| **PADS** | **no** | fixed published set, cannot be extended; and cross-cohort ET generalisation measures at ~zero |
+| **2015** | **no** | legacy and closed at 15 ET; it can only ever be a test set |
+| **NewData** | **yes, if new patients go there** | at 6 ET it cannot be evaluated at all today; new collection on the same system is the only route to a meaningful in-house number |
+
+The table below is still the right instrument analysis — read the "ET total"
+column as *in-house* ET, where today's value is 21 and not 49.
 
 Everything downstream is set by **49 ET patients**, ~10 of which reach a test
 fold. `_sample_size_planning.py` computes what that costs us:
@@ -59,10 +85,17 @@ in-house PD-vs-ET claim can be made at this n, and none should be attempted.
 40 splits buys 0.055 → 0.032, and the extra information also raises the model
 rather than only sharpening the ruler.
 
-**Target: +100 ET patients (to ~150).** That is the point where precET's step
-size (0.044) finally drops below the effect sizes we keep chasing, and where the
-null falls to 0.618. Below ~75 the table barely moves; above ~150 returns
-flatten.
+**Target: ~100 in-house ET patients** (from 21, i.e. +80), which also carries
+the merged pool past 130. That is where precET's step size drops below the
+effect sizes we keep chasing and the PD-vs-ET null falls under 0.64. Below ~75
+the table barely moves; above ~150 returns flatten.
+
+Two honest caveats on this arithmetic. The sd column assumes precET's variance
+falls as 1/n_ET, which is the right first-order behaviour but ignores that new
+patients may be systematically easier or harder than the current 49 — treat 100
+as an order of magnitude, not a threshold. And **added resolution is guaranteed
+while added performance is not**: sharpening the instrument is arithmetic,
+raising the model depends on which account §0's gate returns.
 
 **Do not collect more N or PD.** At 167 and 188 they are not the constraint, and
 cropped training settled the related question: **9.2× more training rows was
