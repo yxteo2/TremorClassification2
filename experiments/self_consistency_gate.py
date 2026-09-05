@@ -256,11 +256,13 @@ def main():
                         np.mean(conf_c) if conf_c else np.nan,
                         np.mean(conf_w) if conf_w else np.nan,
                         len(agree_c), len(agree_w)]
-        res["stats"].append([row["same-arm"], row["PADS"]])
+        # flat row of 14: same-arm block then PADS block, 7 each.
+        # resume_save stores rows of floats, not nested lists.
+        res["stats"].append(list(row["same-arm"]) + list(row["PADS"]))
         resume_save("self_consistency_gate", res, sp)
         print(f"  split {sp + 1}/{SPLITS} done", flush=True)
 
-    S = np.array(res["stats"], dtype=float)          # (splits, 2, 7)
+    S = np.array(res["stats"], dtype=float).reshape(-1, 2, 7)
     print(f"\n{'repeat kind':>12}{'A_correct':>11}{'A_wrong':>10}"
           f"{'control':>10}{'conf_cor':>10}{'conf_wrong':>12}"
           f"{'n_cor':>8}{'n_wrong':>9}")
