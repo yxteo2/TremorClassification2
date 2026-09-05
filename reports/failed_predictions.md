@@ -35,6 +35,21 @@ measurements of this dataset have a better one.**
 | 20 | PCEN would be small and uncertain in sign, since the recordings are short, band-passed and sum-normalised so the stationary background it removes is largely gone | `pcen_hpss.md` | **wrong — large and significantly negative**: precET −0.233 [−0.351, −0.121] *, macroP −0.101 *, winning macroP in 3/20 splits. A pre-run label-free diagnostic had already measured PCEN flattening the spectrum (peak/mean 3.08 → 1.14) and correctly anticipated the failure. |
 | 21 | cropped training would be NEGATIVE on precET, because window-to-patient aggregation was already measured to *help* and training on windows makes the network fit un-denoised rows | `window_training.md` | failed — +0.026 precET, positive and null on every column. The denoising argument does not transfer from evaluation to training: the window arm still aggregates at inference, so only its gradient signal is noisier. Its designed-to-be-informative sub-prediction (gain largest for the scarcest class if rows bind) also failed to pay out — ET does gain most, but the ordering is not monotone in class size and nothing is significant. |
 
+Prediction 23 failed in the most useful way available: it named a statistic that
+turned out to have **no control**, and the failure is what surfaced that. The
+agreement columns were controlled against different-patient-same-class pairs and
+carried the entire result; the confidence columns were reported bare and could
+not have decided anything. **A statistic without a baseline is not evidence, and
+writing the prediction down first is what made that visible** — had the
+confidence numbers happened to separate widely, they would have been reported as
+a finding.
+
+Prediction M is the register's first *deliberately* mixed prediction. Both
+accounts of the ceiling were live, the experiment was built to apportion rather
+than to choose, and predicting "neither wins cleanly" in advance is what stops a
+54/46 split being written up afterwards as whichever answer suits the spending
+decision it feeds.
+
 Prediction 22 is the first failure in this register that a **shuffled control**,
 rather than an interval, decided. Every column of the fusion arm was null anyway,
 but the finding is that six columns of permuted noise reproduced the real
@@ -99,6 +114,8 @@ more often doing work than not.
 
 | 22 | the fusion gain would be larger on precPD **and** precET than on precN, because the model-free diagnostic separated PD from ET (AUC 0.702 / 0.713) far better than it separated N from tremor on PADS (0.579) | `riemann_axes.md` | failed on the half that mattered — precN −0.000, precPD +0.016, precET **−0.006**. The mechanism reasoning was sound and the pre-run measurement was real; what it could not anticipate is that the tangent vector is **redundant with the ten descriptors** on PD-vs-ET (PADS union 0.797 vs descriptors 0.795), so there was nothing new for the model to compose on that contrast. |
 
+| 23 | the label-noise half of the ceiling would show up more strongly in the *confidence* statistic than in the agreement statistic, since being confidently wrong is easier to produce than two recordings independently landing on the same wrong class | `self_consistency_gate.md` | failed — agreement carried the whole result (A_wrong +0.179 above its control) while confidence separated by only ~0.05. It also exposed a design gap in my own experiment: the confidence columns were reported **without a matched control**, unlike the agreement columns, so they could not have been decisive in either direction. |
+
 ## Held
 
 | # | prediction | where | what happened |
@@ -114,6 +131,8 @@ more often doing work than not.
 | I | MiniRocket's failure is dimensionality, so reducing 9 996 features to ~22 should help substantially, with the optimum nearer 22–64 than 9 996 | `rocket_waveform.md` | held — PCA 22 gives macroP +0.046 [+0.013, +0.076] * and precET +0.086 [+0.006, +0.155] *, optimum exactly at 22. It does not rescue the method (0.605 vs the reported 0.643), so dimensionality is necessary but not sufficient. |
 | K | patient-level Euclidean Alignment collapses PD-vs-ET AUC to chance while cohort-level alignment does not, because unlike the BCI setting EA was designed for, each patient here carries exactly one label | `euclidean_alignment.md` | held on both halves — patient-level 0.702 → 0.558 (inside its null, p = 0.300) on 2015 and 0.713 → 0.574 (p = 0.050) on PADS; cohort-level holds 0.679 and 0.708, both p < 0.001. Closed a method before any fits were spent. |
 | L | the tangent-space arm loses to the reported model, because six band-limited numbers cannot match a 16-bin spectrum | `riemann_axes.md` | held — macroP −0.009, precET −0.032. Weakly, though: the arm turned out to *substitute* for the descriptors rather than stand alone, and swapping ten descriptors for six covariance numbers costs only −0.009. |
+| M | neither account of the ceiling would win cleanly — A_wrong clearly above the same-class control but clearly below A_correct | `self_consistency_gate.md` | held, and closely — +0.179 above the control, +0.149 below A_correct, the two gaps nearly equal. Recorded in advance precisely so a mixed result could not be narrated afterwards as whichever answer suited the spending decision. |
+| N | PADS L/R self-agreement < 2015/NewData same-arm self-agreement, because the PADS pair spans two limbs and tremor is genuinely asymmetric | `self_consistency_gate.md` | held — 0.773 vs 0.882 on correctly classified patients, 0.643 vs 0.733 on misclassified ones |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
 
 Prediction K is the cheapest thing in this register. It closed a published

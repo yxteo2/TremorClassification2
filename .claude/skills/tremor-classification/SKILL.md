@@ -17,8 +17,8 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~78 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (22 failed, 12 held); `experiments/INDEX.md` maps
+`reports/` holds ~80 findings; `reports/failed_predictions.md` is the register of
+predictions made before the run (23 failed, 14 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -69,7 +69,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here (twelve of twelve); mechanism stories have failed 22 times.
+   have held here (fourteen of fourteen); mechanism stories have failed 23 times.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
     called PCEN's failure that a reasoned prediction got backwards
@@ -159,9 +159,21 @@ through a monotone class ordering, not a physical mechanism; the claim that it
 was non-circular is **retracted**.
 
 Clinical PD-vs-ET diagnostic accuracy is 74–80 % and ET has no gold standard,
-even post-mortem. The measured ceiling coincides with that. It is a hypothesis
-until tested: the test is whether the model agrees with *itself* across a
-patient's own recordings far more than with the label. Untried.
+even post-mortem. **That test has now been run** (`self_consistency_gate.md`):
+on patients the model gets wrong it still gives both of their recordings the
+same answer **73 %** of the time against a **55 %** same-class control, but that
+sits **0.149 below** its rate on correctly classified patients. Scaled between
+the guessing floor and the working ceiling, misclassified patients are **~54 %
+of the way to fully self-consistent**, and a same-arm retest and a two-limb
+comparison agree to within 3 points.
+
+**So both accounts hold, in almost equal measure.** Crucially, consistently
+wrong = mislabelled ∪ genuinely atypical, so **~55 % is an upper bound on the
+label-noise share of errors, not an estimate** — never quote it as "half the
+labels are wrong". The operational payoff is that it names a **targeted
+re-adjudication list** (recordings agreeing with each other, disagreeing with
+the label; ~50–60 patients cohort-wide), and reviewing that list is what would
+turn the bound into a measurement.
 
 ## Preprocessing: what is verified, what was fixed
 
@@ -226,9 +238,11 @@ label-free diagnostic is worth running first.
 
 What remains genuinely open: feature-level cohort harmonisation (ComBat-style,
 fitted on train only), physiology-preserving ET augmentation with a
-label-preservation audit, severity-stratified reporting, the within-patient
-agreement test of the label-noise account, and re-running `STAB` (TSI) at 40
-splits — it was null at 20 but halved precET variance.
+label-preservation audit, severity-stratified reporting, and re-running `STAB`
+(TSI) at 40 splits — it was null at 20 but halved precET variance. **The data
+side is now the live work** — see `reports/data_plan.md`, whose §1 target is
+**in-house ET (21 today)**, not merged ET, because the merged precET is
+substantially PADS predicting PADS (in-house it is 0.193).
 
 ## Operational
 

@@ -54,13 +54,14 @@ An empty reports column means the study was run but never written up, or was sup
 | `peak_aligned_average` | 2026-09-02 | `descriptor_trajectory_fix.md`, `failed_predictions.md` |
 | `pooling_rules` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
 | `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
-| `prune_training` | 2026-08-27 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md` |
+| `prune_training` | 2026-08-27 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md`, `self_consistency_gate.md` |
 | `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
 | `riemann_axes` | 2026-09-04 | `data_plan.md`, `euclidean_alignment.md`, `failed_predictions.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
 | `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
 | `selection_and_calibration` | 2026-08-19 | **none** |
+| `self_consistency_gate` | 2026-09-05 | `failed_predictions.md` |
 | `shortwindow_binary_deep` | 2026-08-20 | `tf_window_length.md` |
 | `shortwindow_deep` | 2026-08-20 | **none** |
 | `shortwindow_twostage` | 2026-08-21 | `tf_window_length.md` |
@@ -78,4 +79,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**72 experiments, 10 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`
+**73 experiments, 10 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`

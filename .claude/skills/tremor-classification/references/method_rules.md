@@ -91,10 +91,12 @@ the threshold fell.
 
 **Sub-component gains do not compose — but sub-component damage does.**
 Gains have failed four times: a measurement-derived two-stage prediction (#5),
-the short-window binary gains, and a 33 % descriptor-level sharpness recovery
-that gave +0.007 precET, and the tangent vector's complementarity on N-vs-tremor
+the short-window binary gains, a 33 % descriptor-level sharpness recovery that
+gave +0.007 precET, and the tangent vector's complementarity on N-vs-tremor
 (+0.027 AUC on PADS at n = 383) against precN −0.000 in the 3-class model. At
-this n the model does not care about what a descriptor says it should. **The reverse is not true.** PCEN's destruction of
+this n the model does not care about what a descriptor says it should.
+
+**The reverse is not true.** PCEN's destruction of
 the spectrum was measurable in two label-free statistics of the 16-bin spectrum
 (entropy 0.905 → 0.992, peak/mean 3.08 → 1.14) and composed perfectly to macroP
 −0.101 \*. So:
@@ -128,7 +130,7 @@ The check costs one diagnostic and needs no model.
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to
-`reports/failed_predictions.md`.** Twenty-two failed, twelve held. The twelve that
+`reports/failed_predictions.md`.** Twenty-three failed, fourteen held. The fourteen that
 held were all derived from a *measurement of this dataset* (ensemble
 disagreement, uniform axis distortion, mechanism checks, "small and uncertain"
 calls for the onset trim and the Q fix, a guard on two class-agnostic points,
@@ -138,6 +140,13 @@ mechanism stories almost all failed — most recently "PCEN will be small and
 uncertain in sign", which came in at macroP −0.101 \*. Two supposed handicaps
 for the minority class — hard patients, ET's diluted logit — turned out to be
 load-bearing.
+
+**A statistic without a baseline is not evidence.** The self-consistency gate
+controlled its agreement columns against different-patient-same-class pairs and
+they carried the whole result; its confidence columns were reported bare and
+could decide nothing. Had confidence happened to separate widely it would have
+been written up as a finding. Every number in a results table needs to be
+answerable to "compared with what?".
 
 **Design the experiment so either outcome is informative.** The band-edge test
 was built so that a null *eliminated* one of two named accounts. A prediction
