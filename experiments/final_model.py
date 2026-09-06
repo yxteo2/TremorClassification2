@@ -105,6 +105,10 @@ def build():
     d["HAVE"] = np.concatenate([np.zeros(nA), hB, hC[keep]])[:, None]
     coh = np.concatenate([np.full(nA, "2015"), np.full(len(B0[1]), "NewData"),
                           np.full(len(keep), "PADS")])
+    d["patient_ids"] = np.array([
+        f"{c}::{p}" for c, p in zip(coh, np.concatenate([A0[2], B0[2], C0[2][keep]]))])
+    if len(set(d["patient_ids"])) != len(d["y"]):
+        raise ValueError("Duplicate cohort/patient identity")
     d["key"] = np.array([f"{c}_{l}" for c, l in zip(coh, d["y"])])
     d["SPEC"] = {m: logbin(np.vstack([method_table(rA, m, slice(3, 6))[0],
                                       method_table(rB, m, slice(3, 6))[0],
@@ -113,8 +117,13 @@ def build():
     return d
 
 
-def evaluate(name, spec, desc, traj, y, key, splits=SPLITS, verbose=True):
-    """``traj=None`` uses DescriptorFusion; otherwise the two-stream model."""
+def evaluate(name, spec, desc, traj, y, key, splits=SPLITS, verbose=True,
+             return_predictions=False):
+    """``traj=None`` uses DescriptorFusion; otherwise the two-stream model.
+
+    By default return metric rows. With ``return_predictions=True``, also return
+    ordered ``(test_patient_indices, predictions)`` for each split.
+    """
     nd = desc.shape[1]
     packed = np.hstack([spec, desc]) if traj is None else \
         np.hstack([spec, desc, traj])
@@ -125,7 +134,7 @@ def evaluate(name, spec, desc, traj, y, key, splits=SPLITS, verbose=True):
         mk1 = lambda: TwoStreamNet(Spectrum1DCNN(NBIN, 3, ch=8), TRUNKS["cnn"],
                                    8 * 2 * 4, NBIN, nd, TL)
     mk2 = lambda: ResidualTCN(NBIN, num_classes=3, ch=16)
-    out = []
+    out, per_split = [], []
     for sp in range(splits):
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(packed, key))
@@ -144,6 +153,7 @@ def evaluate(name, spec, desc, traj, y, key, splits=SPLITS, verbose=True):
             pt_l.append(np.mean([a[1] for a in r], 0))
         pv, pt = np.mean(pv_l, 0), np.mean(pt_l, 0)
         pred = (np.log(pt + 1e-12) + tune_offsets(pv, y[va])).argmax(1)
+        per_split.append((te.copy(), pred.copy()))
         P, _, F, _ = precision_recall_fscore_support(y[te], pred, labels=[0, 1, 2],
                                                      zero_division=0)
         out.append([P[0], P[1], P[2], P.mean(), F.mean()])
@@ -152,7 +162,7 @@ def evaluate(name, spec, desc, traj, y, key, splits=SPLITS, verbose=True):
         m, s = a.mean(0), a.std(0)
         print(f"{name:>40}" + "".join(f"{m[i]:>9.3f}" for i in range(5))
               + "  |" + "".join(f"{s[i]:>7.3f}" for i in range(5)), flush=True)
-    return a
+    return (a, per_split) if return_predictions else a
 
 
 def main():
@@ -204,3 +214,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -2,31 +2,19 @@
 
 Seventy-two experiments have not moved the reported model past precET 0.654 /
 macroP 0.652. The negatives are not all equal, and read together they say
-something specific: **the constraint is the data, and within the data it is ET
-patients and label quality — in that order of certainty, though not necessarily
-of cost.** This is the plan that follows from them.
+that **ET sample size and label quality merit investigation**. They do not
+identify the cause of the remaining errors. The plan below contains provisional
+planning assumptions, not established limits on learnability.
 
-## 0. The gate: one measurement decides where the money goes
+## 0. Recording agreement cannot decide the cause of errors
 
-Two accounts of the ceiling are both consistent with everything measured, and
-they imply **opposite** spending:
-
-| account | implication |
-|---|---|
-| **label noise** — clinical PD-vs-ET misdiagnosis runs 15–35 % and ET has no gold standard even post-mortem; the measured ceiling coincides with that rate | adjudicate the labels on the 404 patients we already have; more patients with equally noisy labels buys proportionally less |
-| **signal insufficiency** — the 3–15 Hz wrist spectrum is a near-sufficient statistic and simply does not separate PD from ET in ~40 % of patients | more patients and richer acquisition; re-labelling changes nothing |
-
-**The discriminating test is already named in `SKILL.md` as untested:** does the
-model agree with *itself* across a patient's own recordings far more than it
-agrees with the label? Label noise predicts high self-consistency with wrong
-labels. Signal insufficiency predicts the model is inconsistent on the same
-patient too.
-
-It costs about one experiment — one fit set per split, scoring each recording
-separately instead of averaging to the patient. **Run this before committing to
-either branch below.** Every patient in this project has ≥ 1 repeat recording
-(2015 and NewData repeat the same arm; PADS gives both wrists), so the
-measurement is available today at no collection cost.
+The earlier self-consistency gate cannot distinguish label noise from systematic
+model error or insufficient features. Its 55% and 19% bounds are withdrawn
+(`self_consistency_gate.md`). A matched pairwise analysis is now implemented,
+but is descriptive and awaits rerunning. It cannot set a spending ratio or
+establish a physical ceiling. Independent label adjudication and prospective
+data collection answer different questions; prioritize them using feasibility
+and independent evidence, not a normalized agreement contrast.
 
 ## 1. ET patients — the number, and which ET
 
@@ -95,7 +83,7 @@ falls as 1/n_ET, which is the right first-order behaviour but ignores that new
 patients may be systematically easier or harder than the current 49 — treat 100
 as an order of magnitude, not a threshold. And **added resolution is guaranteed
 while added performance is not**: sharpening the instrument is arithmetic,
-raising the model depends on which account §0's gate returns.
+raising the model depends on the new data and independently assessed label quality.
 
 **Do not collect more N or PD.** At 167 and 188 they are not the constraint, and
 cropped training settled the related question: **9.2× more training rows was
@@ -103,8 +91,7 @@ null**, so rows are not scarce — *patients of the minority class* are.
 
 ## 2. Label adjudication — what to record, on old and new patients alike
 
-Conditional on the gate in §0 pointing at labels, and cheap enough to specify
-now either way:
+Independent of agreement results, consider the following label-quality records:
 
 * **Multi-rater diagnosis with the agreement retained**, not collapsed. A
   patient two neurologists disagree on is data, not noise — `prune_training.md`
@@ -185,14 +172,12 @@ buy:
 
 ## Ordering
 
-1. **Run the self-consistency gate (§0).** One experiment, existing data, decides §2's priority.
+1. **Review label quality and collection feasibility (§0).** Agreement alone cannot decide priorities.
 2. **Fix the acquisition protocol (§3)** before the next patient is recorded — free now, impossible later.
-3. **Collect ET patients toward ~150 (§1)**, with §2's label protocol applied to new and existing patients alike.
+3. **Collect toward ~100 in-house ET patients (§1; provisional planning target)**, with §2's label protocol applied to new and existing patients alike.
 4. **Fix §4** opportunistically; both are cheap.
 
-The honest framing for a Transactions submission is unchanged and is
-strengthened, not weakened, by this plan: *where the ceiling is, why it
-coincides with label reliability, and what it would take to move it* — with a
-sample-size analysis showing the field's usual "we tried another architecture"
-cannot work at n = 49 ET, because the effects sought are smaller than the
-measurement resolution.
+The paper should describe observed performance, uncertainty and the limitations
+of the tested methods. The experiments do not establish a fundamental ceiling,
+a label-noise rate, or that architecture improvements are impossible. Sample-size
+targets above are provisional planning calculations, not performance guarantees.

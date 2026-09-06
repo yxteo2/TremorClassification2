@@ -1,22 +1,25 @@
-# The headline merged result survives patient-level uncertainty
+# Patient-level uncertainty: current-pipeline rerun pending
 
-**Question this answers.** Every paired interval in this project bootstraps over
-**splits** on a fixed set of 404 patients. That answers "is A better than B on
-these patients". A paper claims something else — that A beats B on patients not
-yet seen — and for that the sampling unit is the patient. Given that a
-patient-level bootstrap had just produced three false verdicts elsewhere
-(`permutation_null.md`), the headline comparison needed checking rather than
-assuming.
+The results below predate the corrected frequency axis, descriptors and trajectory.
+They **do not validate** the current ET precision 0.654 / macro precision 0.652
+reported in `descriptor_trajectory_fix.md`. Historical significance claims are
+withdrawn as support for the current pipeline; updated intervals must be computed.
 
-Run: `python -m experiments.patient_level_ci`. Both arms run on the same 20
-splits, keeping each split's **per-patient test predictions**. Then 404 patients
-are drawn with replacement; for every split both arms are re-scored using only
-the drawn patients falling in that split's test fold, carrying multiplicity;
-the results are averaged over splits and differenced. Both arms see the identical
-patient draw and identical folds, so the comparison stays paired and only the
-patient sample varies.
+## Current implementation
 
-## Result
+`python -m experiments.patient_level_ci --output patient_ci_current.json`
+
+Both arms now call `final_model.evaluate`, using the current preprocessing and
+40 shared splits. The same patient draw is reused across arms and splits, with
+multiplicity preserved. Ordered test identities must match exactly. Missing-class
+draws use the same fixed-label, zero-division metric policy as the original
+scores. The script exports patient identities, predictions, metrics, source
+hashes and feature fingerprints for auditability.
+
+`python -m experiments.headline_audit --output headline_current.json` performs
+this calculation for all three headline comparisons in one training run.
+
+## Historical output only
 
 | arm | precN | precPD | precET | macroP |
 |---|---|---|---|---|
@@ -33,42 +36,21 @@ patient sample varies.
 **Both significant results hold.** macro precision +0.041 [+0.005, +0.066] and ET
 precision +0.102 [+0.005, +0.163] with the patient as the sampling unit.
 
-## Why the two intervals nearly agree
+## Interpretation limits
 
-The patient-level interval is only ~1.1× wider. That is not a coincidence of this
-dataset — it follows from the design. Each split tests 20 % of patients, so over
-20 splits every patient is tested about four times under four different fold
-compositions. The split-level bootstrap is therefore already integrating over a
-great deal of patient-composition variability; it is not the naive
-"same-test-set-every-time" quantity it might look like.
+Both procedures condition on already fitted models. Patient resampling captures
+evaluation-patient composition, while split resampling describes sensitivity to
+split assignment on the fixed dataset. Overlapping splits are not independent
+patient evidence. Neither accounts for refitting on new training patients or the
+many model/feature choices already explored in this repository. Pairing does not
+prove those omitted sources cancel, nor is one interval guaranteed to be wider.
 
-This is worth recording as a positive methodological result: **for the merged
-20-split protocol, the split-level bootstrap this repo has always used is a good
-approximation to the patient-level one.** The convention was sound. The lesson
-from `permutation_null.md` — that a patient bootstrap can badly mislead — applies
-to the *cross-validation single-model* setting, not to this paired one, and the
-two findings do not conflict.
+Do not infer that the two methods are equivalent from similar historical widths.
+Neither interval establishes performance at an unseen site.
 
-The width ratio of 0.7 on precN is not meaningful: the difference there is +0.001,
-so both intervals are describing the same nothing.
-
-## What neither interval covers
-
-Both bootstraps hold the **fitted models** fixed and resample only what they are
-scored on. Neither captures the variance of having trained on a different sample
-of patients. That term is real and is why `permutation_null.md` — which refits on
-every replicate — is the right instrument for single-model claims like "family X
-separates PD from ET".
-
-For a *paired* comparison the omission matters much less, because both arms are
-fitted on the identical training patients in every split and the training-sample
-effect largely cancels in the difference. It does not cancel exactly, so the
-intervals above should be read as slightly optimistic, not exact.
-
-## Standing
-
-The merged two-stream result — multitaper spectrum + IF trajectory, soft-voted
-with a residual TCN — is the one headline number in this project that has now
-been checked at the patient level and held. It remains a **mixed-cohort** result:
-it says "better at sites we trained on", and `pd_vs_et_transfer.md` shows the
-PD-vs-ET axis does not transfer across sites in either direction.
+For a future confirmatory analysis, freeze the candidate set and use patient-grouped
+nested cross-validation, with preprocessing, early stopping, offset tuning and
+model selection confined to outer-training data. Keep each outer test fold out
+of every choice. Report cohort-specific results and identify this as a new
+analysis on previously explored data; external validation remains stronger.
+See [scikit-learn's nested CV example](https://scikit-learn.org/stable/auto_examples/model_selection/plot_nested_cross_validation_iris.html).

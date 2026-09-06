@@ -1,10 +1,12 @@
-# Can this reach >0.90 precision? Measured answer: no, not on three classes
+# Tested precision–coverage results: no demonstrated three-class >0.90
 
 Every precision figure elsewhere in this repo is at **100 % coverage** -- the
 model must label all 404 patients, including genuinely ambiguous ones. Precision
 is threshold-dependent, so that is the hardest operating point. This report
-measures the full precision-coverage trade with an abstain option, to establish
-what is actually reachable.
+measures the full precision-coverage trade with an abstain option, to describe
+the tested models and operating points. These historical experiments do not
+establish a fundamental performance ceiling or rule out other models, features,
+training data, calibration methods or thresholds.
 
 ## 3-class N/PD/ET, best model (two-stream, tuned priors)
 
@@ -19,7 +21,7 @@ Pooled out-of-fold predictions for 358 of 404 patients, margin abstention:
 | 0.50 | 179 | 0.736 | 0.744 | 0.500 | 0.660 | 83 / 83 / 13 |
 | 0.30 | 107 | 0.794 | 0.737 | 0.667 | **0.732** | 58 / 39 / 10 |
 
-**Macro precision never reaches 0.90, even abstaining on 80 % of patients.**
+**The displayed three-class macro precision values do not reach 0.90.**
 Abstaining on 70 % buys 0.732, and the curve is flattening far below target.
 
 The `max_prob` rule behaves similarly (best 0.705 at 70 % coverage).
@@ -28,15 +30,17 @@ The `max_prob` rule behaves similarly (best 0.705 at 70 % coverage).
 
 0.630 at full coverage, 0.562 at 70 %, 0.462 at 60 %. Confidence is not tracking
 correctness for the minority class: the model is confidently wrong on some ET
-patients and uncertain on some it gets right. **Abstention cannot rescue ET at
-any threshold**, which is a calibration failure specific to the class with 44
-patients.
+patients and uncertain on some it gets right. **The tested abstention rules did not reliably improve ET precision.**
+This warrants class-specific calibration analysis; it does not prove that every
+threshold fails or isolate calibration as the cause.
 
-## The one row that clears 0.90 is an artifact
+## A high binary value at low coverage needs independent validation
 
 N-vs-Tremor reports macro precision 0.971 at 25 % coverage. The class counts
-there are 13 N against 94 tremor -- a precision estimate on 13 patients. At the
-last defensible coverage (30 %) it is 0.858. **Do not report the 0.971.**
+there are 13 N against 94 tremor -- only 13 true N patients in the retained subset. Precision denominators
+are predicted-class counts and must be reported separately. At 30 % coverage
+it is 0.858. The 0.971 is exploratory: low counts and threshold exploration
+make it unsuitable as a validated headline, but do not prove it is an artifact.
 
 ## Binary axes at full coverage
 
@@ -48,10 +52,10 @@ last defensible coverage (30 %) it is 0.858. **Do not report the 0.971.**
 PD-vs-ET at 0.753 macro precision, with PD precision 0.852, is the most
 defensible headline available from this data.
 
-## What >0.90 would require
+## Directions to evaluate; none guarantees >0.90
 
-1. **More ET patients.** 49 across three cohorts is the binding constraint, and
-   every ceiling measured this session traces back to it.
+1. **More ET patients.** 49 across three cohorts limits minority-class evaluation;
+   it does not prove sample size is the sole cause of observed errors.
 2. **The questionnaire.** The published PADS baseline reaches 91 % on PD-vs-HC
    using smartwatch IMU *plus* a 30-item non-motor symptom instrument
    (`pads_literature.md`). It is the one lever the state of the art uses that
@@ -59,8 +63,9 @@ defensible headline available from this data.
 3. **A narrower question.** Binary PD-vs-ET, reported honestly at ~0.75 macro
    precision, is defensible; a 3-class >0.90 claim is not supportable.
 
-Continued architecture work is not the route. Five rounds of it moved macro
+The tested architecture changes had limited gains. Five rounds moved macro
 precision from 0.583 to 0.675; the remaining gap to 0.90 is larger than
 everything that work bought combined.
 
 Reproduce: `python -m metrics.selective` helpers, `scratch/selective_run.py`.
+
