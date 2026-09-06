@@ -1,116 +1,56 @@
-# The gate: about half the errors look like label noise, and it names which patients
+# Recording agreement: descriptive evidence, not a label-noise bound
 
-## What was measured
+## Correction
 
-Every patient has more than one recording and the pipeline averages them away.
-This scores each recording **separately** under the reported model — trained
-exactly as reported, recording rows passed as a third output matrix standardised
-with the same train-fold statistics, so it measures the reported model rather
-than a new one.
+The earlier **55% upper bound on the label-noise share of errors** and derived
+**19% mislabelling bound are withdrawn**. The ratio
+`(0.733 - 0.554) / (0.882 - 0.554)` is a normalised agreement contrast, not a
+mixture proportion. No identified mixture model or validated component rates
+justify interpreting it as a fraction or upper bound. Stable model errors can
+occur with correct labels, and incorrect labels need not yield stable predictions.
+Agreement cannot divide errors into label noise and signal insufficiency.
 
-    label noise           -> model CONSISTENT with itself, disagrees with LABEL
-    signal insufficiency  -> model INCONSISTENT on the same patient too
+The earlier recommendation to split funding according to that ratio, the claim
+that the remaining 45% cannot benefit from relabelling, and the estimated list of
+50–60 patients are also withdrawn. The script did not export an adjudication list.
+Repeated test-fold counts cannot be converted into a unique patient count.
 
-Controlled against agreement between recordings of **two different patients of
-the same true class**, resampled per split — without that, the model's class
-prior alone would manufacture high self-agreement.
+## Historical output — incompatible with the corrected statistic
 
-## Result — 20 splits
+| repeat kind | all-recordings A_correct | all-recordings A_wrong | old pairwise control |
+|---|---|---|---|
+| same-arm (2015 + NewData) | 0.882 | 0.733 | 0.554 |
+| PADS left/right | 0.773 | 0.643 | 0.501 |
 
-| repeat kind | A_correct | A_wrong | control | conf_cor | conf_wrong | n_cor | n_wrong |
-|---|---|---|---|---|---|---|---|
-| **same-arm** (2015 + NewData) | 0.882 | **0.733** | 0.554 | 0.595 | 0.542 | 21.9 | 11.2 |
-| PADS L/R | 0.773 | 0.643 | 0.501 | 0.599 | 0.538 | 23.8 | 16.2 |
+These are archived observations, not corrected results. The original statistic
+required **all** recordings to agree, but the control compared **two** recordings.
+The control also failed to match cohort/class composition and correctness subgroup.
+Consequently, the original observed-minus-control contrasts are not comparable.
 
-|  | A_wrong − control | A_correct − A_wrong |
-|---|---|---|
-| same-arm | **+0.179** | **+0.149** |
-| PADS L/R | +0.141 | +0.130 |
+## Corrected analysis — rerun pending
 
-## The verdict: both accounts, in almost equal measure
+Run `python -m experiments.self_consistency_gate`.
 
-On patients the model gets **wrong**, it still gives both recordings the same
-answer **73 %** of the time, against **55 %** for two random patients of the same
-class. So there is stable, patient-specific structure even where the model is
-wrong — the label-noise signature. But A_wrong sits **0.149 below** A_correct,
-so misclassified patients are also genuinely more ambiguous than correctly
-classified ones — the signal-insufficiency signature.
+- Compute the fraction of unordered recording pairs agreeing within each patient.
+- Give every eligible patient equal weight, regardless of recording count.
+- Pair different patients within exact cohort, recorded-label class and
+  patient-level correct/incorrect subgroup; average recording-pair agreement
+  within each patient pair, then weight stratum means by eligible patient count.
+- Report all-patient agreement and **matched** observed/control agreement
+  separately. Exclude singleton strata from both matched columns and report
+  eligible and matched patient counts. Interpret each contrast only on its
+  matched subset; sparse subgroups can have no estimable control.
+- Keep same-arm and PADS left/right results separate. PADS includes bilateral
+  differences, so it is not a same-arm repeatability estimate.
 
-Scaling A_wrong between the guessing floor (the control) and the working ceiling
-(A_correct):
+The new checkpoint `self_consistency_pairwise_v2` prevents old statistics being
+silently reused. Confidence remains unadjusted maximum model probability and
+has no matched control or calibration guarantee. The analysis still broadcasts
+patient-level asymmetry descriptors to recording rows, so recordings are not
+independent model inputs. Correctness-stratified comparisons are descriptive
+and conditional on the fitted model, not causal evidence about diagnoses.
 
-    same-arm   (0.733 - 0.554) / (0.882 - 0.554) = 55 %
-    PADS L/R   (0.643 - 0.501) / (0.773 - 0.501) = 52 %
-
-**~54 % of the way from "guessing" to "fully self-consistent", and the two very
-different repeat types agree to within 3 points.** That concordance is the main
-reason to trust the number: a same-arm retest and a two-limb comparison have no
-reason to land together unless both are reading the same underlying property.
-
-## The limitation that bounds the claim
-
-**Self-consistency is not proof of mislabelling.** A patient can be consistently
-misread because they are genuinely *atypical* — a PD patient with an unusually
-tonal, ET-like tremor — in which case the model is consistently wrong and the
-label is right. So:
-
-> consistently wrong = {mislabelled} ∪ {genuinely atypical}
-
-**~55 % is therefore an upper bound on the label-noise share of errors, not an
-estimate of it.** Nothing in this data separates the two, and it should not be
-quoted as "half our labels are wrong".
-
-A second limitation, from a design gap: the confidence columns have **no matched
-control**, unlike the agreement columns. conf_wrong 0.542 vs conf_cor 0.595 is a
-small separation with no baseline to read it against, so those two columns
-should carry little weight.
-
-## Predictions, scored
-
-1. *"Neither account wins cleanly — A_wrong clearly above the control but
-   clearly below A_correct."* — **held, and closely.** +0.179 above, +0.149
-   below; the two gaps are nearly equal.
-2. *"PADS L/R self-agreement < same-arm self-agreement."* — **held.** 0.773 vs
-   0.882 correct, 0.643 vs 0.733 wrong. Consistent with the PADS pair spanning
-   two limbs and tremor being genuinely asymmetric.
-3. *"The label-noise half will look stronger on confidence than on agreement."*
-   — **failed.** Agreement carried the entire result (+0.179 against a control);
-   confidence separated by only ~0.05 and has no control at all. The prediction
-   also revealed the design gap in §"limitation" — I measured confidence without
-   a baseline, so it could not have been decisive either way.
-
-## A consistency check, offered as arithmetic not measurement
-
-The model errs on ~35 % of patients. If ~55 % of those errors are the
-consistently-wrong kind, the implied upper bound on mislabelling is
-0.35 × 0.55 ≈ **19 %**, which lands inside the clinical PD-vs-ET misdiagnosis
-band of 15–35 %. That is a rough cross-check arriving independently at the
-literature's number, not a measurement — the upper-bound caveat above applies to
-every term in it.
-
-## What this changes about the plan
-
-`data_plan.md` §0 asked this gate to choose between funding adjudication and
-funding collection. **It does not choose — it says do both — but it converts
-adjudication from a blanket exercise into a targeted one, which is the cheaper
-half of the answer.**
-
-* **Re-adjudicate the consistently-wrong set, not all 404.** The measurement
-  identifies specific patients: those whose recordings *agree with each other*
-  and *disagree with the label*. That is ~11 patients per test fold, so of order
-  50–60 patients across the cohort — a tractable review list rather than a full
-  re-read.
-* **Re-adjudication also resolves the bound.** Every patient on that list
-  resolves to either "label was wrong" or "label was right, patient is
-  atypical". Doing the review therefore *measures* the label-noise share that
-  this experiment can only bound — and atypical-but-correctly-labelled patients
-  are themselves worth having identified, because `prune_training.md` showed
-  the hardest patients are boundary-defining and must not be dropped.
-* **Collection is still needed**, because the other ~45 % is genuine ambiguity
-  that no amount of re-labelling touches. §1's in-house ET target stands.
-* **Order it adjudication-first**, reversing the earlier draft's implicit
-  ordering. The review is cheap, it is targeted, and its outcome changes the
-  expected return on collection: if the list resolves mostly to wrong labels,
-  collection with a better label protocol becomes much more valuable; if it
-  resolves mostly to atypia, the ceiling is more physical than clinical and
-  collection buys less than §1 implies.
+No corrected numerical result has been produced as part of this code correction.
+An independently adjudicated sample, including unflagged patients, would be needed
+to estimate label-error prevalence. Model disagreements may guide a review but
+must not automatically change labels or remove difficult patients.

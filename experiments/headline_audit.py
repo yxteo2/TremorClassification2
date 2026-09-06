@@ -37,6 +37,10 @@ Reported alongside: the split-level win rate, which says how often the claim is
 true on an individual split rather than on average — a mean difference that comes
 from a minority of splits is a different object from one that holds broadly.
 
+The numbers above are historical motivation, predating the current fixes.
+The current run also reports conditional patient-bootstrap intervals and exports
+per-patient predictions; neither interval corrects historical model selection.
+
 Run: ``python -m experiments.headline_audit``
 """
 
@@ -46,6 +50,7 @@ import numpy as np
 import torch
 
 from experiments.final_model import SPLITS, build, evaluate
+from experiments.patient_level_ci import patient_bootstrap, save_predictions
 
 NM = ("precN", "precPD", "precET", "macroP", "macroF1")
 N_SPLITS = 40
@@ -63,6 +68,10 @@ def paired(a, b, n=8000):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", default="headline_current.json")
+    args = parser.parse_args()
     torch.set_num_threads(1)
     d = build()
     y, key, SPEC = d["y"], d["key"], d["SPEC"]
@@ -77,31 +86,40 @@ def main():
 
     res = {}
     res["base"] = evaluate("welch + desc + asym (baseline)", SPEC["welch"],
-                           D, None, y, key, splits=N_SPLITS)
+                           D, None, y, key, splits=N_SPLITS, return_predictions=True)
     res["mt"] = evaluate("multitaper + desc + asym", SPEC["multitaper"],
-                         D, None, y, key, splits=N_SPLITS)
+                         D, None, y, key, splits=N_SPLITS, return_predictions=True)
     res["mt_t"] = evaluate("multitaper + trajectory (reported)",
-                           SPEC["multitaper"], D, TR, y, key, splits=N_SPLITS)
+                           SPEC["multitaper"], D, TR, y, key, splits=N_SPLITS, return_predictions=True)
+
+    save_predictions(args.output, d, res)
 
     COMPARISONS = (("mt_t", "base", "THE HEADLINE: reported model vs welch baseline"),
-                   ("mt_t", "mt", "trajectory contribution (reported +0.056 precET)"),
+                   ("mt_t", "mt", "trajectory contribution (current pipeline)"),
                    ("mt", "base", "transform contribution alone"))
 
     for a, b, label in COMPARISONS:
         print(f"\n{label}")
-        for (dd, lo, hi), c in zip(paired(res[a], res[b]), NM):
+        a_rows, a_ps = res[a]
+        b_rows, b_ps = res[b]
+        pci = np.percentile(patient_bootstrap(y, b_ps, a_ps, len(y)),
+                            [2.5, 97.5], axis=0).T
+        for i, ((dd, lo, hi), c) in enumerate(zip(paired(a_rows, b_rows), NM)):
             star = "*" if lo > 0 or hi < 0 else " "
-            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
-        wins = [(c, float((res[a][:, i] > res[b][:, i]).mean()))
+            print(f"    {c:>8} {dd:+.3f} split [{lo:+.3f}, {hi:+.3f}] {star}"
+                  f" patient [{pci[i, 0]:+.3f}, {pci[i, 1]:+.3f}]")
+        wins = [(c, float((a_rows[:, i] > b_rows[:, i]).mean()))
                 for i, c in enumerate(NM)]
         print("    split-level win rate: "
               + "  ".join(f"{c} {w:.2f}" for c, w in wins))
 
-    print(f"\nreported at 20 splits, for comparison:")
-    print(f"    macroP +0.041 [+0.014, +0.067]   "
-          f"precN 0.639 precPD 0.655 precET 0.685 macroP 0.660")
+    print("\nIntervals condition on fitted models; split resampling describes")
+    print("split sensitivity, not independent patient evidence. Neither interval")
+    print("accounts for training-sample variation or historical model selection.")
+    print(f"Predictions and provenance saved to {args.output}")
     print("\nMARKER_DONE", flush=True)
 
 
 if __name__ == "__main__":
     main()
+

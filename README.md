@@ -57,7 +57,10 @@ prevalence; the axis gain is not significant at 21 ET patients.
 
 Paired **+0.044 [+0.020, +0.068] macro precision** and **+0.104 [+0.041, +0.169]
 ET precision** over the welch baseline, at **40 splits**, winning on 72 % of them
-(`reports/headline_audit.md`).
+(`reports/descriptor_trajectory_fix.md`). These are **split-bootstrap intervals**
+describing split sensitivity on this fixed dataset. Current patient-bootstrap
+intervals are pending; neither procedure accounts for historical model selection
+(see `reports/patient_level_ci.md`).
 
 The decomposition changed once the descriptor and trajectory defects were fixed
 (`reports/descriptor_trajectory_fix.md`): the transform alone is now precET
@@ -234,9 +237,12 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 
 ## Known limits
 
-* **Macro precision >0.90 on three classes is unreachable at any coverage**
-  (`reports/precision_ceiling.md`). ET precision gets *worse* under abstention,
-  so no confidence threshold rescues it.
+* **The tested three-class models and abstention rules did not demonstrate
+  macro precision >0.90** (`reports/precision_ceiling.md`). This does not establish
+  a fundamental ceiling or exclude improvements from other methods.
+* **Recording agreement does not estimate or bound label noise.** The earlier
+  55% and 19% bounds are withdrawn; a matched pairwise analysis is implemented
+  but awaits rerunning (`reports/self_consistency_gate.md`).
 * **The ceiling has a shape, and it is two populations.** The six ensemble
   members agree on **59.5 %** of patients and are **68.8 %** correct there; on
   the contested **40.5 %** they fall to **0.443 balanced accuracy** with a top-2
@@ -279,3 +285,4 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
   result reported above, which should be read as underpowered, not established
   (`reports/permutation_null.md`). On PADS, five of six families clear the same
   test at p ≤ 0.010.
+

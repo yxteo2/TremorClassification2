@@ -1,4 +1,15 @@
-# The headline holds at 40 splits, and its interval tightens
+# Historical headline audit: split sensitivity before preprocessing fixes
+
+> **Historical report.** Tables below predate the corrected frequency axis,
+> descriptors and trajectory. Current point estimates are documented in
+> `descriptor_trajectory_fix.md` (ET precision 0.654, macro precision 0.652).
+> All intervals below resample splits and describe split sensitivity; they do
+> not establish population uncertainty or account for historical model selection.
+> The updated script exports patient predictions and computes conditional
+> patient-bootstrap intervals on 40 splits. **That updated run is pending.**
+> See `patient_level_ci.md` for the method and limitations. Later trajectory fixes
+> removed the earlier component significance, so the historical claims below
+> must not be used as current conclusions.
 
 ## Why it needed checking
 
@@ -69,7 +80,7 @@ discrepancy — precET has sd 0.183 across splits, so the 20-split standard erro
 **0.685 should not be quoted bare**. Macro precision is better behaved: 0.660 at
 20, 0.656 at 40, sd 0.065.
 
-Recommended for the paper:
+Historical recommendation, superseded (do not quote as current):
 
     macro precision  0.656   +0.043 [+0.024, +0.062] over the welch baseline
     ET precision     0.663   +0.097 [+0.047, +0.146]
@@ -87,3 +98,4 @@ count against the same protocol that killed the others, and it came back stronge
 That asymmetry is itself worth stating in the paper: the effects that survived
 scrutiny are the input representation and the trajectory stream, and both are
 signal-processing choices rather than architectural ones.
+

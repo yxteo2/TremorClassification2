@@ -1,77 +1,17 @@
-"""The gate: is the ceiling label noise, or is it signal insufficiency?
+"""Descriptive recording agreement under the reported patient-level model.
 
-Two accounts fit every measurement in this project and imply **opposite**
-spending (`data_plan.md` §0):
+Within-patient and between-patient statistics both use pairwise agreement.
+Controls match true-label class, cohort and patient-prediction correctness;
+patients have equal weights regardless of their recording count. Unmatched
+strata are excluded from both matched columns and their counts are reported.
+Same-arm repeats and PADS left/right comparisons remain separate.
 
-  label noise            the signal is there, the labels are wrong 15-35 % of
-                         the time (clinical PD-vs-ET misdiagnosis, and ET has
-                         no gold standard even post-mortem). Re-adjudicate the
-                         404 patients we hold; more patients with equally noisy
-                         labels buy proportionally less.
-  signal insufficiency   the 3-15 Hz wrist spectrum simply does not separate PD
-                         from ET in ~40 % of patients. Re-labelling changes
-                         nothing; collect more and richer data.
+Agreement cannot distinguish incorrect labels from systematic model errors,
+atypical presentations or insufficient features. It does not identify a
+label-noise fraction, upper bound, or allocation of research spending.
 
-## The discriminator
-
-Every patient here has **more than one recording** — 2015 and NewData repeat the
-same arm, PADS gives both wrists — and the pipeline averages them away before
-the model sees anything. This asks what the model says about each recording
-*separately*, using the reported model trained exactly as reported.
-
-    label noise           -> the model is CONSISTENT with itself on a patient
-                             and disagrees with the LABEL. Two recordings of a
-                             mislabelled patient both say the same wrong thing.
-    signal insufficiency  -> the model is INCONSISTENT on the same patient too.
-                             It is guessing, and two recordings of one patient
-                             disagree as readily as two random patients do.
-
-The statistic is **self-agreement**: do a patient's recordings receive the same
-predicted class? Reported separately for patients the model gets right and
-patients it gets wrong, because the correct group is the internal reference —
-it calibrates how much agreement this model produces when it *is* working.
-
-## The control that makes it interpretable
-
-Two recordings could agree merely because the model has a class prior and
-predicts PD most of the time. So every agreement rate is reported against
-**agreement between recordings of two DIFFERENT patients of the same true
-class**, resampled per split. If within-patient agreement matches that, the
-model is tracking class-level statistics and nothing about the individual
-patient, and the "consistent" half of the label-noise signature is absent.
-
-## Two kinds of repeat, kept apart
-
-2015 and NewData repeat the **same arm** — that is test-retest reliability.
-PADS's pair is **LeftWrist and RightWrist**, a different limb with a mirrored
-mounting, so its disagreement includes genuine bilateral asymmetry and is not a
-reliability measure. The orientation diagnostic was misread this way once
-already; here the two are reported in separate rows and never pooled.
-
-## Predictions, recorded before the run
-
-1. **Neither account will win cleanly.** A_wrong sits clearly above the
-   same-class control — there is stable patient-specific signal even where the
-   model is wrong — but clearly below A_correct. Stated as the primary
-   prediction because a clean win for either account is the less likely
-   outcome, and saying so in advance stops a mixed result being narrated
-   afterwards as whichever answer is convenient.
-2. **PADS L/R self-agreement < 2015/NewData same-arm self-agreement**, because
-   the PADS pair spans two limbs and tremor is genuinely asymmetric.
-3. If forced to one side: the **label-noise** half will look stronger on the
-   *confidence* statistic than on the agreement statistic — misclassified
-   patients being confidently wrong is easier to produce than two recordings
-   independently landing on the same wrong class.
-
-## How to read the outcome
-
-    A_wrong ~ A_correct, both >> control   -> LABEL NOISE. Fund adjudication.
-    A_wrong ~ control                      -> SIGNAL INSUFFICIENCY. Fund
-                                              collection and richer acquisition.
-    in between                             -> both; the split between them is
-                                              the ratio to spend on.
-
-20 splits, checkpointed. Run: ``python -m experiments.self_consistency_gate``
+Run: ``python -m experiments.self_consistency_gate``. Old all-recording
+agreement checkpoints are incompatible and use a different checkpoint name.
 """
 
 from __future__ import annotations
@@ -87,6 +27,7 @@ import experiments.final_model as FM
 from common.cohorts import desc_table, logbin
 from common.protocol import NBIN, TEST_FRAC, VAL_FRAC, train, tune_offsets
 from experiments._resume import resume_load, resume_save
+from experiments._agreement import agreement_summary
 from experiments.final_model import TL, method_table
 from models.architectures import TRUNKS, ResidualTCN, Spectrum1DCNN, TwoStreamNet
 from signal_processing.stability import trajectory_table
@@ -94,6 +35,7 @@ from signal_processing.stability import trajectory_table
 SPLITS = 20
 SEEDS = (0, 1, 2)
 SEP = "##"
+CHECKPOINT = "self_consistency_pairwise_v2"
 
 
 def explode(recs):
@@ -186,8 +128,13 @@ def main():
         np.array(sorted({r.subject for r in rB})),
         np.array(sorted({r.subject for r in rC}))])
     assert len(pat_ids) == len(y), f"{len(pat_ids)} ids vs {len(y)} patients"
-    idx_of = {p: i for i, p in enumerate(pat_ids)}
-    rec2pat = np.array([idx_of[p] for p in parent])
+    pat_coh = np.array([k.rsplit("_", 1)[0] for k in key])
+    identities = list(zip(pat_coh, pat_ids))
+    assert len(set(identities)) == len(y), "duplicate cohort/patient identity"
+    assert np.array_equal(d["patient_ids"], np.array(
+        [f"{c}::{p}" for c, p in identities])), "patient order mismatch"
+    idx_of = {identity: i for i, identity in enumerate(identities)}
+    rec2pat = np.array([idx_of[(c, p)] for c, p in zip(Rcoh, parent)])
     # ASYM/HAVE are patient properties; broadcast them onto the patient's rows
     Rdesc = np.hstack([Rdesc, A[rec2pat]])
     assert Rdesc.shape[1] == D.shape[1], "recording desc width != patient"
@@ -197,7 +144,7 @@ def main():
           f"{int((n_rec >= 2).sum())} patients have >=2\n", flush=True)
 
     ARMS = ("stats",)
-    res, done = resume_load("self_consistency_gate", ARMS)
+    res, done = resume_load(CHECKPOINT, ARMS)
     for sp in range(SPLITS):
         if sp in done:
             continue
@@ -223,65 +170,40 @@ def main():
 
         row = {}
         for tag, cohs in (("same-arm", ("2015", "NewData")), ("PADS", ("PADS",))):
-            agree_c, agree_w, conf_c, conf_w = [], [], [], []
-            pool = []                      # (true class, predicted class) pairs
+            patients = []
             for p, ks in by_pat.items():
                 ks = [k for k in ks if Rcoh[k] in cohs]
                 if len(ks) < 2:
                     continue
-                same = len({int(rec_pred[k]) for k in ks}) == 1
-                correct = int(pat_pred[pos_of[p]]) == int(y[p])
-                (agree_c if correct else agree_w).append(float(same))
-                (conf_c if correct else conf_w).append(
-                    float(np.mean([rec_conf[k] for k in ks])))
-                for k in ks:
-                    pool.append((int(y[p]), int(rec_pred[k]), p))
-            # control: two recordings from DIFFERENT patients of the SAME class
-            ctrl = []
-            g = np.random.default_rng(5000 + sp)
-            by_cls = defaultdict(list)
-            for cls, prd, p in pool:
-                by_cls[cls].append((prd, p))
-            for cls, v in by_cls.items():
-                if len(v) < 4:
-                    continue
-                for _ in range(400):
-                    (a, pa), (b, pb) = (v[g.integers(len(v))],
-                                        v[g.integers(len(v))])
-                    if pa != pb:
-                        ctrl.append(float(a == b))
-            row[tag] = [np.mean(agree_c) if agree_c else np.nan,
-                        np.mean(agree_w) if agree_w else np.nan,
-                        np.mean(ctrl) if ctrl else np.nan,
-                        np.mean(conf_c) if conf_c else np.nan,
-                        np.mean(conf_w) if conf_w else np.nan,
-                        len(agree_c), len(agree_w)]
-        # flat row of 14: same-arm block then PADS block, 7 each.
-        # resume_save stores rows of floats, not nested lists.
-        res["stats"].append(list(row["same-arm"]) + list(row["PADS"]))
-        resume_save("self_consistency_gate", res, sp)
+                patients.append(dict(
+                    predictions=rec_pred[ks], cohort=str(Rcoh[ks[0]]),
+                    label=int(y[p]),
+                    correct=int(pat_pred[pos_of[p]]) == int(y[p]),
+                    confidence=float(rec_conf[ks].mean())))
+            summary = agreement_summary(patients)
+            fields = ("agreement", "matched_agreement", "control",
+                      "confidence", "n", "n_matched")
+            row[tag] = [summary[c][f] for c in (True, False) for f in fields]
+        res["stats"].append(row["same-arm"] + row["PADS"])
+        resume_save(CHECKPOINT, res, sp)
         print(f"  split {sp + 1}/{SPLITS} done", flush=True)
 
-    S = np.array(res["stats"], dtype=float).reshape(-1, 2, 7)
-    print(f"\n{'repeat kind':>12}{'A_correct':>11}{'A_wrong':>10}"
-          f"{'control':>10}{'conf_cor':>10}{'conf_wrong':>12}"
-          f"{'n_cor':>8}{'n_wrong':>9}")
+    S = np.array(res["stats"], dtype=float).reshape(-1, 2, 2, 6)
+    print("\nPairwise agreement, equal patient weights; means across splits")
+    print("repeat / subgroup: all_A matched_A control confidence n n_matched")
     for j, tag in enumerate(("same-arm", "PADS L/R")):
-        m = np.nanmean(S[:, j, :], 0)
-        print(f"{tag:>12}{m[0]:>11.3f}{m[1]:>10.3f}{m[2]:>10.3f}"
-              f"{m[3]:>10.3f}{m[4]:>12.3f}{m[5]:>8.1f}{m[6]:>9.1f}")
-
-    print("\nverdict inputs (same-arm rows are the reliability ones):")
-    for j, tag in enumerate(("same-arm", "PADS L/R")):
-        aw = np.nanmean(S[:, j, 1]); ac = np.nanmean(S[:, j, 0])
-        ct = np.nanmean(S[:, j, 2])
-        d_ctrl, d_cor = aw - ct, ac - aw
-        print(f"  {tag}: A_wrong - control = {d_ctrl:+.3f}   "
-              f"A_correct - A_wrong = {d_cor:+.3f}")
-    print("\n  A_wrong >> control and ~ A_correct  -> LABEL NOISE")
-    print("  A_wrong ~ control                   -> SIGNAL INSUFFICIENCY")
+        for k, label in enumerate(("correct", "wrong")):
+            values = S[:, j, k, :]
+            m = np.array([np.mean(v[np.isfinite(v)]) if np.isfinite(v).any()
+                          else np.nan for v in values.T])
+            print(f"{tag} / {label}: " + " ".join(f"{v:.3f}" for v in m))
+            print(f"  matched_A - matched control = {m[1] - m[2]:+.3f}")
+    print("\nDescriptive agreement only: no label-noise estimate or bound.")
+    print("Missing matched strata are excluded from BOTH matched columns.")
+    print("Confidence is unadjusted max probability, not calibrated correctness.")
     print("\nMARKER_DONE", flush=True)
 
 
 if __name__ == "__main__":
     main()
+
