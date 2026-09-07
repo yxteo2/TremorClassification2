@@ -1,0 +1,311 @@
+{
+  "reference": {
+    "accuracy": 0.6788511749347258,
+    "balanced_accuracy": 0.5584798769994147,
+    "macro_precision": 0.5265112688087259,
+    "macro_f1": 0.5382709966301021,
+    "precision": [
+      0.4605263157894737,
+      0.7940074906367042,
+      0.325
+    ],
+    "recall": [
+      0.4430379746835443,
+      0.7681159420289855,
+      0.4642857142857143
+    ],
+    "f1": [
+      0.45161290322580644,
+      0.7808471454880295,
+      0.38235294117647056
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        35,
+        43,
+        1
+      ],
+      [
+        38,
+        212,
+        26
+      ],
+      [
+        3,
+        12,
+        13
+      ]
+    ],
+    "et_average_precision": 0.36498432964747457,
+    "et_auc": 0.7864185110663985
+  },
+  "dictionary": {
+    "accuracy": 0.5169712793733682,
+    "balanced_accuracy": 0.5909837426072979,
+    "macro_precision": 0.5043019416868245,
+    "macro_f1": 0.4895709490801949,
+    "precision": [
+      0.31088082901554404,
+      0.8299319727891157,
+      0.37209302325581395
+    ],
+    "recall": [
+      0.759493670886076,
+      0.4420289855072464,
+      0.5714285714285714
+    ],
+    "f1": [
+      0.4411764705882353,
+      0.5768321513002365,
+      0.4507042253521127
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        60,
+        18,
+        1
+      ],
+      [
+        128,
+        122,
+        26
+      ],
+      [
+        5,
+        7,
+        16
+      ]
+    ],
+    "et_average_precision": 0.379423275538791,
+    "et_auc": 0.8479879275653923
+  },
+  "fusion_half": {
+    "accuracy": 0.6919060052219321,
+    "balanced_accuracy": 0.5842505962208769,
+    "macro_precision": 0.5479202007026225,
+    "macro_f1": 0.562117929969237,
+    "precision": [
+      0.4810126582278481,
+      0.8037735849056604,
+      0.358974358974359
+    ],
+    "recall": [
+      0.4810126582278481,
+      0.7717391304347826,
+      0.5
+    ],
+    "f1": [
+      0.4810126582278481,
+      0.7874306839186691,
+      0.417910447761194
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        38,
+        41,
+        0
+      ],
+      [
+        38,
+        213,
+        25
+      ],
+      [
+        3,
+        11,
+        14
+      ]
+    ],
+    "et_average_precision": 0.37607398723760993,
+    "et_auc": 0.7964788732394366
+  },
+  "paired_95_intervals": {
+    "dictionary": {
+      "macro_f1": [
+        -0.10431256785893667,
+        0.01153956414000547
+      ],
+      "et_precision": [
+        -0.04190915484564595,
+        0.14583333333333331
+      ],
+      "et_recall": [
+        0.0,
+        0.24137931034482762
+      ]
+    },
+    "fusion_half": {
+      "macro_f1": [
+        -0.009603216182362484,
+        0.06064949155977654
+      ],
+      "et_precision": [
+        -0.013587611593380853,
+        0.09722222222222221
+      ],
+      "et_recall": [
+        0.0,
+        0.1251008064516124
+      ]
+    }
+  },
+  "protocol": {
+    "method": "WEASEL v2 transform + patient-pooled logistic (adaptation)",
+    "max_feature_count": 4096,
+    "C": 0.1,
+    "dictionary_seed": 0,
+    "outer_seed": 0,
+    "neural_seeds": [
+      0,
+      1,
+      2
+    ],
+    "epochs": 200,
+    "primary_comparison": "dictionary minus reference macro_f1",
+    "secondary_comparison": "fixed half fusion minus reference",
+    "counts": [
+      79,
+      276,
+      28
+    ],
+    "records_per_patient": [
+      2
+    ],
+    "versions": {
+      "numpy": "2.3.5",
+      "scipy": "1.17.0",
+      "scikit-learn": "1.8.0",
+      "torch": "2.14.0+cpu",
+      "aeon": "1.5.0",
+      "numba": "0.67.0"
+    },
+    "feature_hashes": {
+      "spec": "0701b947c187580426714cf5ec295522483691da7d6869e1c0a841d27d69c92a",
+      "desc": "2a6ff3efe5b572e73b85ec3b5f9c0ed18a13986eb461ff16a0c962f4c0821a7e",
+      "traj": "3432f37d58138589583d77d079a1e6583811ddb53f5ed2d310d93cc4d28a1be5"
+    },
+    "note": "Exploratory PADS-only; fixed OOF bootstrap excludes training/selection/site uncertainty"
+  },
+  "selections": [
+    {
+      "fold": 0,
+      "features": 7868,
+      "offsets": {
+        "reference": [
+          0.0,
+          0.25,
+          0.5
+        ],
+        "dictionary": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fusion_half": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fold": 1,
+      "features": 7872,
+      "offsets": {
+        "reference": [
+          0.0,
+          0.25,
+          -0.25
+        ],
+        "dictionary": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fusion_half": [
+          0.0,
+          0.25,
+          0.25
+        ]
+      }
+    },
+    {
+      "fold": 2,
+      "features": 7871,
+      "offsets": {
+        "reference": [
+          0.0,
+          1.0,
+          -1.0
+        ],
+        "dictionary": [
+          0.0,
+          0.0,
+          -0.25
+        ],
+        "fusion_half": [
+          0.0,
+          0.5,
+          -0.75
+        ]
+      }
+    },
+    {
+      "fold": 3,
+      "features": 7871,
+      "offsets": {
+        "reference": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "dictionary": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fusion_half": [
+          0.0,
+          0.25,
+          0.0
+        ]
+      }
+    },
+    {
+      "fold": 4,
+      "features": 7869,
+      "offsets": {
+        "reference": [
+          0.0,
+          1.0,
+          0.75
+        ],
+        "dictionary": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fusion_half": [
+          0.0,
+          0.75,
+          0.5
+        ]
+      }
+    }
+  ]
+}
