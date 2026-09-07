@@ -1,0 +1,2 @@
+# Install alongside core and requirements-scattering.txt (shared benchmark builder).
+aeon==1.5.0
