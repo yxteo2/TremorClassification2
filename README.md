@@ -182,6 +182,26 @@ reports/             80 findings, including every retraction and a register
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
 
+## Where the project stands
+
+Seventy-three experiments have not moved the reported model past precET 0.654 /
+macroP 0.652, and the constraint has been measured rather than guessed:
+
+* **`reports/data_plan.md`** — what to do about the *data*, with the
+  sample-size analysis behind it. At 49 ET, 40 splits resolves precET to 0.055
+  while every candidate improvement since the headline lands at +0.02 to +0.04:
+  **the instrument is coarser than the effects being chased.** The target is
+  stated in **in-house ET (21 today)**, not merged ET, because merged precET is
+  substantially PADS predicting PADS — in-house it is 0.193
+  (`reports/own_data_reality_check.md`).
+* **`reports/self_consistency_gate.md`** — which account of the ceiling holds.
+  On patients the model gets wrong it still gives both of their recordings the
+  same answer 73 % of the time against a 55 % same-class control, but 0.149
+  below its rate on correct patients. **Both label noise and signal
+  insufficiency, in near-equal measure**, with ~55 % an *upper bound* on the
+  label-noise share since consistently-wrong = mislabelled ∪ genuinely atypical.
+  Its payoff is a targeted re-adjudication list of ~50–60 patients.
+
 ## Conventions that matter
 
 * **Patient-level splits only.** Never split one patient's recordings.
@@ -196,7 +216,7 @@ The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt
 * **A rank correlation is the wrong instrument for a non-monotone effect.**
   Estimator smoothing has an interior optimum; Spearman read −0.600 and a canned
   line called it "smoother is better" when the table showed a peak at the current
-  setting (). Read the table.
+  setting (`reports/estimator_smoothing.md`). Read the table.
 * **Report per-class precision with the test set's prevalence.** Precision is
   not comparable across differently-composed test sets — a cap sweep once
   produced a clean monotone trend that was entirely a prevalence artifact.

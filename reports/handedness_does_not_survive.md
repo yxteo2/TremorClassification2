@@ -1,7 +1,8 @@
 # The upper-arm handedness finding does NOT survive correction
 
 Recorded because I built this up across several turns before running the checks
-that undo it. `reports/quaternion_representations.md` presents
+that undo it. An in-session claim — attributed in earlier revisions to a
+`reports/quaternion_representations.md` that **was never written** — presented
 `upper_gchir_mean` as "the strongest single PD-vs-ET feature found"
 (effect −0.588, p = 0.0004). That framing is wrong, for three independent
 reasons found afterwards.

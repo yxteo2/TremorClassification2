@@ -1,4 +1,4 @@
-"""Drop the hardest N and PD patients from training, and see if ET precision rises.
+"""Drop the hardest -- and the easiest -- N and PD patients from training.
 
 The idea: some majority-class patients are mislabelled, atypical, or simply
 uninformative, and they drag the decision boundary across the minority class.
@@ -24,6 +24,22 @@ moves ET precision hard (uncapped PADS drives precET from 0.612 to 0.221).
 So every hard-drop arm is matched by a **random-drop** arm removing the same
 number from the same classes. If random does as well, the effect is undersampling
 and has nothing to do with which patients were chosen.
+
+## Both directions, in one run
+
+An earlier revision of this file replaced the hard-drop arms with easy-drop ones
+and was never run, so **the script stopped reproducing its own report** and the
+promised `prune_training_easy.md` was never written. Both directions now run
+together against the same baseline and the same random controls, which is
+better than either alone: hard-drop and easy-drop are the two halves of one
+question and share a control.
+
+**The easy-drop prediction, on record since `prune_training.md` was written:**
+if hard examples are boundary-defining, **dropping easy ones should be
+harmless** -- at worst a mild undersampling cost that the matched random-drop
+arm also pays. A significant easy-drop *loss* beyond random would mean the
+boundary needs the interior points too, and would undercut the "hard examples
+are load-bearing" reading rather than support it.
 
 ## Avoiding the obvious leak
 
@@ -55,6 +71,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from common.protocol import TEST_FRAC, VAL_FRAC, train, tune_offsets
+from experiments._resume import resume_load, resume_save
 from experiments.alltasks_final import paired
 from experiments.final_model import NBIN, TL, build
 from models.architectures import (ResidualTCN, Spectrum1DCNN, TRUNKS,
@@ -146,14 +163,18 @@ def main():
     print("difficulty scored by inner CV on the TRAINING fold alone\n", flush=True)
 
     ARMS = (("k=0 (baseline)", 0, "hard"),
+            ("hard-drop 5", 5, "hard"),
+            ("hard-drop 15", 15, "hard"),
             ("easy-drop 5", 5, "easy"),
             ("easy-drop 15", 15, "easy"),
             ("random-drop 5", 5, "random"),
             ("random-drop 15", 15, "random"))
-    res = {a: [] for a, _, _ in ARMS}
+    res, done = resume_load("prune_training", [a for a, _, _ in ARMS])
     dropped_cohort = []
 
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(packed, key))
         t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
@@ -166,6 +187,7 @@ def main():
             if lab == "easy-drop 15":
                 gone = np.setdiff1d(tr, tr2)
                 dropped_cohort.append(gone)
+        resume_save("prune_training", res, sp)
         print(f"  split {sp+1}/{SPLITS}  train {len(tr)} -> "
               f"{len(prune(packed, y, tr, 15, 'easy', seed=sp))} at k=15",
               flush=True)
@@ -179,12 +201,34 @@ def main():
               + f"{res[lab][:, 3].std():>12.3f}")
 
     base = res["k=0 (baseline)"]
-    print("\npaired vs k=0, same splits:")
+    print("\npaired vs k=0 (ADOPTION), same splits, with split-level win rate:")
     for lab, _, _ in ARMS[1:]:
         print(f"  {lab}:")
-        for (dd, lo, hi), c in zip(paired(res[lab], base), NM):
+        for i, ((dd, lo, hi), c) in enumerate(zip(paired(res[lab], base), NM)):
             star = "*" if lo > 0 or hi < 0 else " "
-            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+            wr = float((res[lab][:, i] > base[:, i]).mean())
+            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}"
+                  f"   win {wr:.2f}")
+
+    # ATTRIBUTION: each selective drop against the random drop of the SAME size,
+    # which isolates *which* patients left from the fact that k of them did.
+    print("\npaired vs the matched RANDOM drop (ATTRIBUTION):")
+    for lab, k, mode in ARMS[1:]:
+        if mode == "random":
+            continue
+        ctrl = res[f"random-drop {k}"]
+        print(f"  {lab} vs random-drop {k}:")
+        for i, ((dd, lo, hi), c) in enumerate(zip(paired(res[lab], ctrl), NM)):
+            star = "*" if lo > 0 or hi < 0 else " "
+            wr = float((res[lab][:, i] > ctrl[:, i]).mean())
+            print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}"
+                  f"   win {wr:.2f}")
+
+    print("\nTHE EASY-DROP PREDICTION -- harmless means null vs its random control:")
+    for k in (5, 15):
+        e, r = res[f"easy-drop {k}"], res[f"random-drop {k}"]
+        print(f"  k={k:>2}  easy macroP {e[:,3].mean():.3f}  "
+              f"random {r[:,3].mean():.3f}  diff {e[:,3].mean()-r[:,3].mean():+.3f}")
 
     print("\neasy vs random at the same k — is it WHICH patients, or just fewer?")
     for k in (5, 15):

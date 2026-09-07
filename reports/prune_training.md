@@ -95,5 +95,8 @@ first, most boundary-adjacent patients removed.
   scoring does not find it**. Removing it would need the diagnosis field, not a
   model-derived score.
 * The mirror experiment — dropping the *easiest* majority patients — follows
-  directly and is tested in `prune_training_easy.md`. If hard examples are
-  boundary-defining, dropping easy ones should be harmless.
+  directly, and the prediction stands: **if hard examples are boundary-defining,
+  dropping easy ones should be harmless.** An earlier version of this line
+  promised it in `prune_training_easy.md`; **no such report was ever written**,
+  and the reference is removed rather than left dangling. The easy-drop arms are
+  implemented in `prune_training.py` itself and are reported below.

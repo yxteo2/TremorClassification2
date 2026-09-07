@@ -35,16 +35,19 @@ PADS diagnoses are clinical free text. `"et"` occurs inside **etiology**,
 
 **20 of 296 "PD" patients** were Atypical Parkinsonism / vascular Parkinson
 syndrome / Dystonia-Parkinson-Syndrome — which PADS treats as a **separate
-differential-diagnosis group**, and `reports/track3_external_data.md` had
-explicitly said to filter out. It was never filtered.
+differential-diagnosis group** that should have been filtered out. It was never
+filtered.
 
 A 32 % contamination rate in the minority class, with parkinsonian disorders
 mixed *into* ET, is the worst possible direction for this project: it blurs
 exactly the PD-vs-ET boundary the whole study is about.
 
-**The count was checkable all along.** `track3_external_data.md` records the
-published PADS cohort as **28 ET** (Varghese 2024). The extraction produced 41.
-That discrepancy was in the repo and went unquestioned.
+**The count was checkable all along.** The published PADS cohort is **28 ET**
+(Varghese 2024); the extraction produced 41. That discrepancy was visible and
+went unquestioned. (Earlier revisions of this paragraph attributed the 28 to
+`reports/track3_external_data.md`. **That report does not exist and never did**
+— the figure comes from the publication, which is where it should have been
+cited from.)
 
 ## The fix
 

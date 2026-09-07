@@ -1,7 +1,9 @@
 # Quaternion representation work — consolidated verdict
 
 Everything from this line of work, tested to the same standard, in one place.
-Written after several intermediate claims in `quaternion_representations.md`
+Written after several intermediate claims made during that session (attributed
+in earlier revisions to a `quaternion_representations.md` that **was never
+written**; the claims were made in-session and never reached a report)
 turned out not to hold.
 
 ## The tests that matter
