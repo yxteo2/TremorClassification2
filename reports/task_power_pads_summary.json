@@ -1,0 +1,353 @@
+{
+  "reference": {
+    "accuracy": 0.6788511749347258,
+    "balanced_accuracy": 0.5584798769994147,
+    "macro_precision": 0.5265112688087259,
+    "macro_f1": 0.5382709966301021,
+    "precision": [
+      0.4605263157894737,
+      0.7940074906367042,
+      0.325
+    ],
+    "recall": [
+      0.4430379746835443,
+      0.7681159420289855,
+      0.4642857142857143
+    ],
+    "f1": [
+      0.45161290322580644,
+      0.7808471454880295,
+      0.38235294117647056
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        35,
+        43,
+        1
+      ],
+      [
+        38,
+        212,
+        26
+      ],
+      [
+        3,
+        12,
+        13
+      ]
+    ],
+    "et_average_precision": 0.36498432964747457,
+    "et_auc": 0.7864185110663985
+  },
+  "posture_logistic": {
+    "accuracy": 0.639686684073107,
+    "balanced_accuracy": 0.5554223340409362,
+    "macro_precision": 0.5062928752768324,
+    "macro_f1": 0.5237871310271739,
+    "precision": [
+      0.39215686274509803,
+      0.7933884297520661,
+      0.3333333333333333
+    ],
+    "recall": [
+      0.5063291139240507,
+      0.6956521739130435,
+      0.4642857142857143
+    ],
+    "f1": [
+      0.4419889502762431,
+      0.7413127413127413,
+      0.3880597014925373
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        40,
+        38,
+        1
+      ],
+      [
+        59,
+        192,
+        25
+      ],
+      [
+        3,
+        12,
+        13
+      ]
+    ],
+    "et_average_precision": 0.3499152504968437,
+    "et_auc": 0.7969818913480886
+  },
+  "tasks_logistic": {
+    "accuracy": 0.6762402088772846,
+    "balanced_accuracy": 0.5114723379720628,
+    "macro_precision": 0.5049318092796354,
+    "macro_f1": 0.5073783691032444,
+    "precision": [
+      0.4594594594594595,
+      0.782608695652174,
+      0.2727272727272727
+    ],
+    "recall": [
+      0.43037974683544306,
+      0.782608695652174,
+      0.32142857142857145
+    ],
+    "f1": [
+      0.4444444444444444,
+      0.782608695652174,
+      0.29508196721311475
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        34,
+        42,
+        3
+      ],
+      [
+        39,
+        216,
+        21
+      ],
+      [
+        1,
+        18,
+        9
+      ]
+    ],
+    "et_average_precision": 0.33007315368152373,
+    "et_auc": 0.7704225352112676
+  },
+  "tasks_fusion": {
+    "accuracy": 0.6866840731070496,
+    "balanced_accuracy": 0.5724877916677586,
+    "macro_precision": 0.552429340885113,
+    "macro_f1": 0.5611398946219334,
+    "precision": [
+      0.45652173913043476,
+      0.8007662835249042,
+      0.4
+    ],
+    "recall": [
+      0.5316455696202531,
+      0.7572463768115942,
+      0.42857142857142855
+    ],
+    "f1": [
+      0.49122807017543857,
+      0.7783985102420856,
+      0.41379310344827586
+    ],
+    "support": [
+      79,
+      276,
+      28
+    ],
+    "confusion": [
+      [
+        42,
+        37,
+        0
+      ],
+      [
+        49,
+        209,
+        18
+      ],
+      [
+        1,
+        15,
+        12
+      ]
+    ],
+    "et_average_precision": 0.35293630740201715,
+    "et_auc": 0.7788732394366197
+  },
+  "protocol": {
+    "counts": [
+      79,
+      276,
+      28
+    ],
+    "seed": 0,
+    "C": 0.1,
+    "fs": 100,
+    "bands": [
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        10,
+        15.0001
+      ]
+    ],
+    "primary": "tasks_logistic minus posture_logistic macro-F1",
+    "secondary": "tasks_logistic and tasks_fusion versus reference",
+    "note": "Exploratory previously studied PADS; fixed OOF bootstrap excludes retraining and selection uncertainty"
+  },
+  "offsets": [
+    {
+      "reference": [
+        0.0,
+        0.25,
+        0.5
+      ],
+      "posture_logistic": [
+        0.0,
+        0.5,
+        0.25
+      ],
+      "tasks_logistic": [
+        0.0,
+        0.75,
+        -1.0
+      ],
+      "tasks_fusion": [
+        0.0,
+        0.5,
+        -0.75
+      ]
+    },
+    {
+      "reference": [
+        0.0,
+        0.25,
+        -0.25
+      ],
+      "posture_logistic": [
+        0.0,
+        0.5,
+        0.25
+      ],
+      "tasks_logistic": [
+        0.0,
+        1.0,
+        -1.0
+      ],
+      "tasks_fusion": [
+        0.0,
+        0.25,
+        0.25
+      ]
+    },
+    {
+      "reference": [
+        0.0,
+        1.0,
+        -1.0
+      ],
+      "posture_logistic": [
+        0.0,
+        0.25,
+        -1.0
+      ],
+      "tasks_logistic": [
+        0.0,
+        0.5,
+        -1.0
+      ],
+      "tasks_fusion": [
+        0.0,
+        0.25,
+        -1.0
+      ]
+    },
+    {
+      "reference": [
+        0.0,
+        0.5,
+        0.0
+      ],
+      "posture_logistic": [
+        0.0,
+        0.25,
+        0.0
+      ],
+      "tasks_logistic": [
+        0.0,
+        0.75,
+        0.5
+      ],
+      "tasks_fusion": [
+        0.0,
+        0.25,
+        -0.25
+      ]
+    },
+    {
+      "reference": [
+        0.0,
+        1.0,
+        0.75
+      ],
+      "posture_logistic": [
+        0.0,
+        0.25,
+        -1.0
+      ],
+      "tasks_logistic": [
+        0.0,
+        0.25,
+        0.0
+      ],
+      "tasks_fusion": [
+        0.0,
+        0.5,
+        0.25
+      ]
+    }
+  ],
+  "paired_macro_f1_95": {
+    "tasks_logistic-minus-posture_logistic": [
+      -0.08120294764141829,
+      0.044561569848171875
+    ],
+    "tasks_logistic-minus-reference": [
+      -0.10451786102085966,
+      0.04075318417502662
+    ],
+    "tasks_fusion-minus-reference": [
+      -0.03303571099073629,
+      0.07752722360437667
+    ]
+  },
+  "verification": {
+    "reference_rows_exactly_match_previous_run": 383,
+    "split_manifests_match": true,
+    "tests_passed": 4
+  },
+  "source_manifest_sha256": {
+    "pads_stretchhold": "0dcf0d28ee2bdbb5a2e7e2c41dba61a1608c52a0dece78e1871d185795ad59c2",
+    "pads_relaxed": "d1fc5c682890215a6c0ed09e70aa0d4ccfdde9b44678ee3fae696438dee1f5b2"
+  },
+  "versions": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0"
+  }
+}

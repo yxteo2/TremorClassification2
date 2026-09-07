@@ -58,3 +58,34 @@ python -m experiments.task_power_benchmark --output artifacts/task_power_pads_se
 Four tests check power scaling, rotation invariance, missing-task rejection,
 invalid signals and isolation of fitting from test inputs/labels. Patient-level
 outputs and checkpoints remain uncommitted.
+
+## Completed results
+
+| Arm | Accuracy | Macro-F1 | ET precision | ET recall |
+|---|---:|---:|---:|---:|
+| Reference | 0.679 | 0.538 | 0.325 | 0.464 (13/28) |
+| Posture logistic | 0.640 | 0.524 | 0.333 | 0.464 (13/28) |
+| Rest/posture logistic | 0.676 | 0.507 | 0.273 | 0.321 (9/28) |
+| Fixed reference/task fusion | 0.687 | 0.561 | 0.400 | 0.429 (12/28) |
+
+Primary macro-F1 change (tasks minus posture logistic): **-0.016**, paired
+95% interval **[-0.081, +0.045]**. This does not support the hypothesis that
+these task-specific power features improve the simple classifier.
+
+Secondary changes versus reference: task logistic **-0.031**
+(interval [-0.105, +0.041]); fixed fusion **+0.023**
+(interval [-0.033, +0.078]). Fusion improves observed ET precision but loses one
+ET true positive. It is not a demonstrated improvement on both precision and
+recall and should not replace the baseline on this evidence.
+
+All 383 reference prediction rows (including probabilities), labels, fold IDs
+and five split manifests exactly match the prior completed dictionary benchmark.
+Four new unit tests passed. Aggregate metrics and provenance are in
+[task_power_pads_summary.json](task_power_pads_summary.json).
+
+The normalized-total-power issue was a valid measurement concern; correcting it
+did not by itself produce a classification gain. This does not rule out temporal
+phase information, other task representations, or action recordings. Any such
+follow-up remains a new exploratory hypothesis, not a proven solution. The
+MATLAB/Python action-task reproduction and external patient validation remain
+outstanding. No seed sweep or post-result model adjustment was performed.
