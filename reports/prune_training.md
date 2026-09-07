@@ -1,4 +1,40 @@
-# Dropping the hardest majority patients makes things worse, not better
+# Dropping the hardest majority patients — RETRACTED, now null in both directions
+
+> ## RETRACTION — the significant results below do not survive the preprocessing fixes
+>
+> Re-run on the corrected pipeline (axis, contiguous Q-factor, guarded IF
+> trajectory), with `difficulty()`, `prune()`, `fit_eval()`, the splits and the
+> seeds **bit-identical to the original run** — only the upstream features
+> changed:
+>
+> | | precET, then | precET, now | macroP, then | macroP, now |
+> |---|---|---|---|---|
+> | hard-drop 5 vs baseline | **−0.081 \*** | +0.024 n.s. | **−0.032 \*** | +0.009 n.s. |
+> | hard-drop 15 vs baseline | −0.061 | +0.056 n.s. | **−0.030 \*** | +0.015 n.s. |
+> | hard vs random, k=5 | **−0.065 \*** | −0.002 n.s. | **−0.030 \*** | −0.005 n.s. |
+> | hard vs random, k=15 | −0.017 | +0.067 n.s. | −0.013 | +0.021 n.s. |
+>
+> **Every significant result reverses sign and becomes null.** The baseline moved
+> too (precET 0.685 → 0.648), which is the signature of the three fixes rather
+> than of this experiment.
+>
+> **What can no longer be claimed:** that the hardest majority patients are
+> boundary-defining, or that dropping them is worse than dropping random ones.
+> **What cannot be claimed instead:** that dropping them helps — hard-drop 15 is
+> precET +0.056 [−0.021, +0.136] with a split-level **win rate of 0.45**, the
+> exact positive-mean/sub-0.5-win-rate pattern invariant 5 exists to catch.
+> **The experiment is now uninformative in both directions.**
+>
+> A methodological note worth more than the result. The retracted effect was
+> significant but *small* — macroP −0.032, against the ~0.04 that 20 splits
+> resolves. The project already knew three ~0.03 differences had flipped sign on
+> doubling the splits; this is a fourth, flipped by **fixing a defect upstream
+> instead**. A significant result sitting at the resolution floor is fragile to
+> anything that moves the pipeline, not just to more splits.
+>
+> The pre-fix analysis is kept below unchanged, as the record of what was
+> believed and why.
+
 
 ## The idea and why it looked promising
 
@@ -100,3 +136,45 @@ first, most boundary-adjacent patients removed.
   promised it in `prune_training_easy.md`; **no such report was ever written**,
   and the reference is removed rather than left dangling. The easy-drop arms are
   implemented in `prune_training.py` itself and are reported below.
+
+
+## The post-fix run, in full (20 splits, 7 arms, one baseline, shared controls)
+
+Both directions now run together, which the pre-fix version could not do: an
+earlier revision had replaced the hard-drop arms with easy-drop ones and never
+run them, so the script had stopped reproducing this report.
+
+| arm | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| k=0 (baseline) | 0.642 | 0.649 | 0.648 | 0.646 | 0.590 |
+| hard-drop 5 | 0.636 | 0.657 | 0.671 | 0.655 | 0.589 |
+| hard-drop 15 | 0.637 | 0.644 | **0.703** | **0.661** | 0.593 |
+| easy-drop 5 | 0.642 | 0.639 | 0.665 | 0.649 | 0.587 |
+| easy-drop 15 | 0.655 | 0.645 | 0.670 | 0.657 | **0.596** |
+| random-drop 5 | 0.650 | 0.657 | 0.673 | 0.660 | 0.590 |
+| random-drop 15 | 0.642 | 0.642 | 0.636 | 0.640 | 0.586 |
+
+**Nothing is significant on any column, in either direction, against either the
+baseline or the matched random control.** Every win rate sits at or below 0.60,
+and the largest mean (hard-drop 15, precET +0.056) carries a win rate of 0.45.
+
+### The easy-drop prediction, on record since this report was first written
+
+> if hard examples are boundary-defining, **dropping easy ones should be
+> harmless** — at worst a mild undersampling cost the matched random-drop arm
+> also pays.
+
+**Held**: easy vs its matched random control is macroP −0.011 at k=5 and +0.016
+at k=15, null both times. But it held **vacuously**. The contrast it was designed
+to complete has evaporated: with the hard-drop half now null too, "easy is
+harmless while hard is harmful" has become "both are null", and the experiment
+no longer separates the accounts. A prediction can hold and still tell you
+nothing once its premise is withdrawn.
+
+### The census still says what it said
+
+The most-dropped patients at k=15 spread across all three cohorts and both
+majority classes — NewData, PADS and 2015, mixing N and PD — rather than
+concentrating anywhere. Difficulty scoring selects *borderline* patients, not
+*mislabelled* ones, and this data still gives the method no way to tell those
+apart. That reading never depended on the retracted significance.

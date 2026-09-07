@@ -13,6 +13,10 @@ precET −0.081 [−0.165, −0.009] * vs baseline, and hard-vs-random at k=5 is
 precET −0.065 [−0.134, −0.008] *, macroP −0.030 [−0.053, −0.011] *.
 
 The hardest majority patients turned out to be **boundary-defining** — hard
+[**RETRACTED**: `prune_training.md`'s significance does not survive the
+preprocessing fixes; the premise this paragraph builds on is now null. The
+influence-pruning result below is unaffected, since it was never better than
+random in the first place.] —
 precisely because they sit near the PD/ET frontier, so removing them lets the
 boundary drift into ET territory. Hard and *useful*.
 
@@ -108,7 +112,8 @@ proxy.
   ever matters, but it buys nothing.
 * The broader reading: **this dataset has no identifiable harmful subset in N or
   PD.** Every majority patient is roughly equally useful to the model, which is
-  consistent with the boundary-defining result from criterion 1 — the ones that
+  consistent with the (since **retracted**) boundary-defining result from
+  criterion 1 — the ones that
   look worst are the ones doing the most work.
 * **The follow-up proposed here has since been run, and the answer is the same.**
   `influence_stable.md` replaces the Monte-Carlo estimate with **exact

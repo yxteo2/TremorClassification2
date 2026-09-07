@@ -18,7 +18,7 @@ measurements of this dataset have a better one.**
 | 3 | median-centring should help | `tf_window_length.md` | failed |
 | 4 | N-vs-Tremor blurring explains the gap | `tf_window_length.md` | failed |
 | 5 | measured sub-component gains should compose in two stages | `tf_window_length.md` | failed |
-| 6 | the hardest majority patients are mislabelled noise; dropping them sharpens the boundary | `prune_training.md` | **inverted** — significantly worse than both keeping them and dropping random ones. They were boundary-defining. |
+| 6 | the hardest majority patients are mislabelled noise; dropping them sharpens the boundary | `prune_training.md` | failed — and the verdict itself was later **downgraded**. It read *inverted* (precET −0.081 \*, hard-vs-random −0.065 \*), but on the corrected pipeline, with the experiment's own code bit-identical, every significant column reverses sign and becomes null. The honest verdict is **failed and now uninformative**: the data does not support "hard patients are boundary-defining" *or* its opposite. |
 | 7 | subjects measurably harmful in training can be identified and removed | `influence_prune.md` | failed — no better than random, and trending worse, with an unstable ranking |
 | 8 | geometric pooling should buy ET precision by vetoing over-confident members | `pooling_rules.md` | failed — reproduces arithmetic pooling to three decimals on macroP |
 | 9 | the pooling null is explained by the six members being near-copies | `ensemble_diversity.md` | **refuted by measurement** — they disagree on 20.5 % of patient pairs |
@@ -106,11 +106,15 @@ first had failed badly here, so the second was predicted to fail too. It did not
 can overfit: the offset search sees ~11 validation ET patients, adjustment sees
 none.
 
-Predictions 6 and 10 share a shape worth naming: both identified something that
-*looked* like a handicap for the minority class (hard patients dragging the
-boundary; ET's logit diluted by two majority columns) and both turned out to be
-**load-bearing**. A structure that looks wasteful at 404 patients with 49 ET is
-more often doing work than not.
+Predictions 6 and 10 were written up as sharing a shape — both identified
+something that *looked* like a handicap for the minority class (hard patients
+dragging the boundary; ET's logit diluted by two majority columns) and both
+appeared to be **load-bearing**. **Half of that pairing is now withdrawn.**
+Prediction 6's inversion does not survive the preprocessing fixes; only
+prediction 10 (one-vs-rest, precET −0.162 \*) still stands as a measured case.
+The general lesson — that a structure looking wasteful at 404 patients with 49 ET
+is more often doing work than not — is now supported by **one** instance rather
+than two, and should be held that much more loosely.
 
 | 22 | the fusion gain would be larger on precPD **and** precET than on precN, because the model-free diagnostic separated PD from ET (AUC 0.702 / 0.713) far better than it separated N from tremor on PADS (0.579) | `riemann_axes.md` | failed on the half that mattered — precN −0.000, precPD +0.016, precET **−0.006**. The mechanism reasoning was sound and the pre-run measurement was real; what it could not anticipate is that the tangent vector is **redundant with the ten descriptors** on PD-vs-ET (PADS union 0.797 vs descriptors 0.795), so there was nothing new for the model to compose on that contrast. |
 

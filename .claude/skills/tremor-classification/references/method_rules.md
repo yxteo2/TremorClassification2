@@ -61,6 +61,16 @@ for ET — and the effect sizes (−0.385 / −0.241 / −0.051) fell exactly in
 order. Check whether the rival account predicts the magnitudes, not just the
 signs.
 
+**A significant result sitting at the resolution floor is fragile to anything
+that moves the pipeline.** `prune_training.md` reported macroP −0.032 \* and
+precET −0.081 \* at 20 splits, which resolves ~0.04. Re-run after the axis,
+Q-factor and IF-trajectory fixes — with `difficulty()`, `prune()`, `fit_eval()`,
+the splits and the seeds **bit-identical** — every significant column reversed
+sign and went null. Three ~0.03 effects had already flipped on *doubling the
+splits*; this is a fourth, flipped by fixing a defect upstream instead. Re-run
+small significant results after any pipeline change, and prefer 40 splits before
+building on one.
+
 **Relative safeguards cannot see a defect every arm shares.** The 1 % frequency-
 axis stretch survived 68 reports because patient-level splits, paired
 bootstraps and permutation nulls all compare arms. Then a synthetic-signal

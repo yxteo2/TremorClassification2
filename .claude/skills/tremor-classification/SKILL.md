@@ -226,7 +226,8 @@ turn the bound into a measurement.
 
 Check `references/closed_families.md`. Closed with matched controls: ensemble
 pooling rule, ensemble size, balanced bagging, one-vs-rest (harmful, −0.162
-precET), gating on disagreement, three subject-pruning criteria, band edge,
+precET), gating on disagreement, three subject-pruning criteria (all null — the
+hard-drop harm is **retracted**, see `prune_training.md`), band edge,
 estimator sharpness, peak-aligned averaging, cohort-ID input, feature unions,
 learned pooling over recordings, SSL, time-domain networks, mixup, prior
 objective, MiniRocket/ROCKET, logit adjustment, PCEN, HPSS, cropped training,

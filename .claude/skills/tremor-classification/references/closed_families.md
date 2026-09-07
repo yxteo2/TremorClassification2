@@ -23,7 +23,7 @@ table.
 
 | tried | result | report |
 |---|---|---|
-| drop the hardest N/PD patients | **worse than nothing and worse than random** — precET −0.081 \*, hard-vs-random −0.065 \*. The hardest are boundary-defining | `prune_training.md` |
+| drop the hardest N/PD patients | **RETRACTED to null.** Was precET −0.081 \*, hard-vs-random −0.065 \*; on the corrected pipeline, with the experiment's code bit-identical, every significant column reverses sign and goes null (hard-drop 15 precET +0.056, win rate 0.45). Dropping is neither shown to help nor to hurt — and "the hardest are boundary-defining" is no longer a measured claim | `prune_training.md` |
 | drop by Monte-Carlo influence (Data-Shapley) | no better than random, trending worse | `influence_prune.md` |
 | drop by exact leave-one-out harm, 20 inner splits | same — LOO-vs-random precET −0.023 [−0.084, +0.032]; ranking overlap 0.15 vs 0.04 chance, against 0.60 when a harmful set is planted | `influence_stable.md` |
 | cohort-ID input | precN +0.024 [+0.009, +0.041] \* over a *valid* per-split random control; precET +0.007; macroP +0.011 [−0.000, +0.021]. Does not reduce NewData's contested rate | `cohort_id_input.md` |

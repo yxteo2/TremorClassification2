@@ -78,6 +78,8 @@ measures is not harmfulness in a usable sense. The most likely reading, and it
 is consistent with the rest of the project rather than invented for this result:
 `prune_training.md` established that the majority patients that look worst are
 **boundary-defining**, hard precisely because they sit near the PD/ET frontier.
+(**That premise is retracted** — see `prune_training.md`. This report's own
+result, that the ranking is unstable, does not depend on it.)
 A leave-one-out harm score will rank exactly those subjects highly, because
 removing a boundary-defining example does perturb the fitted model. It perturbs
 it in a way that is *useful*, not harmful, which is why dropping them trends

@@ -105,7 +105,9 @@ half of the answer.**
   atypical". Doing the review therefore *measures* the label-noise share that
   this experiment can only bound — and atypical-but-correctly-labelled patients
   are themselves worth having identified, because `prune_training.md` showed
-  the hardest patients are boundary-defining and must not be dropped.
+  the hardest patients are boundary-defining and must not be dropped — a claim
+  now **retracted to null** (see that report), so this is a reason for caution
+  rather than a measured result.
 * **Collection is still needed**, because the other ~45 % is genuine ambiguity
   that no amount of re-labelling touches. §1's in-house ET target stands.
 * **Order it adjudication-first**, reversing the earlier draft's implicit

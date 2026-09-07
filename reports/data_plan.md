@@ -109,7 +109,9 @@ now either way:
 * **Multi-rater diagnosis with the agreement retained**, not collapsed. A
   patient two neurologists disagree on is data, not noise — `prune_training.md`
   showed the hardest patients are *boundary-defining* and dropping them is
-  significantly worse than dropping random ones.
+  significantly worse than dropping random ones — **but see that report's
+  retraction**: the result is null on the corrected pipeline, so treat "keep the
+  hard patients" as the cautious default rather than a measured finding.
 * **Diagnosis stability at follow-up.** ET→PD revision is common; a label taken
   at recording time and never revisited is the single most likely source of the
   irreducible 40 %.

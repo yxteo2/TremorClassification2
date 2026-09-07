@@ -92,6 +92,7 @@ it has been through the 20-split paired test.
   model in 20 of 20 splits here.
 * This is the second time a supposed handicap has turned out to be load-bearing.
   `prune_training.md` found the "hardest" majority patients were
-  boundary-defining rather than noise; this finds the softmax's shared
+  boundary-defining rather than noise — **since retracted to null**, see
+  `prune_training.md`; this finds the softmax's shared
   normalisation is structure rather than dilution. Both predictions were derived
   from plausible mechanism stories and both inverted on measurement.
