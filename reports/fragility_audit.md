@@ -63,6 +63,28 @@ stating before the result arrives:
   welch behind, that is consistent with an already-verified number.
 * **ar16 −0.031 \*** has no such corroboration. It is the arm actually on trial.
 
+## Outcome of the first re-run
+
+**It did not test fragility — it found an outright bug.** `estimator_smoothing`
+crashed on its own bit-exactness assert at max|diff| 3.54: its `mt_variant`
+reimplements the multitaper path and still carried the `linspace` frequency-axis
+stretch fixed in `transforms.py` three weeks earlier. Fixed, and the corrected
+sweep at 40 splits:
+
+* both original significances are **withdrawn** (ar16 −0.031 \* → −0.018 n.s.;
+  welch −0.024 \* → −0.002 n.s.);
+* the "inverted U peaking at nw 2.5" is **withdrawn** — the top four arms span
+  0.007 against a 0.025 resolution, i.e. a **plateau**;
+* a 20-split candidate (nw4 precET +0.069 \*) **did not survive doubling**
+  (+0.031 n.s.), the fourth such collapse in this project.
+
+**This changes what the audit should have asked.** Its criterion was "is the
+effect small and pre-fix". The sharper question is **"does the experiment still
+reproduce its own baseline"** — a bit-exactness assert that passes is worth more
+than any effect-size heuristic, and it is checkable in seconds rather than hours.
+
+    Re-run order for the rest: assert first, effect size second.
+
 ## The queue, if the fragility proves systematic
 
 In descending order of how much rests on them:

@@ -37,7 +37,7 @@ table.
 | tried | result | report |
 |---|---|---|
 | low band edge 2.0 / 1.5 Hz | −0.008 / −0.004 macroP; slow patients unmoved; model ignores sub-3 Hz | `low_band_edge.md` |
-| estimator sharpness sweep, ar16 → welch → nw 2.5 → nw 4 → nw 6 (Q ceiling 31 → 1.4) | inverted U peaking at the current nw 2.5; ar16 −0.031 \*, welch −0.024 \* | `estimator_smoothing.md` |
+| estimator sharpness sweep, ar16 → welch → nw 2.5 → nw 4 → nw 6 (Q ceiling 31 → 1.4) | **re-measured after a duplicated axis bug; both old significances withdrawn.** At 40 splits it is a **plateau**, not an optimum: the top four arms span 0.007 against a resolution of 0.025, and only ar16 is distinguishable (macroP −0.018, win 0.38). A 20-split candidate (nw4 precET +0.069 \*) did **not** survive doubling (+0.031 n.s.). Keep nw 2.5 as incumbent, not as a peak | `estimator_smoothing.md` |
 | peak-aligned averaging of a patient's recordings | +0.007 precET vs plain mean; vs random-shift +0.119 \* — mechanism real, data below the knee | `peak_aligned_average.md` |
 | trim the PADS arm-raising onset | mechanism confirmed (N 1.39 → 1.10); PADS→in-house transfer unchanged, all arms below the 0.655 floor | `pads_onset_trim.md` |
 | log-frequency binning | precET −0.086 \* against the real baseline (was measured against a weaker re-implementation) | `spectral_representation.md` |

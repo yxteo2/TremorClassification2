@@ -137,14 +137,13 @@ verified. **Quote precET 0.654 / macroP 0.652.** These are on the fixed axis,
 fixed Q-factor and guarded trajectory; anything quoting 0.663 / 0.669 / 0.685
 predates one of those fixes.
 
-Every component of that recipe was swept and sits at an interior optimum —
-**though the sweep's own evidence is under re-verification**: its two
-significant arms (ar16 −0.031 \*, welch −0.024 \*) are pre-fix and inside the
-fragility band (`fragility_audit.md`). The welch arm is corroborated post-fix by
-the headline (+0.044 \* at 40 splits); ar16 is not. The list: the 3 Hz low edge, nw 2.5 (a 23× sharpness sweep from ar16 to nw 6
-peaks exactly there), 16 bins, 3 seeds, the arithmetic mean over members, the
-plain mean over a patient's recordings, and `tune_offsets` on macro F1. None
-of these is an untested default any more.
+Every component of that recipe has been swept, and each sits at a setting
+nothing beats — but **"interior optimum" was too strong for the estimator** and
+is withdrawn. That sweep ran on a duplicated copy of the frequency-axis bug;
+re-measured at 40 splits it is a **plateau** (welch / nw2.5 / nw4 / nw6 span
+0.007 against a 0.025 resolution), with only the sharpest arm, ar16,
+distinguishable. Keep nw 2.5 as the incumbent, not as a peak
+(`estimator_smoothing.md`). The swept list:
 
 ## The ceiling, in four numbers
 

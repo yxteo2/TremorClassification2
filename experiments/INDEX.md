@@ -27,14 +27,14 @@ An empty reports column means the study was run but never written up, or was sup
 | `descriptor_trajectory_fix` | 2026-09-02 | `contested_profile.md`, `failed_predictions.md`, `peak_aligned_average.md` |
 | `early_fusion_confirm` | 2026-08-19 | `early_fusion_confirm.md`, `headline_audit.md`, `tcn_fusion.md` |
 | `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `estimator_smoothing` | 2026-08-30 | `failed_predictions.md`, `fragility_audit.md` |
+| `estimator_smoothing` | 2026-09-08 | `estimator_smoothing.md`, `failed_predictions.md`, `fragility_audit.md` |
 | `family_inversion` | 2026-08-19 | `permutation_null.md` |
 | `fewshot_oneclass` | 2026-08-19 | **none** |
 | `final_model` | 2026-08-19 | `band_truncation.md`, `contested_specialists.md`, `final_model.md` |
 | `frozen_backbone` | 2026-08-19 | `frozen_vit.md` |
-| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `estimator_smoothing.md`, `headline_audit.md`, `logit_adjustment.md` |
+| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `headline_audit.md`, `logit_adjustment.md` |
 | `influence_prune` | 2026-08-26 | `balanced_bagging.md`, `failed_predictions.md`, `influence_stable.md` |
-| `influence_stable` | 2026-08-27 | `estimator_smoothing.md`, `influence_prune.md` |
+| `influence_stable` | 2026-08-27 | `influence_prune.md` |
 | `inhouse_axes` | 2026-08-19 | `band_truncation.md` |
 | `inhouse_shortwindow` | 2026-08-22 | `inhouse_shortwindow.md` |
 | `kinetic_task_audit` | 2026-08-21 | `headline_audit.md`, `kinetic_task_audit.md` |
@@ -75,7 +75,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `tf_window_control` | 2026-08-20 | **none** |
 | `tf_window_paired` | 2026-08-20 | **none** |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
-| `verify_preprocessing` | 2026-09-02 | `descriptor_trajectory_fix.md` |
+| `verify_preprocessing` | 2026-09-08 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 

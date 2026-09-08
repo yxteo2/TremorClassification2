@@ -71,6 +71,16 @@ splits*; this is a fourth, flipped by fixing a defect upstream instead. Re-run
 small significant results after any pipeline change, and prefer 40 splits before
 building on one.
 
+**Check that an experiment still reproduces its baseline before trusting its
+effect size.** The fragility audit's first re-run never reached a number: it
+crashed on its own bit-exactness assert because `estimator_smoothing.mt_variant`
+had kept a **duplicate of the frequency-axis bug** for three weeks after
+`transforms.py` was fixed. A passing bit-exactness assert is stronger evidence
+than any effect-size heuristic and costs seconds. **Assert first, effect size
+second** — and `verify_preprocessing.py` check 42 now tests reimplementations
+against the canonical estimator on every run, because an assert inside an
+experiment only fires when someone re-runs that experiment.
+
 **The fragility is not one experiment's — it is a class.** `fragility_audit.md`
 enumerates it: 32 pre-fix reports carry a significant claim, 25 have one under
 0.04, and **four closed families rest entirely on effects inside that band**

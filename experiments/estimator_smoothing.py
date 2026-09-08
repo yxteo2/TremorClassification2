@@ -272,8 +272,23 @@ def main():
     xs = np.array([qs[a] for a in order])
     ys = np.array([res[a][:, 3].mean() for a in order])
     from scipy.stats import spearmanr
-    print(f"\n  Spearman(Q ceiling, macroP) = {spearmanr(xs, ys).correlation:+.3f}"
-          f"   (negative = smoother is better, as predicted)")
+    rho = spearmanr(xs, ys).correlation
+    span = float(ys.max() - ys.min())
+    # A rank correlation cannot tell a real trend from a flat plateau with one
+    # bad endpoint, and this line has misled twice: it read -0.600 "smoother is
+    # better, as predicted" over an inverted U, and -0.900 over a plateau whose
+    # top four arms sit inside 0.007. So print the SPREAD beside it and say what
+    # the protocol can resolve, instead of asserting a verdict.
+    res_lim = 0.025 if SPLITS >= 40 else 0.04
+    print(f"\n  Spearman(Q ceiling, macroP) = {rho:+.3f}, but rho ranks and "
+          f"cannot see magnitude.")
+    print(f"  macroP spread across all arms: {span:.3f}   "
+          f"({SPLITS} splits resolves ~{res_lim:.3f})")
+    top = sorted(ys)[-4:]
+    print(f"  top four arms span {max(top) - min(top):.3f} — "
+          + ("INSIDE the resolution, i.e. a plateau, not a ranking"
+             if max(top) - min(top) < res_lim
+             else "outside the resolution, so the ordering may be real"))
     print("\nMARKER_DONE", flush=True)
 
 
