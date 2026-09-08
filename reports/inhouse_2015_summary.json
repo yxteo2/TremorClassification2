@@ -1,0 +1,544 @@
+{
+  "audit_2015": {
+    "tasks": {
+      "OUT": {
+        "patients": 151,
+        "counts_N_PD_ET": [
+          61,
+          75,
+          15
+        ],
+        "recordings": 274
+      },
+      "REST": {
+        "patients": 152,
+        "counts_N_PD_ET": [
+          61,
+          75,
+          16
+        ],
+        "recordings": 275
+      },
+      "WING": {
+        "patients": 137,
+        "counts_N_PD_ET": [
+          61,
+          63,
+          13
+        ],
+        "recordings": 250
+      }
+    },
+    "duration_range_s": [
+      9.93,
+      41.18
+    ],
+    "excluded_missing_OUT_or_REST": 7
+  },
+  "2015": {
+    "nested_selected": {
+      "accuracy": 0.6351351351351351,
+      "macro_f1": 0.5631817798526627,
+      "precision": [
+        0.6986301369863014,
+        0.782608695652174,
+        0.2413793103448276
+      ],
+      "recall": [
+        0.8360655737704918,
+        0.5,
+        0.4666666666666667
+      ],
+      "support": [
+        61,
+        72,
+        15
+      ],
+      "confusion": [
+        [
+          51,
+          6,
+          4
+        ],
+        [
+          18,
+          36,
+          18
+        ],
+        [
+          4,
+          4,
+          7
+        ]
+      ]
+    },
+    "fixed_middle_OUT_logistic": {
+      "accuracy": 0.6081081081081081,
+      "macro_f1": 0.5227291336355449,
+      "precision": [
+        0.704225352112676,
+        0.7608695652173914,
+        0.16129032258064516
+      ],
+      "recall": [
+        0.819672131147541,
+        0.4861111111111111,
+        0.3333333333333333
+      ],
+      "support": [
+        61,
+        72,
+        15
+      ],
+      "confusion": [
+        [
+          50,
+          6,
+          5
+        ],
+        [
+          16,
+          35,
+          21
+        ],
+        [
+          5,
+          5,
+          5
+        ]
+      ]
+    },
+    "selections": [
+      {
+        "fold": 0,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 1.0,
+        "inner_macro_f1": 0.6057489991584863
+      },
+      {
+        "fold": 1,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 1.0,
+        "inner_macro_f1": 0.6751411031771565
+      },
+      {
+        "fold": 2,
+        "features": 18,
+        "classifier": "LogisticRegression",
+        "C": 0.01,
+        "inner_macro_f1": 0.5519010827235135
+      },
+      {
+        "fold": 3,
+        "features": 18,
+        "classifier": "LogisticRegression",
+        "C": 1.0,
+        "inner_macro_f1": 0.6271919464355505
+      },
+      {
+        "fold": 4,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1,
+        "inner_macro_f1": 0.6788036985066213
+      }
+    ],
+    "by_cohort": {
+      "2015": {
+        "accuracy": 0.6351351351351351,
+        "macro_f1": 0.5631817798526627,
+        "precision": [
+          0.6986301369863014,
+          0.782608695652174,
+          0.2413793103448276
+        ],
+        "recall": [
+          0.8360655737704918,
+          0.5,
+          0.4666666666666667
+        ],
+        "support": [
+          61,
+          72,
+          15
+        ],
+        "confusion": [
+          [
+            51,
+            6,
+            4
+          ],
+          [
+            18,
+            36,
+            18
+          ],
+          [
+            4,
+            4,
+            7
+          ]
+        ]
+      }
+    },
+    "paired_macro_f1_difference_95": [
+      -0.03154874700619049,
+      0.11256389310843017
+    ]
+  },
+  "audit_newdata": {
+    "tasks": {
+      "OUT": {
+        "patients": 56,
+        "counts_N_PD_ET": [
+          27,
+          23,
+          6
+        ],
+        "recordings": 100
+      },
+      "REST": {
+        "patients": 58,
+        "counts_N_PD_ET": [
+          27,
+          25,
+          6
+        ],
+        "recordings": 102
+      }
+    },
+    "duration_range_s": [
+      10.0,
+      10.0
+    ],
+    "excluded_missing_OUT_or_REST": 8
+  },
+  "pooled": {
+    "nested_selected": {
+      "accuracy": 0.6467661691542289,
+      "macro_f1": 0.5590549079127244,
+      "precision": [
+        0.6881720430107527,
+        0.7468354430379747,
+        0.2413793103448276
+      ],
+      "recall": [
+        0.7441860465116279,
+        0.6276595744680851,
+        0.3333333333333333
+      ],
+      "support": [
+        86,
+        94,
+        21
+      ],
+      "confusion": [
+        [
+          64,
+          13,
+          9
+        ],
+        [
+          22,
+          59,
+          13
+        ],
+        [
+          7,
+          7,
+          7
+        ]
+      ]
+    },
+    "fixed_middle_OUT_logistic": {
+      "accuracy": 0.6169154228855721,
+      "macro_f1": 0.5366685945633313,
+      "precision": [
+        0.6826923076923077,
+        0.7258064516129032,
+        0.22857142857142856
+      ],
+      "recall": [
+        0.8255813953488372,
+        0.4787234042553192,
+        0.38095238095238093
+      ],
+      "support": [
+        86,
+        94,
+        21
+      ],
+      "confusion": [
+        [
+          71,
+          10,
+          5
+        ],
+        [
+          27,
+          45,
+          22
+        ],
+        [
+          6,
+          7,
+          8
+        ]
+      ]
+    },
+    "selections": [
+      {
+        "fold": 0,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1,
+        "inner_macro_f1": 0.5848772907309493
+      },
+      {
+        "fold": 1,
+        "features": 18,
+        "classifier": "LogisticRegression",
+        "C": 0.1,
+        "inner_macro_f1": 0.5780816558605656
+      },
+      {
+        "fold": 2,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1,
+        "inner_macro_f1": 0.5830478498629789
+      },
+      {
+        "fold": 3,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 1.0,
+        "inner_macro_f1": 0.621276460346658
+      },
+      {
+        "fold": 4,
+        "features": 36,
+        "classifier": "SVC",
+        "C": 10.0,
+        "inner_macro_f1": 0.5817838515877731
+      }
+    ],
+    "by_cohort": {
+      "2015": {
+        "accuracy": 0.668918918918919,
+        "macro_f1": 0.5881018600706155,
+        "precision": [
+          0.6911764705882353,
+          0.7796610169491526,
+          0.2857142857142857
+        ],
+        "recall": [
+          0.7704918032786885,
+          0.6388888888888888,
+          0.4
+        ],
+        "support": [
+          61,
+          72,
+          15
+        ],
+        "confusion": [
+          [
+            47,
+            9,
+            5
+          ],
+          [
+            16,
+            46,
+            10
+          ],
+          [
+            5,
+            4,
+            6
+          ]
+        ]
+      },
+      "NewData": {
+        "accuracy": 0.5849056603773585,
+        "macro_f1": 0.4806349206349207,
+        "precision": [
+          0.68,
+          0.65,
+          0.125
+        ],
+        "recall": [
+          0.68,
+          0.5909090909090909,
+          0.16666666666666666
+        ],
+        "support": [
+          25,
+          22,
+          6
+        ],
+        "confusion": [
+          [
+            17,
+            4,
+            4
+          ],
+          [
+            6,
+            13,
+            3
+          ],
+          [
+            2,
+            3,
+            1
+          ]
+        ]
+      }
+    },
+    "paired_macro_f1_difference_95": [
+      -0.04425818678648799,
+      0.09117772345445922
+    ]
+  },
+  "train_2015_test_newdata": {
+    "accuracy": 0.6037735849056604,
+    "macro_f1": 0.5709004174120453,
+    "precision": [
+      0.6,
+      0.6666666666666666,
+      0.42857142857142855
+    ],
+    "recall": [
+      0.6,
+      0.6363636363636364,
+      0.5
+    ],
+    "support": [
+      25,
+      22,
+      6
+    ],
+    "confusion": [
+      [
+        15,
+        7,
+        3
+      ],
+      [
+        7,
+        14,
+        1
+      ],
+      [
+        3,
+        0,
+        3
+      ]
+    ]
+  },
+  "protocol": {
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "seed": 0,
+    "primary": "nested selected versus fixed middle-sensor OUT logistic on 2015",
+    "representations": [
+      "middle sensor OUT (6)",
+      "three sensors OUT (18)",
+      "three sensors OUT + REST (36)"
+    ],
+    "models": "balanced logistic C=.01,.1,1; balanced RBF SVM C=.1,1,10 gamma=scale",
+    "notes": "Exploratory historical data. Only OUT+REST complete patients. No cohort ID input. NewData uses existing 10-second tremor epoch selector; 2015 full recording. WING audited but not used in matched comparisons. Bootstrap conditions on fixed OOF predictions."
+  },
+  "newdata_training_only": {
+    "metrics": {
+      "accuracy": 0.7027027027027027,
+      "macro_f1": 0.6289286566451922,
+      "precision": [
+        0.7727272727272727,
+        0.8490566037735849,
+        0.27586206896551724
+      ],
+      "recall": [
+        0.8360655737704918,
+        0.625,
+        0.5333333333333333
+      ],
+      "support": [
+        61,
+        72,
+        15
+      ],
+      "confusion": [
+        [
+          51,
+          5,
+          5
+        ],
+        [
+          11,
+          45,
+          16
+        ],
+        [
+          4,
+          3,
+          8
+        ]
+      ]
+    },
+    "selections": [
+      {
+        "fold": 0,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1
+      },
+      {
+        "fold": 1,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1
+      },
+      {
+        "fold": 2,
+        "features": 36,
+        "classifier": "SVC",
+        "C": 1.0
+      },
+      {
+        "fold": 3,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1
+      },
+      {
+        "fold": 4,
+        "features": 36,
+        "classifier": "LogisticRegression",
+        "C": 0.1
+      }
+    ],
+    "paired_macro_f1_95": [
+      0.0071688091832438254,
+      0.1315551616957261
+    ],
+    "note": "Compared with 2015-only nested selection on exactly the same 2015 outer tests. Inner validation also restricted to 2015."
+  },
+  "verification": {
+    "2015_predictions_identical_across_runs": true,
+    "new_tests_passed": 5
+  },
+  "versions": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0"
+  },
+  "feature_hashes": {
+    "features_2015.npz": "3ace73d277b7845dd51475af4320948529a89f63db26483e8fe9a86a19c02ce0",
+    "features_newdata.npz": "6b5cc0d3d996260b8f89986cf5a2cbaf8f24f0abe6181516521fb9db1a6841dd"
+  }
+}
