@@ -17,7 +17,7 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~80 findings; `reports/failed_predictions.md` is the register of
+`reports/` holds ~81 findings; `reports/failed_predictions.md` is the register of
 predictions made before the run (23 failed, 14 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
@@ -137,8 +137,11 @@ verified. **Quote precET 0.654 / macroP 0.652.** These are on the fixed axis,
 fixed Q-factor and guarded trajectory; anything quoting 0.663 / 0.669 / 0.685
 predates one of those fixes.
 
-Every component of that recipe has now been swept and sits at an interior
-optimum: the 3 Hz low edge, nw 2.5 (a 23× sharpness sweep from ar16 to nw 6
+Every component of that recipe was swept and sits at an interior optimum —
+**though the sweep's own evidence is under re-verification**: its two
+significant arms (ar16 −0.031 \*, welch −0.024 \*) are pre-fix and inside the
+fragility band (`fragility_audit.md`). The welch arm is corroborated post-fix by
+the headline (+0.044 \* at 40 splits); ar16 is not. The list: the 3 Hz low edge, nw 2.5 (a 23× sharpness sweep from ar16 to nw 6
 peaks exactly there), 16 bins, 3 seeds, the arithmetic mean over members, the
 plain mean over a patient's recordings, and `tune_offsets` on macro F1. None
 of these is an untested default any more.

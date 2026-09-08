@@ -78,6 +78,7 @@ import experiments.final_model as FM
 from common.cohorts import logbin
 from common.protocol import TEST_FRAC, VAL_FRAC, tune_offsets
 from experiments.alltasks_final import paired
+from experiments._resume import resume_load, resume_save
 from experiments.pooling_rules import fit_members
 from frequency.descriptors import describe
 from signal_processing.tfd import apply_multitaper
@@ -209,8 +210,10 @@ def main():
     usable = list(ARMS)
     print(flush=True)
 
-    res = {a: [] for a in usable}
+    res, done = resume_load("estimator_smoothing", usable)
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(y[:, None],
                                                                     key))
@@ -222,6 +225,7 @@ def main():
             V, T = fit_members(SPEC[a], D, traj, y, tr, va, te)
             pv, pt = V.mean(0), T.mean(0)
             res[a].append(score(pt, tune_offsets(pv, y[va]), y[te]))
+        resume_save("estimator_smoothing", res, sp)
         print(f"  split {sp+1}/{SPLITS}", flush=True)
 
     for a in res:

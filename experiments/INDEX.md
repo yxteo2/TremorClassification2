@@ -14,11 +14,11 @@ An empty reports column means the study was run but never written up, or was sup
 | `axis_fix_audit` | 2026-09-02 | `failed_predictions.md` |
 | `axis_specific_inputs` | 2026-08-19 | `axis_specific_inputs.md`, `data_plan.md`, `tf_window_length.md` |
 | `balanced_bagging` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `binning` | 2026-08-19 | `band_truncation.md`, `deep_model_improvement.md`, `early_fusion_confirm.md`, `spectral_representation.md` |
+| `binning` | 2026-08-19 | `band_truncation.md`, `deep_model_improvement.md`, `early_fusion_confirm.md`, `fragility_audit.md`, `spectral_representation.md` |
 | `binning_deep` | 2026-08-19 | `band_truncation.md` |
 | `catch22_family` | 2026-08-20 | `catch22_waveform_features.md` |
 | `catch22_hybrid` | 2026-08-20 | `catch22_waveform_features.md` |
-| `cohort_id_input` | 2026-08-28 | `cohort_id_input.md`, `failed_predictions.md` |
+| `cohort_id_input` | 2026-08-28 | `cohort_id_input.md`, `failed_predictions.md`, `fragility_audit.md` |
 | `combined_best` | 2026-08-19 | `early_fusion_confirm.md`, `spectral_representation.md`, `tcn_fusion.md` |
 | `contested_gating` | 2026-08-27 | `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `failed_predictions.md` |
 | `contested_profile` | 2026-08-28 | `contested_profile.md`, `failed_predictions.md`, `low_band_edge.md` |
@@ -27,7 +27,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `descriptor_trajectory_fix` | 2026-09-02 | `contested_profile.md`, `failed_predictions.md`, `peak_aligned_average.md` |
 | `early_fusion_confirm` | 2026-08-19 | `early_fusion_confirm.md`, `headline_audit.md`, `tcn_fusion.md` |
 | `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `estimator_smoothing` | 2026-08-30 | `failed_predictions.md` |
+| `estimator_smoothing` | 2026-08-30 | `failed_predictions.md`, `fragility_audit.md` |
 | `family_inversion` | 2026-08-19 | `permutation_null.md` |
 | `fewshot_oneclass` | 2026-08-19 | **none** |
 | `final_model` | 2026-08-19 | `band_truncation.md`, `contested_specialists.md`, `final_model.md` |
@@ -54,7 +54,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `peak_aligned_average` | 2026-09-02 | `descriptor_trajectory_fix.md`, `failed_predictions.md` |
 | `pooling_rules` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
 | `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
-| `prune_training` | 2026-09-07 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md`, `prune_training.md`, `self_consistency_gate.md` |
+| `prune_training` | 2026-09-07 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `fragility_audit.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md`, `prune_training.md`, `self_consistency_gate.md` |
 | `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
 | `riemann_axes` | 2026-09-04 | `data_plan.md`, `euclidean_alignment.md`, `failed_predictions.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |

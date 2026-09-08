@@ -71,6 +71,13 @@ splits*; this is a fourth, flipped by fixing a defect upstream instead. Re-run
 small significant results after any pipeline change, and prefer 40 splits before
 building on one.
 
+**The fragility is not one experiment's — it is a class.** `fragility_audit.md`
+enumerates it: 32 pre-fix reports carry a significant claim, 25 have one under
+0.04, and **four closed families rest entirely on effects inside that band**
+(estimator sharpness, catch22 hybrid, short-window spectrum, cohort-ID input).
+One of the class has been tested and it failed. Re-run before building on any of
+them; a pre-fix number under 0.04 is a lead, not a result.
+
 **Relative safeguards cannot see a defect every arm shares.** The 1 % frequency-
 axis stretch survived 68 reports because patient-level splits, paired
 bootstraps and permutation nulls all compare arms. Then a synthetic-signal
