@@ -48,3 +48,45 @@ predictions and split manifests remain uncommitted research artifacts.
 Intervals use 2000 paired fixed-prediction patient bootstraps; they exclude
 retraining and historical model-selection uncertainty. This is exploratory
 evaluation on previously investigated cohorts, not prospective validation.
+
+## Complete results
+
+All rows test the same 148 2015 patients; all 53 NewData patients are training-only.
+
+| Method | Accuracy | Macro-F1 | ET precision | ET recall |
+|---|---:|---:|---:|---:|
+| Standard scaling, nested selection | .703 | .629 | .276 | .533 (8/15) |
+| Robust scaling, nested selection | .662 | .578 | .231 | .400 (6/15) |
+| Standard scaling, fixed logistic | .716 | .642 | .308 | .533 (8/15) |
+| Robust scaling, fixed logistic | .682 | .613 | .286 | .533 (8/15) |
+
+Primary robust-minus-standard macro-F1 change: -.051, paired 95% interval
+[-.113,+.005]. Fixed-model secondary change: -.029, interval [-.055,-.006].
+These results do not support replacing standard scaling with robust scaling.
+Fixed logistic is a practical candidate, but its .642 is an exploratory result
+after earlier model search and should not be advertised as externally validated.
+The standard nested control exactly reproduces PR #5's aggregate metrics and
+confusion matrix. This is not verification of identical patient-level decisions,
+because the prior augmentation predictions were not persisted remotely.
+
+Across 549 loaded 2015 and 202 loaded NewData OUT/REST recordings, no nonfinite
+source quaternion values or near-zero norms were found. Two 2015 REST recordings
+from one normal participant had norms around 9.4–10.1 throughout all sensors.
+No NewData recordings triggered the >10% norm-deviation review flag. The existing
+conversion already normalizes quaternions to unit length; a scale discrepancy
+alone is not evidence of unusable orientation data. No records were excluded.
+Dividing those source quaternions by 10 before the existing conversion produced
+finite angular velocities with maximum absolute differences below 1.4e-5 rad/s
+and RMS differences below 2.5e-6 rad/s versus the unchanged input. This supports
+the normalization explanation, not the overall validity of every motion sample.
+This limited audit does not prove all recordings are artifact-free.
+
+Recommendation: retain patients, standard scaling and the all-sensor OUT+REST
+candidate. Investigate acquisition scaling metadata for the flagged recordings
+before any correction beyond existing normalization. Quality-based exclusion
+was not benchmarked because these checks did not establish unusable recordings;
+deleting difficult patients or choosing an exclusion threshold from their test
+errors is not warranted.
+
+Complete aggregate metrics, intervals, feature hashes and selected models are in
+[robust_inhouse_summary.json](robust_inhouse_summary.json).

@@ -1,0 +1,327 @@
+{
+  "standard_nested": {
+    "accuracy": 0.7027027027027027,
+    "macro_f1": 0.6289286566451922,
+    "precision": [
+      0.7727272727272727,
+      0.8490566037735849,
+      0.27586206896551724
+    ],
+    "recall": [
+      0.8360655737704918,
+      0.625,
+      0.5333333333333333
+    ],
+    "support": [
+      61,
+      72,
+      15
+    ],
+    "confusion": [
+      [
+        51,
+        5,
+        5
+      ],
+      [
+        11,
+        45,
+        16
+      ],
+      [
+        4,
+        3,
+        8
+      ]
+    ]
+  },
+  "robust_nested": {
+    "accuracy": 0.6621621621621622,
+    "macro_f1": 0.5784272239178648,
+    "precision": [
+      0.7058823529411765,
+      0.8148148148148148,
+      0.23076923076923078
+    ],
+    "recall": [
+      0.7868852459016393,
+      0.6111111111111112,
+      0.4
+    ],
+    "support": [
+      61,
+      72,
+      15
+    ],
+    "confusion": [
+      [
+        48,
+        6,
+        7
+      ],
+      [
+        15,
+        44,
+        13
+      ],
+      [
+        5,
+        4,
+        6
+      ]
+    ]
+  },
+  "standard_fixed": {
+    "accuracy": 0.7162162162162162,
+    "macro_f1": 0.642425460917995,
+    "precision": [
+      0.7611940298507462,
+      0.8545454545454545,
+      0.3076923076923077
+    ],
+    "recall": [
+      0.8360655737704918,
+      0.6527777777777778,
+      0.5333333333333333
+    ],
+    "support": [
+      61,
+      72,
+      15
+    ],
+    "confusion": [
+      [
+        51,
+        6,
+        4
+      ],
+      [
+        11,
+        47,
+        14
+      ],
+      [
+        5,
+        2,
+        8
+      ]
+    ]
+  },
+  "robust_fixed": {
+    "accuracy": 0.6824324324324325,
+    "macro_f1": 0.6130811892060739,
+    "precision": [
+      0.7285714285714285,
+      0.84,
+      0.2857142857142857
+    ],
+    "recall": [
+      0.8360655737704918,
+      0.5833333333333334,
+      0.5333333333333333
+    ],
+    "support": [
+      61,
+      72,
+      15
+    ],
+    "confusion": [
+      [
+        51,
+        6,
+        4
+      ],
+      [
+        14,
+        42,
+        16
+      ],
+      [
+        5,
+        2,
+        8
+      ]
+    ]
+  },
+  "paired_95": {
+    "nested": {
+      "macro_f1": [
+        -0.11284185330019991,
+        0.004944181392257943
+      ],
+      "ET_precision": [
+        -0.14583967391304345,
+        0.047619047619047616
+      ],
+      "ET_recall": [
+        -0.3333333333333333,
+        0
+      ]
+    },
+    "fixed": {
+      "macro_f1": [
+        -0.05514449610765852,
+        -0.005634078037189777
+      ],
+      "ET_precision": [
+        -0.06410361842105262,
+        0
+      ],
+      "ET_recall": [
+        0,
+        0
+      ]
+    }
+  },
+  "protocol": {
+    "arms": [
+      "standard_nested",
+      "robust_nested",
+      "standard_fixed",
+      "robust_fixed"
+    ],
+    "primary": "robust_nested minus standard_nested on 148 2015 test patients",
+    "training": "2015 outer training + all 53 NewData; inner validation only 2015",
+    "seed": 0,
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "fixed_model": "all 36 features balanced logistic C=.1",
+    "removal": "No patients, recordings or features removed",
+    "quality": {
+      "2015": {
+        "recordings": 549,
+        "flagged_recording_counts": {
+          "nonfinite": 0,
+          "near_zero_norm": 0,
+          "norm_deviation_review": 2
+        },
+        "note": "Audit of loaded recordings only; >10% norm deviation is review-only, not proof of artifact. No automatic exclusions."
+      },
+      "NewData": {
+        "recordings": 202,
+        "flagged_recording_counts": {
+          "nonfinite": 0,
+          "near_zero_norm": 0,
+          "norm_deviation_review": 0
+        },
+        "note": "Audit of loaded recordings only; >10% norm deviation is review-only, not proof of artifact. No automatic exclusions."
+      }
+    },
+    "feature_sha256": {
+      "2015": "1b6e4f538644bd4515b6d81e2d835b91ea27636977543be9c2bf5f59bd60685b",
+      "NewData": "6579fee0814c858e14eaf1bb0667e4ee530ea02507221713c07d19a1e0ab3b74"
+    }
+  },
+  "selections": [
+    {
+      "standard_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "standard_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      }
+    },
+    {
+      "standard_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "standard_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      }
+    },
+    {
+      "standard_nested": {
+        "features": 36,
+        "model": "SVC",
+        "C": 1
+      },
+      "robust_nested": {
+        "features": 36,
+        "model": "SVC",
+        "C": 1
+      },
+      "standard_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      }
+    },
+    {
+      "standard_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_nested": {
+        "features": 18,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "standard_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      }
+    },
+    {
+      "standard_nested": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_nested": {
+        "features": 36,
+        "model": "SVC",
+        "C": 10
+      },
+      "standard_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      },
+      "robust_fixed": {
+        "features": 36,
+        "model": "LogisticRegression",
+        "C": 0.1
+      }
+    }
+  ]
+}
