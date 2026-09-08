@@ -86,7 +86,7 @@ from signal_processing.transforms import (F_MAX, METHODS, _band,
                                            _kept_rfftfreq, _per_freq_mean)
 
 NM = ("precN", "precPD", "precET", "macroP", "macroF1")
-SPLITS = 20
+SPLITS = 40   # raised from 20: the corrected sweep produced a candidate
 FS = 100.0
 
 
@@ -256,9 +256,13 @@ def main():
             if a == cur:
                 continue
             print(f"  {a}:")
-            for (dd, lo, hi), c in zip(paired(res[a], res[cur]), NM):
+            for i, ((dd, lo, hi), c) in enumerate(
+                    zip(paired(res[a], res[cur]), NM)):
                 star = "*" if lo > 0 or hi < 0 else " "
-                print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}")
+                w = float((res[a][:, i] > res[cur][:, i]).mean())
+                t = float((res[a][:, i] == res[cur][:, i]).mean())
+                print(f"    {c:>8} {dd:+.3f}  [{lo:+.3f}, {hi:+.3f}] {star}"
+                      f"   win {w:.2f}  tie {t:.2f}")
 
     print("\nTHE PREDICTION -- is macroP monotone in smoothing?")
     print(f"{'estimator':>20}{'Qceil':>8}{'macroP':>9}{'precET':>9}")
