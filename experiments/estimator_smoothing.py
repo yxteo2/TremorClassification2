@@ -82,7 +82,8 @@ from experiments._resume import resume_load, resume_save
 from experiments.pooling_rules import fit_members
 from frequency.descriptors import describe
 from signal_processing.tfd import apply_multitaper
-from signal_processing.transforms import F_MAX, METHODS, _band, _per_freq_mean
+from signal_processing.transforms import (F_MAX, METHODS, _band,
+                                           _kept_rfftfreq, _per_freq_mean)
 
 NM = ("precN", "precPD", "precET", "macroP", "macroF1")
 SPLITS = 20
@@ -90,7 +91,14 @@ FS = 100.0
 
 
 def mt_variant(nperseg, nw, K):
-    """A multitaper estimator with an explicit time-bandwidth product."""
+    """A multitaper estimator with an explicit time-bandwidth product.
+
+    Uses `_kept_rfftfreq` for the frequency axis, like `m_multitaper`. This
+    module carried its own copy of the reconstruction and **kept the 1.05 %
+    linspace stretch for three weeks after `transforms.py` was fixed** — the
+    duplicate was missed. The bit-exactness assert in `main()` is what caught
+    it, on the first re-run after the fix, at max|diff| 3.54.
+    """
     def fn(x, **kw):
         n = min(nperseg, x.shape[-1])
         S = apply_multitaper(x, fs=FS, nperseg=n, nfft=n, noverlap=n * 3 // 4,
@@ -98,7 +106,9 @@ def mt_variant(nperseg, nw, K):
         n_ch = np.atleast_2d(x).shape[0]
         n_freq = np.asarray(S).shape[0] // n_ch
         P = _per_freq_mean(S, n_freq, n_ch, square=True)
-        return _band(np.linspace(0.0, F_MAX, n_freq), P)
+        f = _kept_rfftfreq(n, FS)
+        assert len(f) == n_freq, f"axis {len(f)} != spectrum {n_freq}"
+        return _band(f, P)
     return fn
 
 

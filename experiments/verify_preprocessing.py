@@ -161,6 +161,23 @@ ep = select_task_epoch(xe, fs=FS, win_s=10.0)
 check("select_task_epoch returns exactly 10 s", ep.shape[1] == 1000, f"{ep.shape[1]} samples")
 check("select_task_epoch lands on the tremor window", np.abs(ep[3:6]).max() > 0.1)
 
+# ---------- (l) duplicated estimator implementations must not drift ----------
+# `estimator_smoothing.mt_variant` reimplements the multitaper path instead of
+# calling METHODS["multitaper"]. It kept the 1.05 % linspace frequency-axis
+# stretch for three weeks after `transforms.py` was fixed, because nobody re-ran
+# the experiment. Any reimplementation of a shared estimator is checked here
+# against the canonical one, so drift fails immediately rather than on next use.
+from experiments.estimator_smoothing import mt_variant
+from signal_processing.transforms import METHODS
+_x = np.atleast_2d(tone(f0) + 0.3 * tone(2 * f0))
+_fa, _Pa = METHODS["multitaper"](_x)
+_fb, _Pb = mt_variant(256, 2.5, 4)(_x)
+check("mt_variant reproduces METHODS['multitaper'] exactly (no duplicate drift)",
+      len(_fa) == len(_fb) and np.abs(_fa - _fb).max() < 1e-12
+      and np.abs(_Pa - _Pb).max() < 1e-12,
+      f"max|df| {np.abs(_fa - _fb).max():.1e}  max|dP| {np.abs(_Pa - _Pb).max():.1e}"
+      if len(_fa) == len(_fb) else f"axis lengths {len(_fa)} vs {len(_fb)}")
+
 n_fail = sum(not ok for _, ok in res)
 print(f"\n{len(res)} checks, {n_fail} failed")
 print("MARKER_DONE", flush=True)
