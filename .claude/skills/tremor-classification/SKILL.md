@@ -239,7 +239,12 @@ separate instances now, including a 33 % sharpness recovery that produced
 +0.007 precET. **Descriptor-level damage does compose**, which is why the
 label-free diagnostic is worth running first.
 
-What remains genuinely open: feature-level cohort harmonisation (ComBat-style,
+What remains genuinely open: **ImageNet transfer**, which was never actually
+tested — every "pretrained backbone" result in this repo ran with *random*
+weights because the weight hosts are blocked here, so that row is untested
+rather than closed (the in-domain transfer that *was* tested — PADS→in-house
+finetune, precET −0.188 \*, and masked-spectrum SSL, retracted — both failed);
+feature-level cohort harmonisation (ComBat-style,
 fitted on train only), physiology-preserving ET augmentation with a
 label-preservation audit, severity-stratified reporting, and re-running `STAB`
 (TSI) at 40 splits — it was null at 20 but halved precET variance. **The data
