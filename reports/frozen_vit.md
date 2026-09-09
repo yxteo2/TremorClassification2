@@ -1,5 +1,19 @@
 # Frozen pretrained ViT: transfer learning, properly tested
 
+> **Re-run confirmed post-fix (2026-09-09).** Re-executed with the same manually
+> supplied checkpoint after the axis / Q-factor / IF-trajectory corrections:
+> **precN 0.618, precPD 0.554, precET 0.332, macroP 0.501, macroF1 0.473 —
+> identical to the original run to three decimals.** That is expected rather than
+> suspicious: this model consumes a 64x64 log **spectrogram**, and the three
+> fixes touched the multitaper spectrum, the descriptors and the IF trajectory,
+> none of which this arm uses. Its input never changed.
+>
+> The *comparator* did change, and the table below still carries the pre-fix
+> figures. Against the current reported model (macroP 0.652 / precET 0.654) the
+> gap is **−0.151 macroP and −0.322 precET** — slightly narrower than it looked,
+> and the conclusion is untouched. The script had the old numbers hardcoded as a
+> printed reference, which went stale silently; now labelled with its source.
+
 **Result: macro precision 0.501 against 0.660 for a 5 k-parameter model built
 for this data. ET precision 0.332 against 0.685.**
 

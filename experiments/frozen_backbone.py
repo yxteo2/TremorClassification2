@@ -18,7 +18,9 @@ Needs a local checkpoint, since downloads are blocked:
 A tremor spectrogram is a very different image statistic from the natural
 photographs ImageNet features were trained on -- mostly one bright horizontal
 band on a dark field, with none of the object structure those filters detect.
-The result to beat is macro precision 0.660 from a 5 k-parameter model.
+The result to beat is macro precision 0.652 from a 5 k-parameter model
+(the post-fix reported figure; an earlier revision of this file quoted the
+pre-fix 0.660 as a hardcoded comparator, which went stale silently).
 """
 
 from __future__ import annotations
@@ -206,9 +208,15 @@ def main():
     print(f"{'frozen ViT-B/16 + linear head':>36}"
           + "".join(f"{m[i]:>9.3f}" for i in range(5))
           + "  |" + "".join(f"{s[i]:>7.3f}" for i in range(5)))
-    print(f"{'reference: 5k two-stream model':>36}"
-          f"{0.639:>9.3f}{0.655:>9.3f}{0.685:>9.3f}{0.660:>9.3f}{0.593:>9.3f}")
-    np.save("scratch/frozen_vit_scores.npy", a)
+    # Post-fix reported figures (headline_audit.md, 40 splits). These were the
+    # PRE-fix 0.639/0.655/0.685/0.660/0.593 until the axis, Q-factor and
+    # IF-trajectory corrections moved them; a hardcoded comparator goes stale
+    # without warning, so it is labelled with its source here.
+    print(f"{'reference: 5k two-stream (post-fix)':>36}"
+          f"{0.648:>9.3f}{0.654:>9.3f}{0.654:>9.3f}{0.652:>9.3f}{0.593:>9.3f}")
+    out = os.environ.get("TREMOR_CKPT_DIR", ".")
+    os.makedirs(out, exist_ok=True)
+    np.save(os.path.join(out, "frozen_vit_scores.npy"), a)
     print("\nMARKER_DONE", flush=True)
 
 
