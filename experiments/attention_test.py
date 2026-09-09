@@ -27,12 +27,14 @@ from models.architectures import (CrossStreamAttention, DescriptorFusion,
                                   TRUNKS, TwoStreamNet)
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import precision_recall_fscore_support
+from experiments._resume import resume_load, resume_save
 
 SPLITS, TL = 20, 64
 
 def run(name, spec, desc, traj, y, key, kind):
     nd = desc.shape[1]
     packed = np.hstack([spec, desc, traj])
+    res, done = resume_load(f"attention_{kind}", (kind,))
     if kind == "twostream":
         mk1 = lambda: TwoStreamNet(Spectrum1DCNN(NBIN, 3, ch=8), TRUNKS["cnn"],
                                    8*2*4, NBIN, nd, TL)
@@ -42,8 +44,9 @@ def run(name, spec, desc, traj, y, key, kind):
     elif kind == "cross":
         mk1 = lambda: CrossStreamAttention(NBIN, nd, TL)
     mk2 = lambda: ResidualTCN(NBIN, num_classes=3, ch=16)
-    out = []
     for sp in range(SPLITS):
+        if sp in done:
+            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                       random_state=sp).split(packed, key))
         t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
@@ -58,8 +61,9 @@ def run(name, spec, desc, traj, y, key, kind):
             pt_l.append(np.mean([a[1] for a in r],0))
         pv, pt = np.mean(pv_l,0), np.mean(pt_l,0)
         pred = (np.log(pt+1e-12) + tune_offsets(pv, y[va])).argmax(1)
-        out.append(score(y[te], pred))
-    a = np.array(out); m, s = a.mean(0), a.std(0)
+        res[kind].append(score(y[te], pred))
+        resume_save(f"attention_{kind}", res, sp)
+    a = np.array(res[kind]); m, s = a.mean(0), a.std(0)
     print(f"{name:>34}" + "".join(f"{m[i]:>9.3f}" for i in range(5))
           + "  |" + "".join(f"{s[i]:>7.3f}" for i in range(5)), flush=True)
     return a
@@ -67,6 +71,21 @@ def run(name, spec, desc, traj, y, key, kind):
 def main():
     torch.set_num_threads(1)
     spec, desc, traj, n_ch, y, key = assemble(axis_mode="mean", n_out=TL)
+
+    # Assert-first (fragility_audit.md): a comparison is only meaningful if the
+    # baseline arm reproduces the reported pipeline. estimator_smoothing carried
+    # a stale duplicate of the frequency-axis bug for three weeks and nobody
+    # noticed until its own assert fired.
+    import experiments.final_model as _FM
+    _d = _FM.build()
+    _dev = max(float(np.abs(spec - _d["SPEC"]["multitaper"]).max()),
+               float(np.abs(traj - _d["TRAJ"]).max()),
+               float(np.abs(desc - np.hstack([_d["DESC"], _d["ASYM"],
+                                              _d["HAVE"]])).max()))
+    print(f"reconstruction check vs build(): max|diff| = {_dev:.2e}  "
+          f"{'OK' if _dev < 1e-12 else 'MISMATCH -- comparisons are invalid'}")
+    assert _dev < 1e-12, "assemble() does not reproduce build()"
+
     npar = lambda m: sum(p.numel() for p in m.parameters())
     print(f"n={len(y)}  params: Spectrum1DCNN "
           f"{npar(Spectrum1DCNN(NBIN,3,ch=8))/1000:.1f}k  SpectrumTransformer "
