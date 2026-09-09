@@ -26,6 +26,11 @@ python -m experiments.inhouse_axes      # rotation-invariant axis features in-ho
 
 ## Headline results
 
+New exploratory candidate: [paired scattering benchmark](reports/scattering_benchmark.md).
+It did not improve the retrained reference on PADS; the baseline is unchanged.
+Run with `python -m experiments.scattering_benchmark --cohort pads --output artifacts/scattering_pads_seed0`
+after installing `requirements-scattering.txt`. This is not the merged headline protocol.
+
 **Read the in-house and merged numbers separately.** They differ sharply, and
 the merged figures do not describe in-house patients
 (`reports/own_data_reality_check.md`).

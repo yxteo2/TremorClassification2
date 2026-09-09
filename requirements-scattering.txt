@@ -1,0 +1,2 @@
+# Install alongside the repository's core requirements.
+kymatio==0.3.0
