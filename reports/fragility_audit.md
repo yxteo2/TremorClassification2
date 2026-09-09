@@ -85,6 +85,39 @@ than any effect-size heuristic, and it is checkable in seconds rather than hours
 
     Re-run order for the rest: assert first, effect size second.
 
+## Triage of the remaining queue — assert first, and it comes back clean
+
+Applying the corrected rule to the four families still queued, by tracing each
+report back through `INDEX.md` to the experiments that produce it:
+
+| report | experiment | feature source |
+|---|---|---|
+| `cohort_id_input.md` | `cohort_id_input`, `ensemble_diversity`, `headline_audit` | **uses `build()`** — canonical |
+| `time_domain_deep.md` | `analytic_if_control` | **uses `build()`** — canonical |
+| `tf_window_length.md` | `shortwindow_twostage` | **uses `build()`** — canonical |
+| `tf_window_length.md` | `axis_specific_inputs` | rebuilds, **has a bit-exactness assert** |
+| `tf_window_length.md` | `shortwindow_binary_deep` | rebuilds via canonical `method_table` |
+| `catch22_waveform_features.md` | `catch22_family`, `catch22_hybrid` | waveform features, never touches the spectrum |
+
+**No second stale duplicate of a transform exists.** `estimator_smoothing` was
+the only one, confirmed twice over: by a sweep of every `apply_multitaper` /
+`apply_sst` caller (three — the two fixed, and `axis_fix_audit` which uses the
+old axis deliberately as its A/B arm), and by this per-experiment trace.
+
+The triage did find a **second duplicated implementation**, though a benign one:
+`tf_window_control.logbin_n` is a copy of `common.cohorts.logbin`, used by three
+experiments. `logbin` was itself fixed once — the old version reshaped and
+silently dropped the remainder, costing 21 % of the band on the 61-column welch
+path — and the copy would not have followed. **They are currently identical**
+(max|diff| 0.0 at every width and bin count tested), so nothing is wrong today.
+`verify_preprocessing.py` check 43 now holds them together, as check 42 does for
+`mt_variant`.
+
+**So the remaining queue carries only effect-size fragility, not wrong features.**
+That cannot be triaged — it needs the re-runs — but it is a much smaller worry
+than a stale duplicate, and the one re-run done so far (estimator smoothing)
+found the duplicate rather than the fragility.
+
 ## The queue, if the fragility proves systematic
 
 In descending order of how much rests on them:

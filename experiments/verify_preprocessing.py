@@ -178,6 +178,18 @@ check("mt_variant reproduces METHODS['multitaper'] exactly (no duplicate drift)"
       f"max|df| {np.abs(_fa - _fb).max():.1e}  max|dP| {np.abs(_Pa - _Pb).max():.1e}"
       if len(_fa) == len(_fb) else f"axis lengths {len(_fa)} vs {len(_fb)}")
 
+# ---------- (m) the second duplicated implementation ----------
+# `tf_window_control.logbin_n` is a copy of `common.cohorts.logbin`. logbin was
+# itself fixed once (the old version reshaped and silently dropped the
+# remainder, losing 21 % of the band on the 61-column welch path), and the copy
+# would not have followed. Same hazard as mt_variant, currently in sync.
+from common.cohorts import logbin as _logbin
+from experiments.tf_window_control import logbin_n as _logbin_n
+_R = np.random.default_rng(0).random((7, 61)) + 0.01
+_dd = max(float(np.abs(_logbin(_R, nb) - _logbin_n(_R, nb)).max()) for nb in (8, 16))
+check("logbin_n reproduces common.logbin exactly (no duplicate drift)",
+      _dd == 0.0, f"max|diff| {_dd:.1e} on the 61-column welch width")
+
 n_fail = sum(not ok for _, ok in res)
 print(f"\n{len(res)} checks, {n_fail} failed")
 print("MARKER_DONE", flush=True)

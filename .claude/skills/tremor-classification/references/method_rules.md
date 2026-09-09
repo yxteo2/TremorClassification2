@@ -81,6 +81,15 @@ second** — and `verify_preprocessing.py` check 42 now tests reimplementations
 against the canonical estimator on every run, because an assert inside an
 experiment only fires when someone re-runs that experiment.
 
+**Duplicated implementations are the hazard; `verify_preprocessing` checks 42
+and 43 hold the two known ones to their originals.** `estimator_smoothing.mt_variant`
+copies the multitaper path and kept the axis bug for three weeks;
+`tf_window_control.logbin_n` copies `logbin`, which was itself fixed once (the
+old version dropped 21 % of the band on the welch path) — that copy is currently
+identical but would not have followed. A sweep plus a per-experiment trace found
+no others. **Prefer calling the canonical function to copying it, and if you copy
+it, add the equality check in the same commit.**
+
 **The fragility is not one experiment's — it is a class.** `fragility_audit.md`
 enumerates it: 32 pre-fix reports carry a significant claim, 25 have one under
 0.04, and **four closed families rest entirely on effects inside that band**
