@@ -1,5 +1,14 @@
 # Attention on the frequency axis: the fair test, and it is null
 
+> **Correction to this report's own framing.** It was written as though small
+> attention had never been reported here. It had: `frozen_vit.md` carries the
+> same two arms under "Small attention on the current input: also no". What is
+> new below is that those numbers were **pre-fix**, and this re-runs them after
+> the axis / Q-factor / IF-trajectory corrections — so this is a *confirmation*,
+> not a first test, and it is one of the `fragility_audit.md` re-runs done in
+> passing. The deltas match closely (pre-fix −0.012 / −0.019 macroP; post-fix
+> −0.011 / −0.013), while both baselines moved with the fixes (0.660 → 0.646).
+
 ## Why this needed running
 
 Attention had been dismissed here twice, and **neither test was fair to it**:
