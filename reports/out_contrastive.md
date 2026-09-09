@@ -59,3 +59,47 @@ metrics and 2000 paired patient-bootstrap intervals are recorded. Fixed-predicti
 intervals exclude full retraining and historical model-selection uncertainty.
 This remains exploratory on previously investigated patients. No production
 model is changed. Source checkpoints and patient-level outputs stay uncommitted.
+
+## Completed results
+
+| Method | Accuracy | Macro-F1 | ET precision | ET recall |
+|---|---:|---:|---:|---:|
+| Spectral logistic | .675 | .596 | .233 | .467 (7/15) |
+| Frozen random encoder, three-seed mean | .715 | .599 | .250 | .267 (4/15) |
+| Frozen contrastive encoder, three-seed mean | .695 | .610 | .300 | .400 (6/15) |
+| Fixed half spectral/contrastive fusion | .669 | .586 | .261 | .400 (6/15) |
+
+Primary contrastive-minus-random macro-F1 difference **+.011**, paired 95%
+interval **[-.103,+.126]**. Contrastive-minus-spectral difference **+.013**,
+interval **[-.071,+.094]**. Fusion-minus-spectral difference **-.010**,
+interval **[-.084,+.056]**. No reliable improvement is established.
+
+The contrastive recipe improves observed ET precision versus spectral (.300 vs
+.233) while losing one ET true positive (6 vs 7). It improves ET recall versus
+the frozen random control, but not consistently across individual seeds:
+
+| Seed | Random macro-F1 | Contrastive macro-F1 |
+|---|---:|---:|
+| 0 | .608 | .540 |
+| 1 | .515 | .609 |
+| 2 | .526 | .577 |
+
+Source training loss decreases for every seed (approximately 2.59–2.89 initially
+to 1.52–1.56 finally). Optimizing the pretext task therefore does not by itself
+establish an improvement in diagnosis. The ensemble was fixed before running;
+none of these seeds was selected for its score.
+
+The spectral control's aggregate metrics and confusion matrix exactly reproduce
+PR #7. Verified 151 unique outer-test patient IDs, disjoint train/validation/test
+sets and source IDs, and finite normalized probabilities for all four arms.
+Three new tests passed. The prior fold probabilities were not available in this
+session, so identical individual baseline probabilities are not asserted.
+
+Decision: keep this as a research candidate; do not promote it over the spectral
+baseline. The matched random control explains why a better frozen representation
+score alone cannot be credited to pretraining. Both random and pretrained arms
+now use mean/log-variance pooling; their changes from PR #7 cannot be attributed
+to the contrastive loss alone. Keep OUT only and all valid patients for follow-up.
+
+Aggregate metrics, individual seed results, losses and intervals are in
+[out_contrastive_summary.json](out_contrastive_summary.json).
