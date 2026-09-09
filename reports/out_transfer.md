@@ -70,3 +70,37 @@ patient pooling and independent embedding computation. Bootstrap intervals use
 retraining and historical model-selection uncertainty. All data have previously
 been explored; this is not prospective validation. The previous .642 macro-F1
 used OUT+REST and different patients/training splits and is not this control.
+
+## Completed five-fold results
+
+| Method | Accuracy | Macro-F1 | ET precision | ET recall |
+|---|---:|---:|---:|---:|
+| Spectral logistic | .675 | .596 | .233 | .467 (7/15) |
+| Temporal encoder from scratch | .702 | .573 | .188 | .200 (3/15) |
+| Pretrained frozen encoder | .536 | .428 | .200 | .267 (4/15) |
+| Pretrained, last-block adaptation | .219 | .194 | .068 | .533 (8/15) |
+
+Primary frozen-minus-scratch macro-F1: **-.145**, paired fixed-prediction 95%
+interval **[-.260,-.029]**. Last-block adaptation minus scratch: **-.379**,
+interval **[-.468,-.294]**. Both are negative under this pilot protocol.
+The last-block arm makes 118 ET predictions, only eight correct; its higher ET
+recall is therefore not an improvement. It predicts no normal patients.
+
+The spectral baseline has the highest macro-F1 and ET precision/recall balance
+among these four arms, while the scratch encoder has higher overall accuracy.
+No formal paired comparison between spectral and scratch was predeclared here.
+Do not replace the single-action spectral baseline on these results.
+
+Interpretation is narrow: source-only masked reconstruction on 56 NewData
+patients did not yield useful transfer under these optimizer, scaling and
+adaptation choices. This does not settle transfer from a large pretrained
+sensor model, TS2Vec, other pretext tasks or more extensive fine-tuning. The
+fine-tuning failure could involve representation, optimization or domain
+mismatch; this experiment does not isolate the cause. Do not select a new seed
+to conceal this result. Any follow-up should be registered as a new experiment.
+
+Four unit tests passed. All 151 target patients have exactly one outer-test
+prediction per arm; all source patients are outside the target cohort. Aggregate
+metrics, confusion matrices, selected epochs and intervals are in
+[out_transfer_summary.json](out_transfer_summary.json). The source checkpoint,
+patient manifests and fold probabilities remain local uncommitted artifacts.

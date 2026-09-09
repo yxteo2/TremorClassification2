@@ -1,0 +1,197 @@
+{
+  "spectral": {
+    "accuracy": 0.6754966887417219,
+    "macro_f1": 0.596395887166236,
+    "precision": [
+      0.7647058823529411,
+      0.8113207547169812,
+      0.23333333333333334
+    ],
+    "recall": [
+      0.8524590163934426,
+      0.5733333333333334,
+      0.4666666666666667
+    ],
+    "support": [
+      61,
+      75,
+      15
+    ],
+    "confusion": [
+      [
+        52,
+        5,
+        4
+      ],
+      [
+        13,
+        43,
+        19
+      ],
+      [
+        3,
+        5,
+        7
+      ]
+    ]
+  },
+  "scratch": {
+    "accuracy": 0.7019867549668874,
+    "macro_f1": 0.5734378586436428,
+    "precision": [
+      0.7846153846153846,
+      0.7428571428571429,
+      0.1875
+    ],
+    "recall": [
+      0.8360655737704918,
+      0.6933333333333334,
+      0.2
+    ],
+    "support": [
+      61,
+      75,
+      15
+    ],
+    "confusion": [
+      [
+        51,
+        9,
+        1
+      ],
+      [
+        11,
+        52,
+        12
+      ],
+      [
+        3,
+        9,
+        3
+      ]
+    ]
+  },
+  "pretrained_frozen": {
+    "accuracy": 0.5364238410596026,
+    "macro_f1": 0.4279393329448948,
+    "precision": [
+      0.5309734513274337,
+      0.9444444444444444,
+      0.2
+    ],
+    "recall": [
+      0.9836065573770492,
+      0.22666666666666666,
+      0.26666666666666666
+    ],
+    "support": [
+      61,
+      75,
+      15
+    ],
+    "confusion": [
+      [
+        60,
+        0,
+        1
+      ],
+      [
+        43,
+        17,
+        15
+      ],
+      [
+        10,
+        1,
+        4
+      ]
+    ]
+  },
+  "pretrained_last_block": {
+    "accuracy": 0.2185430463576159,
+    "macro_f1": 0.19442123828088742,
+    "precision": [
+      0,
+      0.7575757575757576,
+      0.06779661016949153
+    ],
+    "recall": [
+      0,
+      0.3333333333333333,
+      0.5333333333333333
+    ],
+    "support": [
+      61,
+      75,
+      15
+    ],
+    "confusion": [
+      [
+        0,
+        1,
+        60
+      ],
+      [
+        0,
+        25,
+        50
+      ],
+      [
+        0,
+        7,
+        8
+      ]
+    ]
+  },
+  "protocol": {
+    "action": "OUT",
+    "target_counts": [
+      61,
+      75,
+      15
+    ],
+    "source_counts": [
+      27,
+      23,
+      6
+    ],
+    "seed": 0,
+    "source_pretraining": "NewData only, 30 epochs x 5 steps; 20% time masks, reconstruction MSE; no source labels",
+    "window": "3-15Hz,40Hz,4s nonoverlap,max8/patient; partial tails discarded, no padding",
+    "supervised": "same NewData plus target outer train in every arm; inner 20% target validation; 100 epochs, minimum validation weighted CE",
+    "primary": "pretrained_frozen minus scratch macro-F1; last-block adaptation secondary",
+    "notes": "Exploratory masked autoencoder pilot, not TS2Vec; source subjects assumed distinct from target; no patient exclusions by model errors"
+  },
+  "epochs": [
+    {
+      "scratch": 66,
+      "pretrained_last_block": 100
+    },
+    {
+      "scratch": 73,
+      "pretrained_last_block": 100
+    },
+    {
+      "scratch": 100,
+      "pretrained_last_block": 100
+    },
+    {
+      "scratch": 100,
+      "pretrained_last_block": 1
+    },
+    {
+      "scratch": 74,
+      "pretrained_last_block": 1
+    }
+  ],
+  "paired_macro_f1_95_vs_scratch": {
+    "pretrained_frozen": [
+      -0.2603286318939051,
+      -0.02925328834402462
+    ],
+    "pretrained_last_block": [
+      -0.46814521550819466,
+      -0.2941108653095695
+    ]
+  }
+}
