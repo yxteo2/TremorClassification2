@@ -43,6 +43,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `low_band_edge` | 2026-08-28 | `failed_predictions.md`, `low_band_edge.md` |
 | `masked_pretrain` | 2026-08-19 | `band_truncation.md`, `ssl_retraction.md` |
 | `mil_recordings` | 2026-08-19 | `mil_recordings.md`, `peak_aligned_average.md`, `task_averaging.md` |
+| `newdata_epoch_choice` | uncommitted | **none** |
 | `one_vs_rest` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `failed_predictions.md`, `one_vs_rest.md` |
 | `oneclass_paired` | 2026-08-19 | `oneclass_hybrid.md` |
 | `own_data_10et` | 2026-08-19 | `band_truncation.md`, `own_data_reality_check.md` |
@@ -75,8 +76,9 @@ An empty reports column means the study was run but never written up, or was sup
 | `tf_window_control` | 2026-08-20 | **none** |
 | `tf_window_paired` | 2026-08-20 | **none** |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
+| `verify_data` | uncommitted | **none** |
 | `verify_preprocessing` | 2026-09-08 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**73 experiments, 10 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `waveform_deep`
+**75 experiments, 12 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `newdata_epoch_choice`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `verify_data`, `waveform_deep`

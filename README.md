@@ -20,6 +20,7 @@ Two lines of work:
 python -m frequency.characteristics     # characteristics + frequency classification
 python -m experiments.final_model       # the merged deep model, paired vs baseline
 python -m experiments.verify_preprocessing  # every stage vs synthetic ground truth (exit = failures)
+python -m experiments.verify_data       # the REAL recordings: leakage, duplicates, units (exit = failures)
 python -m experiments.own_data_10et     # in-house patients, 10 ET per test set
 python -m experiments.inhouse_axes      # rotation-invariant axis features in-house
 ```
@@ -151,7 +152,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         73 runnable studies. The ones that carry a result:
+experiments/         75 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
