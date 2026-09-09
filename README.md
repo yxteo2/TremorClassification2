@@ -152,7 +152,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         75 runnable studies. The ones that carry a result:
+experiments/         76 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -177,7 +177,7 @@ experiments/         75 runnable studies. The ones that carry a result:
                      cite it, and names the unreported ones honestly. Regenerate
                      it with tools/gen_experiment_index.py; do not hand-edit.
 
-reports/             81 findings, including every retraction and a register
+reports/             82 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 

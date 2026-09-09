@@ -9,12 +9,12 @@ An empty reports column means the study was run but never written up, or was sup
 | `amplitude_contrast` | 2026-08-19 | `rest_postural_contrast.md`, `task_averaging.md` |
 | `analytic_deep` | 2026-08-20 | **none** |
 | `analytic_if_control` | 2026-08-20 | `time_domain_deep.md` |
-| `attention_test` | 2026-08-19 | **none** |
+| `attention_test` | 2026-09-09 | **none** |
 | `audio_techniques` | 2026-08-19 | `pcen_hpss.md` |
 | `axis_fix_audit` | 2026-09-02 | `failed_predictions.md` |
 | `axis_specific_inputs` | 2026-08-19 | `axis_specific_inputs.md`, `data_plan.md`, `tf_window_length.md` |
 | `balanced_bagging` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `binning` | 2026-08-19 | `band_truncation.md`, `deep_model_improvement.md`, `early_fusion_confirm.md`, `fragility_audit.md`, `spectral_representation.md` |
+| `binning` | 2026-08-19 | `band_truncation.md`, `deep_model_improvement.md`, `early_fusion_confirm.md`, `fragility_audit.md`, `newdata_epoch_choice.md`, `spectral_representation.md` |
 | `binning_deep` | 2026-08-19 | `band_truncation.md` |
 | `catch22_family` | 2026-08-20 | `catch22_waveform_features.md` |
 | `catch22_hybrid` | 2026-08-20 | `catch22_waveform_features.md` |
@@ -43,7 +43,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `low_band_edge` | 2026-08-28 | `failed_predictions.md`, `low_band_edge.md` |
 | `masked_pretrain` | 2026-08-19 | `band_truncation.md`, `ssl_retraction.md` |
 | `mil_recordings` | 2026-08-19 | `mil_recordings.md`, `peak_aligned_average.md`, `task_averaging.md` |
-| `newdata_epoch_choice` | uncommitted | **none** |
+| `newdata_epoch_choice` | 2026-09-09 | `failed_predictions.md` |
 | `one_vs_rest` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `failed_predictions.md`, `one_vs_rest.md` |
 | `oneclass_paired` | 2026-08-19 | `oneclass_hybrid.md` |
 | `own_data_10et` | 2026-08-19 | `band_truncation.md`, `own_data_reality_check.md` |
@@ -66,7 +66,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `shortwindow_binary_deep` | 2026-08-20 | `tf_window_length.md` |
 | `shortwindow_deep` | 2026-08-20 | **none** |
 | `shortwindow_twostage` | 2026-08-21 | `tf_window_length.md` |
-| `spectral_representation` | 2026-08-19 | `data_plan.md`, `riemann_axes.md`, `spectral_representation.md` |
+| `spectral_representation` | 2026-08-19 | `data_plan.md`, `newdata_epoch_choice.md`, `riemann_axes.md`, `spectral_representation.md` |
 | `ssl_leakage` | 2026-08-19 | `ssl_retraction.md` |
 | `ssl_matched` | 2026-08-19 | `ssl_retraction.md` |
 | `tabular_models` | 2026-08-19 | `resampling.md`, `tabular_models.md` |
@@ -75,10 +75,11 @@ An empty reports column means the study was run but never written up, or was sup
 | `tf_variability_screen` | 2026-08-20 | **none** |
 | `tf_window_control` | 2026-08-20 | **none** |
 | `tf_window_paired` | 2026-08-20 | **none** |
+| `time_axis_transformer` | 2026-09-09 | **none** |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
-| `verify_data` | uncommitted | **none** |
+| `verify_data` | 2026-09-09 | `newdata_epoch_choice.md` |
 | `verify_preprocessing` | 2026-09-08 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**75 experiments, 12 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `newdata_epoch_choice`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `verify_data`, `waveform_deep`
+**76 experiments, 11 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`

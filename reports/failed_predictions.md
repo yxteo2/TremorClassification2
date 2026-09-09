@@ -120,6 +120,8 @@ than two, and should be held that much more loosely.
 
 | 23 | the label-noise half of the ceiling would show up more strongly in the *confidence* statistic than in the agreement statistic, since being confidently wrong is easier to produce than two recordings independently landing on the same wrong class | `self_consistency_gate.md` | failed — agreement carried the whole result (A_wrong +0.179 above its control) while confidence separated by only ~0.05. It also exposed a design gap in my own experiment: the confidence columns were reported **without a matched control**, unlike the agreement columns, so they could not have been decisive in either direction. |
 
+| 24 | the whole-recording arm would be worst of the three, because NewData's raw 38 s captures are only 9.9 % in-band and mostly set-up motion | `newdata_epoch_choice.md` | failed — it **ties** (macroP 0.648 vs 0.646) and is marginally best on precPD and macroF1. The reasoning ignored that the pipeline **band-limits to 3-15 Hz before the model sees anything**, so out-of-band set-up motion was never a threat. A 6x range in in-band purity (0.118 / 0.571 / 0.697) moves macroP by 0.002. |
+
 ## Held
 
 | # | prediction | where | what happened |
@@ -137,6 +139,7 @@ than two, and should be held that much more loosely.
 | L | the tangent-space arm loses to the reported model, because six band-limited numbers cannot match a 16-bin spectrum | `riemann_axes.md` | held — macroP −0.009, precET −0.032. Weakly, though: the arm turned out to *substitute* for the descriptors rather than stand alone, and swapping ten descriptors for six covariance numbers costs only −0.009. |
 | M | neither account of the ceiling would win cleanly — A_wrong clearly above the same-class control but clearly below A_correct | `self_consistency_gate.md` | held, and closely — +0.179 above the control, +0.149 below A_correct, the two gaps nearly equal. Recorded in advance precisely so a mixed result could not be narrated afterwards as whichever answer suited the spending decision. |
 | N | PADS L/R self-agreement < 2015/NewData same-arm self-agreement, because the PADS pair spans two limbs and tremor is genuinely asymmetric | `self_consistency_gate.md` | held — 0.773 vs 0.882 on correctly classified patients, 0.643 vs 0.733 on misclassified ones |
+| O | the epoch rule would be null on the merged model, since NewData is 56 of 404 patients and 6 of 49 ET | `newdata_epoch_choice.md` | held — every performance column null. The one significant cell is `steady`'s nETpred −2.10 [−4.05, −0.55] \*, which is a threshold shift (recET −0.050, precET +0.036), not a gain. |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
 
 Prediction K is the cheapest thing in this register. It closed a published
