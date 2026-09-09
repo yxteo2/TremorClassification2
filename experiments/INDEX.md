@@ -9,7 +9,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `amplitude_contrast` | 2026-08-19 | `rest_postural_contrast.md`, `task_averaging.md` |
 | `analytic_deep` | 2026-08-20 | **none** |
 | `analytic_if_control` | 2026-08-20 | `time_domain_deep.md` |
-| `attention_test` | 2026-09-09 | **none** |
+| `attention_test` | 2026-09-09 | `attention_fair_test.md` |
 | `audio_techniques` | 2026-08-19 | `pcen_hpss.md` |
 | `axis_fix_audit` | 2026-09-02 | `failed_predictions.md` |
 | `axis_specific_inputs` | 2026-08-19 | `axis_specific_inputs.md`, `data_plan.md`, `tf_window_length.md` |
@@ -27,7 +27,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `descriptor_trajectory_fix` | 2026-09-02 | `contested_profile.md`, `failed_predictions.md`, `peak_aligned_average.md` |
 | `early_fusion_confirm` | 2026-08-19 | `early_fusion_confirm.md`, `headline_audit.md`, `tcn_fusion.md` |
 | `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
-| `estimator_smoothing` | 2026-09-08 | `estimator_smoothing.md`, `failed_predictions.md`, `fragility_audit.md` |
+| `estimator_smoothing` | 2026-09-08 | `attention_fair_test.md`, `estimator_smoothing.md`, `failed_predictions.md`, `fragility_audit.md` |
 | `family_inversion` | 2026-08-19 | `permutation_null.md` |
 | `fewshot_oneclass` | 2026-08-19 | **none** |
 | `final_model` | 2026-08-19 | `band_truncation.md`, `contested_specialists.md`, `final_model.md` |
@@ -82,4 +82,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**76 experiments, 11 with no report:** `analytic_deep`, `attention_test`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`
+**76 experiments, 10 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`

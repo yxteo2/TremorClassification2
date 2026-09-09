@@ -47,6 +47,7 @@ table.
 | TCN on the raw waveform / on analytic channels | −0.034 \* / −0.076 \* (precET −0.192 \*) | `time_domain_deep.md` |
 | HHT / hht_imf2plus | worst of the estimators | `signal_processing_summary.md` |
 | ImageNet backbones, frozen ViT | at chance | `frozen_vit.md`, `pretrained_backbones.md` |
+| **small attention, the FAIR test** — SpectrumTransformer 17.3 k, CrossStreamAttention 4.9 k, on the current 16-bin input and 404-patient cohort | null, both slightly negative (macroP −0.011 / −0.013). **The size story is the point**: 85.8 M → chance, 17.3 k → within 0.011 of the CNN, **0.7 k CNN → best**. A 16-bin sequence is shorter than a 2-layer kernel-5 receptive field, so there is no long-range structure for attention to add. Open: the transformer roughly halves sd(precET) 0.210 → 0.120, but `nETpred` was not scored so conservatism is not excluded | `attention_fair_test.md` |
 | catch22 hybrid | AUC +0.014 \* but precET −0.028 \* — rank-averaging dilutes the top of the ranking | `catch22_waveform_features.md` |
 | MiniRocket/ROCKET on the waveform | macroP −0.088 \* and −0.085 \*; **worse than the learned TCN on the same input** (0.555 vs 0.626); fusion null with validation choosing weight 0 in 10/20 splits | `rocket_waveform.md` |
 | training-time logit adjustment (Menon et al.) | null at 40 splits — τ=0.5 macroP +0.012 [−0.003, +0.027], and the effect halved on doubling from 20 splits while the precET win rate fell to 0.42 | `logit_adjustment.md` |
