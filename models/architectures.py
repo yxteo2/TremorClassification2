@@ -838,11 +838,19 @@ class ConvTimeTransformer(nn.Module):
 
     Sized for 404 patients: ~10-20 k parameters, the band this cohort peaks in,
     not the 1e6+ of a sequence transformer built for long text.
+
+    ``pos_enc=False`` drops the sinusoidal position encoding, making the network
+    **permutation-invariant over frames** -- a bag-of-frames model. That option
+    exists because shuffling the frames turned out to *beat* the ordered model
+    (`time_axis_transformer.md`): temporal order carries nothing here, while the
+    frame *distribution* does, and a model that cannot see order is the
+    principled way to exploit that rather than relying on a random shuffle.
     """
 
     def __init__(self, n_bins, n_frames, num_classes=3, d=32, n_heads=4,
-                 n_layers=2, ff=64, dropout=0.2, ch=8):
+                 n_layers=2, ff=64, dropout=0.2, ch=8, pos_enc=True):
         super().__init__()
+        self.pos_enc = pos_enc
         self.stem = nn.Sequential(
             nn.Conv1d(1, ch, 5, padding=2), nn.ReLU(),
             nn.Conv1d(ch, ch, 3, padding=1), nn.ReLU(),
@@ -868,5 +876,7 @@ class ConvTimeTransformer(nn.Module):
         """x: (batch, n_frames, n_bins) — a per-frame spectrum sequence."""
         b, t, f = x.shape
         h = self.stem(x.reshape(b * t, 1, f)).reshape(b, t, -1)
-        h = self.proj(h) + self.pos[:t][None]
+        h = self.proj(h)
+        if self.pos_enc:
+            h = h + self.pos[:t][None]
         return self.head(self.enc(h).mean(1))

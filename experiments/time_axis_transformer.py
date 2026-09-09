@@ -47,9 +47,35 @@ structure being tested across recordings that are not time-aligned — that woul
 have handicapped arm B and made its null uninformative. Splits stay
 patient-disjoint: every recording of a patient sits in one fold.
 
+## Arm D, added after the first run — and why
+
+The first run inverted the control. **B tied A exactly** (macroP 0.608 both), and
+**C, with temporal order destroyed, beat both**: macroP +0.027 [+0.005, +0.052] \*
+and precET +0.052 [+0.013, +0.093] \* over A.
+
+The reading: scrambling each recording's frames with its own permutation makes
+the position encoding carry no consistent information, so the network is forced
+to learn a **permutation-invariant, bag-of-frames** function. That beats both the
+ordered model *and* the time-average — which says the frame **distribution**
+carries something the mean does not, while the frame **order** carries nothing.
+
+If that is right, a model that simply *cannot* see order should match C without
+needing a shuffle. **Arm D is `ConvTimeTransformer(pos_enc=False)`**, verified
+permutation-invariant to 1.2e-07. It is the principled version of C.
+
+    D ~ C   -> mechanism confirmed; D is what to adopt, being deterministic
+    D < C   -> the shuffle is doing something other than removing order
+               (regularisation through per-split input noise), and C is not a
+               model, it is an augmentation
+
 ## Prediction, recorded before the run
 
-**B ties A, and C ties B.** The prior is unfavourable and worth stating plainly:
+**(Run 1) B ties A, and C ties B.** Half right: B tied A exactly, and C did
+not tie — it beat both. **(Run 2, for arm D) D matches C to within noise**,
+because the mechanism above says the shuffle's only effect is to disable
+position, which is exactly what `pos_enc=False` does deliberately.
+
+The original prior is left below unedited. It was unfavourable and worth stating plainly:
 four separate attempts to exploit the time axis have been null or worse, and
 `window_vs_patient_level.md` measured that *aggregating over time helps* — the
 average is a denoiser, and this replaces it with something that must learn the
@@ -85,7 +111,7 @@ NM = ("precN", "precPD", "precET", "macroP", "macroF1", "recET", "nETpred")
 SPLITS, SEEDS = 20, (0, 1, 2)
 N_FRAMES = 46           # min across cohorts at hop 0.16 s is 47 (NewData)
 ARMS = ("A: CNN on P.mean(0)", "B: conv+time-transformer",
-        "C: B, frames SHUFFLED")
+        "C: B, frames SHUFFLED", "D: B, NO position encoding")
 
 
 def frame_stack(x):
@@ -172,6 +198,10 @@ def main():
         for arm in ARMS:
             if arm.startswith("A"):
                 Z, mk = Aflat, (lambda: Spectrum1DCNN(NBIN, 3, ch=8))
+            elif arm.startswith("D"):
+                Z = X
+                mk = (lambda: ConvTimeTransformer(NBIN, N_FRAMES, 3, d=32,
+                                                  pos_enc=False))
             else:
                 Z = X if arm.startswith("B") else Xs
                 mk = (lambda: ConvTimeTransformer(NBIN, N_FRAMES, 3, d=32))
