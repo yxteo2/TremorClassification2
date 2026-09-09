@@ -811,3 +811,62 @@ class CrossStreamAttention(nn.Module):
         if dsc is not None:
             h = torch.cat([h, self.desc(dsc)], dim=1)
         return self.head(h)
+
+
+class ConvTimeTransformer(nn.Module):
+    """Conv over FREQUENCY, transformer over TIME — the axis the pipeline deletes.
+
+    Every spectral model in this project consumes ``P.mean(0)``: the
+    time-frequency surface averaged over its 49-81 frames *before* the model
+    sees anything. So no model here has ever had a temporal sequence to reason
+    about, and the two standard objections to a CNN — that it cannot reach
+    long-range structure, and that a recurrent net forgets the middle — have
+    never applied, because the sequence it is given is **16 frequency bins**.
+
+    They apply to the time axis. This is the architecture that tests it:
+
+        per frame   1-D convolution over the 16 log bins  -> frame embedding
+        over frames transformer with sinusoidal positions -> temporal structure
+        pool        mean over frames -> classifier
+
+    The mechanism it is meant to capture is amplitude modulation — tremor waxing
+    and waning, measured in this project at 0.05-5 Hz (``ampmod_features``) —
+    and burst/intermittency structure, which a time-average destroys by
+    construction. `pcen_hpss.md` established that class information sits in the
+    *sustained* component; sustained-vs-transient is a two-way split, and this
+    can express more than that.
+
+    Sized for 404 patients: ~10-20 k parameters, the band this cohort peaks in,
+    not the 1e6+ of a sequence transformer built for long text.
+    """
+
+    def __init__(self, n_bins, n_frames, num_classes=3, d=32, n_heads=4,
+                 n_layers=2, ff=64, dropout=0.2, ch=8):
+        super().__init__()
+        self.stem = nn.Sequential(
+            nn.Conv1d(1, ch, 5, padding=2), nn.ReLU(),
+            nn.Conv1d(ch, ch, 3, padding=1), nn.ReLU(),
+            nn.AdaptiveAvgPool1d(4))
+        self.proj = nn.Linear(ch * 4, d)
+        self.register_buffer("pos", self._sinusoidal(n_frames, d))
+        layer = nn.TransformerEncoderLayer(d, n_heads, ff, dropout,
+                                           batch_first=True)
+        self.enc = nn.TransformerEncoder(layer, n_layers)
+        self.head = nn.Sequential(nn.LayerNorm(d), nn.Dropout(dropout),
+                                  nn.Linear(d, num_classes))
+
+    @staticmethod
+    def _sinusoidal(n, d):
+        pos = torch.arange(n).float()[:, None]
+        i = torch.arange(0, d, 2).float()[None, :]
+        ang = pos / torch.pow(10000.0, i / d)
+        pe = torch.zeros(n, d)
+        pe[:, 0::2], pe[:, 1::2] = torch.sin(ang), torch.cos(ang)
+        return pe
+
+    def forward(self, x):
+        """x: (batch, n_frames, n_bins) — a per-frame spectrum sequence."""
+        b, t, f = x.shape
+        h = self.stem(x.reshape(b * t, 1, f)).reshape(b, t, -1)
+        h = self.proj(h) + self.pos[:t][None]
+        return self.head(self.enc(h).mean(1))
