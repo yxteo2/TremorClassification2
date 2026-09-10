@@ -75,11 +75,12 @@ An empty reports column means the study was run but never written up, or was sup
 | `tf_variability_screen` | 2026-08-20 | **none** |
 | `tf_window_control` | 2026-08-20 | `fragility_audit.md` |
 | `tf_window_paired` | 2026-08-20 | **none** |
-| `time_axis_transformer` | 2026-09-09 | **none** |
+| `time_axis_sweep` | 2026-09-10 | **none** |
+| `time_axis_transformer` | 2026-09-10 | `failed_predictions.md` |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
 | `verify_data` | 2026-09-09 | `newdata_epoch_choice.md`, `publication_plan.md` |
 | `verify_preprocessing` | 2026-09-09 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md`, `fragility_audit.md`, `publication_plan.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**76 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`
+**77 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`

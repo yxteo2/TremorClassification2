@@ -122,6 +122,8 @@ than two, and should be held that much more loosely.
 
 | 24 | the whole-recording arm would be worst of the three, because NewData's raw 38 s captures are only 9.9 % in-band and mostly set-up motion | `newdata_epoch_choice.md` | failed — it **ties** (macroP 0.648 vs 0.646) and is marginally best on precPD and macroF1. The reasoning ignored that the pipeline **band-limits to 3-15 Hz before the model sees anything**, so out-of-band set-up motion was never a threat. A 6x range in in-band purity (0.118 / 0.571 / 0.697) moves macroP by 0.002. |
 
+| 25 | the conv+time-transformer would tie the time-averaged CNN, and the frame-shuffle control would tie it too | `time_axis_transformer.md` | **half right, and the wrong half was the interesting one.** B tied A to three decimals (macroP 0.608 both) — temporal order carries nothing, as predicted. But C, with order destroyed, **beat** both: macroP +0.027 [+0.005, +0.052] \*, precET +0.052 [+0.013, +0.093] \*. The shuffle was designed as a sanity check and became the result. |
+
 ## Held
 
 | # | prediction | where | what happened |
@@ -141,6 +143,7 @@ than two, and should be held that much more loosely.
 | N | PADS L/R self-agreement < 2015/NewData same-arm self-agreement, because the PADS pair spans two limbs and tremor is genuinely asymmetric | `self_consistency_gate.md` | held — 0.773 vs 0.882 on correctly classified patients, 0.643 vs 0.733 on misclassified ones |
 | O | the epoch rule would be null on the merged model, since NewData is 56 of 404 patients and 6 of 49 ET | `newdata_epoch_choice.md` | held — every performance column null. The one significant cell is `steady`'s nETpred −2.10 [−4.05, −0.55] \*, which is a threshold shift (recET −0.050, precET +0.036), not a gain. |
 | P | small attention on the current input would be null or slightly negative, but **not catastrophic** the way the 85 M backbones were, because 17 k parameters sits in the band this cohort peaks in | `attention_fair_test.md` | held on both halves — SpectrumTransformer macroP −0.011 [−0.046, +0.021], CrossStreamAttention −0.013, both null; and 17.3 k reaches 0.635 where 85.8 M reached chance (AUC 0.540). Attention is not the problem; scale was. |
+| Q | `pos_enc=False` (arm D) would match the frame-shuffle arm to within noise, since the shuffle's only effect should be to disable position | `time_axis_transformer.md` | **satisfied in the letter, empty in substance.** D vs C is null on every column (macroP −0.014 [−0.042, +0.015]) — but the two are 0.014 apart against a 0.040 resolution, so "within noise" holds only because the noise exceeds the difference under test. The experiment cannot separate "removing order" from "shuffle as augmentation". Same shape as the easy-drop prediction: a prediction can hold and tell you nothing. |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
 
 Prediction K is the cheapest thing in this register. It closed a published
