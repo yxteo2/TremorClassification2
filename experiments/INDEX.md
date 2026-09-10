@@ -8,16 +8,16 @@ An empty reports column means the study was run but never written up, or was sup
 | `alltasks_final` | 2026-09-04 | `mil_recordings.md`, `task_averaging.md` |
 | `amplitude_contrast` | 2026-08-19 | `rest_postural_contrast.md`, `task_averaging.md` |
 | `analytic_deep` | 2026-08-20 | **none** |
-| `analytic_if_control` | 2026-08-20 | `time_domain_deep.md` |
+| `analytic_if_control` | 2026-08-20 | `fragility_audit.md`, `time_domain_deep.md` |
 | `attention_test` | 2026-09-09 | `attention_fair_test.md` |
 | `audio_techniques` | 2026-08-19 | `pcen_hpss.md` |
-| `axis_fix_audit` | 2026-09-02 | `failed_predictions.md` |
-| `axis_specific_inputs` | 2026-08-19 | `axis_specific_inputs.md`, `data_plan.md`, `tf_window_length.md` |
+| `axis_fix_audit` | 2026-09-02 | `failed_predictions.md`, `fragility_audit.md` |
+| `axis_specific_inputs` | 2026-08-19 | `axis_specific_inputs.md`, `data_plan.md`, `fragility_audit.md`, `tf_window_length.md` |
 | `balanced_bagging` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
 | `binning` | 2026-08-19 | `band_truncation.md`, `deep_model_improvement.md`, `early_fusion_confirm.md`, `fragility_audit.md`, `newdata_epoch_choice.md`, `spectral_representation.md` |
 | `binning_deep` | 2026-08-19 | `band_truncation.md` |
-| `catch22_family` | 2026-08-20 | `catch22_waveform_features.md` |
-| `catch22_hybrid` | 2026-08-20 | `catch22_waveform_features.md` |
+| `catch22_family` | 2026-08-20 | `catch22_waveform_features.md`, `fragility_audit.md` |
+| `catch22_hybrid` | 2026-08-20 | `catch22_waveform_features.md`, `fragility_audit.md` |
 | `cohort_id_input` | 2026-08-28 | `cohort_id_input.md`, `failed_predictions.md`, `fragility_audit.md` |
 | `combined_best` | 2026-08-19 | `early_fusion_confirm.md`, `spectral_representation.md`, `tcn_fusion.md` |
 | `contested_gating` | 2026-08-27 | `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `failed_predictions.md` |
@@ -26,13 +26,13 @@ An empty reports column means the study was run but never written up, or was sup
 | `cv_null` | 2026-08-19 | `permutation_null.md` |
 | `descriptor_trajectory_fix` | 2026-09-02 | `contested_profile.md`, `failed_predictions.md`, `peak_aligned_average.md` |
 | `early_fusion_confirm` | 2026-08-19 | `early_fusion_confirm.md`, `headline_audit.md`, `tcn_fusion.md` |
-| `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
+| `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `fragility_audit.md`, `pooling_rules.md` |
 | `estimator_smoothing` | 2026-09-08 | `attention_fair_test.md`, `estimator_smoothing.md`, `failed_predictions.md`, `fragility_audit.md` |
 | `family_inversion` | 2026-08-19 | `permutation_null.md` |
 | `fewshot_oneclass` | 2026-08-19 | **none** |
 | `final_model` | 2026-08-19 | `band_truncation.md`, `contested_specialists.md`, `final_model.md` |
-| `frozen_backbone` | 2026-08-19 | `frozen_vit.md` |
-| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `headline_audit.md`, `logit_adjustment.md` |
+| `frozen_backbone` | 2026-09-09 | `frozen_vit.md` |
+| `headline_audit` | 2026-08-23 | `axis_fix_audit.md`, `cohort_id_input.md`, `contested_specialists.md`, `fragility_audit.md`, `headline_audit.md`, `logit_adjustment.md` |
 | `influence_prune` | 2026-08-26 | `balanced_bagging.md`, `failed_predictions.md`, `influence_stable.md` |
 | `influence_stable` | 2026-08-27 | `influence_prune.md` |
 | `inhouse_axes` | 2026-08-19 | `band_truncation.md` |
@@ -63,9 +63,9 @@ An empty reports column means the study was run but never written up, or was sup
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
 | `selection_and_calibration` | 2026-08-19 | **none** |
 | `self_consistency_gate` | 2026-09-05 | `failed_predictions.md` |
-| `shortwindow_binary_deep` | 2026-08-20 | `tf_window_length.md` |
+| `shortwindow_binary_deep` | 2026-08-20 | `fragility_audit.md`, `tf_window_length.md` |
 | `shortwindow_deep` | 2026-08-20 | **none** |
-| `shortwindow_twostage` | 2026-08-21 | `tf_window_length.md` |
+| `shortwindow_twostage` | 2026-08-21 | `fragility_audit.md`, `tf_window_length.md` |
 | `spectral_representation` | 2026-08-19 | `data_plan.md`, `newdata_epoch_choice.md`, `riemann_axes.md`, `spectral_representation.md` |
 | `ssl_leakage` | 2026-08-19 | `ssl_retraction.md` |
 | `ssl_matched` | 2026-08-19 | `ssl_retraction.md` |
@@ -73,13 +73,13 @@ An empty reports column means the study was run but never written up, or was sup
 | `task_contrast` | 2026-08-19 | `rest_postural_contrast.md`, `task_averaging.md` |
 | `tcn_fusion` | 2026-08-19 | `early_fusion_confirm.md`, `failed_predictions.md`, `tcn_fusion.md` |
 | `tf_variability_screen` | 2026-08-20 | **none** |
-| `tf_window_control` | 2026-08-20 | **none** |
+| `tf_window_control` | 2026-08-20 | `fragility_audit.md` |
 | `tf_window_paired` | 2026-08-20 | **none** |
 | `time_axis_transformer` | 2026-09-09 | **none** |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
-| `verify_data` | 2026-09-09 | `newdata_epoch_choice.md` |
-| `verify_preprocessing` | 2026-09-08 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md` |
+| `verify_data` | 2026-09-09 | `newdata_epoch_choice.md`, `publication_plan.md` |
+| `verify_preprocessing` | 2026-09-09 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md`, `fragility_audit.md`, `publication_plan.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**76 experiments, 10 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_control`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`
+**76 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_transformer`, `waveform_deep`

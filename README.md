@@ -177,13 +177,20 @@ experiments/         76 runnable studies. The ones that carry a result:
                      cite it, and names the unreported ones honestly. Regenerate
                      it with tools/gen_experiment_index.py; do not hand-edit.
 
-reports/             83 findings, including every retraction and a register
+reports/             84 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
 The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
 
 ## Where the project stands
+
+**Publication direction: `reports/publication_plan.md`.** There is no
+performance contribution — the recommended paper is the self-consistency test
+that separates label noise from signal insufficiency, plus the power analysis
+showing why architecture work cannot pay off at n = 49 ET. One experiment (a
+synthetic label-noise calibration) is named there as the thing that makes it a
+Q1 claim rather than a heuristic.
 
 Seventy-three experiments have not moved the reported model past precET 0.654 /
 macroP 0.652, and the constraint has been measured rather than guessed:
