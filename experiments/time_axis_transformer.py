@@ -174,16 +174,24 @@ def main():
     print("prediction on record: B ties A, and C ties B; C is the informative "
           "arm\n", flush=True)
 
-    res, done = resume_load("time_axis_transformer", ARMS)
+    # Per-arm checkpoints. A single shared file is discarded whenever the arm
+    # list changes, so adding arm D would have thrown away A/B/C -- and the
+    # container reset that killed the 4-arm run would then have cost all four.
+    # `attention_test.py` already checkpoints this way; this follows it.
+    res, done = {}, {}
+    for a in ARMS:
+        r, dn = resume_load("time_axis_" + a.split(":")[0], (a,))
+        res[a], done[a] = r[a], dn
+
     for sp in range(SPLITS):
-        if sp in done:
-            continue
         tv, te = next(StratifiedShuffleSplit(1, test_size=TEST_FRAC,
                                              random_state=sp).split(y, key))
         t0, v0 = next(StratifiedShuffleSplit(1, test_size=VAL_FRAC,
                                              random_state=sp).split(y[tv],
                                                                     key[tv]))
         tr, va = tv[t0], tv[v0]
+        if all(sp in done[a] for a in ARMS):
+            continue
         rng = np.random.default_rng(7000 + sp)
         Xs = X.copy()
         for i in range(len(Xs)):                # permute frames, redrawn/split
@@ -196,6 +204,8 @@ def main():
             [pr[rec2pat[m] == p].mean(0) for p in idx])
 
         for arm in ARMS:
+            if sp in done[arm]:
+                continue
             if arm.startswith("A"):
                 Z, mk = Aflat, (lambda: Spectrum1DCNN(NBIN, 3, ch=8))
             elif arm.startswith("D"):
@@ -214,7 +224,7 @@ def main():
             pv = agg(np.mean([a[0] for a in r], 0), iva, va)
             pt = agg(np.mean([a[1] for a in r], 0), ite, te)
             res[arm].append(score(pt, tune_offsets(pv, y[va]), y[te]))
-        resume_save("time_axis_transformer", res, sp)
+            resume_save("time_axis_" + arm.split(":")[0], {arm: res[arm]}, sp)
         print(f"  split {sp + 1}/{SPLITS}", flush=True)
 
     R = {a: np.array(res[a]) for a in ARMS}
