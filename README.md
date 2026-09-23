@@ -54,7 +54,8 @@ prevalence; the axis gain is not significant at 21 ET patients.
 | model | precN | precPD | precET | macro P |
 |---|---|---|---|---|
 | welch baseline | 0.640 | 0.635 | 0.550 | 0.608 |
-| **multitaper + IF trajectory** | 0.648 | 0.654 | **0.654** | **0.652** |
+| multitaper + IF trajectory (6 members) | 0.648 | 0.654 | 0.654 | 0.652 |
+| **+ 3 SpectrumTransformer members (9)** | 0.650 | 0.658 | **0.694** | **0.667** |
 
 Paired **+0.044 [+0.020, +0.068] macro precision** and **+0.104 [+0.041, +0.169]
 ET precision** over the welch baseline, at **40 splits**, winning on 72 % of them
@@ -86,6 +87,24 @@ significance did not survive removing its transient end points.
 > **0.652** at 40 splits; **those are the figures to quote**. sd(precET) is 0.19,
 > so every figure between 0.65 and 0.69 quoted earlier in this project is the
 > same number under noise.
+
+> **The 9-member ensemble is the first change to survive 40 splits with a matched
+> control** (`reports/diverse_ensemble.md`): precET **+0.040 [+0.004, +0.074]** \*,
+> macroP +0.016 \*, macroF1 +0.016 \*. It was +0.067 at 20 splits, so **the effect
+> halved on doubling** and may shrink further. Roughly **half the gain is ensemble
+> size**: a matched control adding three more *seeds* reaches precET 0.662 alone.
+> Against that control only **macroF1 +0.017 \*** survives — precET +0.032 \* has a
+> lower bound of exactly 0 and a **win rate of 0.45**. So quote macroF1 as the
+> established gain and precET as suggestive, and describe it as "a larger, more
+> diverse ensemble" rather than "transformers help".
+
+### Selective prediction — what abstention buys
+
+macroP **0.734** at 60 % coverage (all three classes 0.72–0.75), referring 40 %
+for specialist review. **0.90 is not reached by any class at any coverage** —
+precET peaks at 0.753 then *collapses* to 0.448, because the surviving errors are
+high-confidence ones (`reports/selective_90.md`). Abstention cannot fix label
+noise.
 
 ### N vs Tremor — the one place >0.90 is reached
 
@@ -152,7 +171,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         78 runnable studies. The ones that carry a result:
+experiments/         79 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -177,7 +196,7 @@ experiments/         78 runnable studies. The ones that carry a result:
                      cite it, and names the unreported ones honestly. Regenerate
                      it with tools/gen_experiment_index.py; do not hand-edit.
 
-reports/             86 findings, including every retraction and a register
+reports/             87 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 

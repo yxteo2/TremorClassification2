@@ -77,6 +77,19 @@ mislabelled patients.**
 **Where 0.90 genuinely exists:** the N-vs-Tremor screen, 0.910 / 0.924 at full
 coverage. Quote that separately from PD-vs-ET — only the second is label-limited.
 
+## The one ensemble change that worked
+
+| tried | result | report |
+|---|---|---|
+| **+3 `SpectrumTransformer` members** (9 total, alongside the 6 incumbents) | **precET +0.040 [+0.004, +0.074] \*, macroP +0.016 \*, macroF1 +0.016 \* at 40 splits** — the first candidate in this project to survive doubling (it was +0.067 at 20). Against the matched **seed control**, macroF1 +0.017 \* survives, precET +0.032 \* has a lower bound of exactly 0 and a **win rate of 0.45**, macroP is null. **Adopt it; quote macroF1 as the established gain and precET as suggestive** | `diverse_ensemble.md` |
+| +3 bag-of-frames members | **harmful** — precET −0.058 \* vs baseline and −0.066 \* vs control. Combining with the transformer cancels the gain (union dilution, 17th instance) | `diverse_ensemble.md` |
+
+**Why this one worked when 6-seeds and balanced bagging did not:** those added
+*more of the same*; this adds a member that reads the input differently. About
+**half** the gain is still just ensemble size — the seed control alone reaches
+precET 0.662 — so the honest claim is "a larger, more diverse ensemble", not
+"transformers help".
+
 ## Task and structure
 
 | tried | result | report |
