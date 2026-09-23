@@ -114,7 +114,7 @@ from models.architectures import (ConvTimeTransformer, ResidualTCN,
                                   TwoStreamNet)
 
 NM = ("precN", "precPD", "precET", "macroP", "macroF1", "recET", "nETpred")
-SPLITS = 20
+SPLITS = 40   # raised from 20: the transformer arm cleared the baseline
 SEEDS = (0, 1, 2)
 EXTRA_SEEDS = (3, 4, 5)
 TL, N_FRAMES = 64, 46
