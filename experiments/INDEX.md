@@ -62,7 +62,8 @@ An empty reports column means the study was run but never written up, or was sup
 | `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
 | `score_ensemble` | 2026-08-19 | `score_vs_feature_fusion.md` |
 | `selection_and_calibration` | 2026-08-19 | **none** |
-| `self_consistency_gate` | 2026-09-05 | `failed_predictions.md` |
+| `selective_90` | 2026-09-23 | `failed_predictions.md` |
+| `self_consistency_gate` | 2026-09-05 | `failed_predictions.md`, `selective_90.md` |
 | `shortwindow_binary_deep` | 2026-08-20 | `fragility_audit.md`, `tf_window_length.md` |
 | `shortwindow_deep` | 2026-08-20 | **none** |
 | `shortwindow_twostage` | 2026-08-21 | `fragility_audit.md`, `tf_window_length.md` |
@@ -83,4 +84,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**77 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
+**78 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`

@@ -60,6 +60,23 @@ table.
 | **conv + transformer over the TIME axis** (the axis `P.mean(0)` deletes) | **temporal ORDER is closed**: the ordered model reproduces the time-average to three decimals (macroP 0.608 both). Destroying order beats it (+0.027 macroP \*), but the permutation-invariant version lands between (+0.013 n.s.) and the two are 0.014 apart against a 0.040 resolution — **the mechanism cannot be separated at this n**. Best arm 0.634 vs the reported 0.652, and against a *standalone* CNN baseline. Prefer the deterministic arm on win-rate consistency (0.70 vs 0.45 on precET) | `time_axis_transformer.md` |
 | **Riemannian tangent space** on the 3×3 band covariance (Barachant, *IEEE TBME* 2012) | null — and a **within-cohort shuffle of the same six columns scores as well** (+0.003 macroP each). Real orientation buys precPD +0.024 \* against the shuffle but +0.016 n.s. against the baseline: attribution positive, adoption null | `riemann_axes.md` |
 
+## Selective prediction / abstention — closed, for a measured reason
+
+| tried | result | report |
+|---|---|---|
+| abstain on low-confidence patients (margin and max-prob rules), coverage 1.0 → 0.2 | **0.90 is not reached by any class at any coverage.** macroP peaks at **0.734 at 0.6 coverage** (all three classes 0.72–0.75), then falls. Only precN is monotone (max 0.838 at 0.2 coverage = 16 patients); **precET peaks at 0.753 and collapses to 0.448** | `selective_90.md` |
+
+**Why it closes, and why that is worth more than the number:** abstention discards
+the *least confident* predictions, so if the residual errors were uncertain,
+precision would keep rising. It does not — **the surviving errors are confident
+ones**. That is the same population `self_consistency_gate.md` identified as
+*consistently wrong* (~54 % of errors). Two independent instruments agree:
+**abstention cannot fix label noise, because the model is confident on
+mislabelled patients.**
+
+**Where 0.90 genuinely exists:** the N-vs-Tremor screen, 0.910 / 0.924 at full
+coverage. Quote that separately from PD-vs-ET — only the second is label-limited.
+
 ## Task and structure
 
 | tried | result | report |
