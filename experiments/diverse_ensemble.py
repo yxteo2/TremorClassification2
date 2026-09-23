@@ -65,6 +65,31 @@ improvement, not a performance one, and must be reported as such.
 be separated from a model that simply predicts ET less often and more uniformly —
 the trap the epoch-selection run sprang (`newdata_epoch_choice.md`).
 
+## A second pre-registered reading, added while this was running
+
+Two unrelated interventions in this project land on the **identical** variance
+figure:
+
+    STAB replacing descriptors   precET sd 0.185 -> 0.120  (temporal_stability.md)
+    SpectrumTransformer          precET sd 0.210 -> 0.120  (attention_fair_test.md)
+
+That coincidence is explained by arithmetic rather than by either method working:
+
+    ET predictions per test fold          8.95  (measured)
+    precision granularity 1/nETpred       0.112
+    binomial sd at p = 0.654, n = 8.95    0.159
+
+**precET cannot have a standard deviation meaningfully below its own quantisation
+step of 0.112.** So sd = 0.120 is a *floor set by the ET count*, not a reduction
+earned by a method — and it sits *below* the binomial expectation of 0.159, which
+is what a model that predicts ET more uniformly would produce.
+
+**Prediction: the transformer arm's sd drop is conservatism.** If so, its
+`nETpred` is lower and less variable than the reported model's, and the variance
+"gain" should be reported as an artefact of the ET count. If instead `nETpred`
+holds while sd falls, that is a genuine stabilisation and worth having. The arms
+already score `nETpred`, so this run decides it without further work.
+
 20 splits, per-arm checkpoints. Run: ``python -m experiments.diverse_ensemble``
 """
 
