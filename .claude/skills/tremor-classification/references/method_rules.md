@@ -163,6 +163,17 @@ that only makes them not-yet-refuted, not useful.
 
 The check costs one diagnostic and needs no model.
 
+## Before calling consistent errors label noise, decompose them without the model
+
+The self-consistency gate bounded label noise at "up to ~55 % of errors",
+because consistently wrong = mislabelled ∪ atypical. Writing down *who* those
+patients were, then checking raw tremor amplitude (which the model never sees),
+split them: **43 of 62 were N↔PD with a physiological explanation**, and only 19
+had none. A bound on label noise from model behaviour alone is loose. **Use a
+model-independent physiological measurement to split the consistently-wrong set
+before it becomes a label-noise claim** — and for any 2015 cross-task join,
+strip the `_OUT` / `_REST` suffix from subject ids first.
+
 ## Predictions
 
 **Write the prediction in the docstring before launching; append the outcome to

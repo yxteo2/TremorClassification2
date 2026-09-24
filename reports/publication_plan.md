@@ -44,6 +44,25 @@ patients — those whose recordings agree with each other and disagree with the
 label. ~50–60 of 404 here: a tractable re-adjudication list rather than a full
 re-read.
 
+## Update: the list has been produced, and it changes the story for the better
+
+`readjudication_list.md` wrote down who the consistently-wrong patients are, and
+a **model-free** amplitude test decomposed them. **43 of 62 are N↔PD with a
+measured physiological explanation:** PD patients with no tremor in either the
+postural or the rest task, and controls with PD-level tremor. Only 19 (~5 % of
+the cohort) remain as label-error candidates.
+
+That makes a stronger paper than "about half the errors are label noise":
+
+> *Repeated recordings let a classifier's consistent errors be isolated, and raw
+> tremor amplitude, which the model never sees, decomposes them. Most of the
+> ceiling is phenotype–task mismatch — PD without tremor and controls with
+> tremor — and at most ~5 % of patients are unexplained candidates for label
+> error.*
+
+The synthetic calibration in §1 is still worth running; it now calibrates a
+two-part decomposition rather than a single bound.
+
 ## The two things that must be added before submission
 
 ### 1. Calibrate the gate against known label noise — **this is the paper**

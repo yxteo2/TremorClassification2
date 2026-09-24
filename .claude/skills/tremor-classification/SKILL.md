@@ -17,8 +17,8 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~87 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (27 failed, 19 held); `experiments/INDEX.md` maps
+`reports/` holds ~88 findings; `reports/failed_predictions.md` is the register of
+predictions made before the run (28 failed, 20 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -72,7 +72,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here (nineteen of nineteen); mechanism stories have failed 27 times.
+   have held here (twenty of twenty); mechanism stories have failed 28 times.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
     called PCEN's failure that a reasoned prediction got backwards
@@ -177,6 +177,11 @@ the guessing floor and the working ceiling, misclassified patients are **~54 %
 of the way to fully self-consistent**, and a same-arm retest and a two-limb
 comparison agree to within 3 points.
 
+**Revised by `readjudication_list.md`:** a model-free amplitude test on the
+actual consistently-wrong patients finds **43 of 62 are N↔PD phenotype** (PD
+with no tremor, postural *or* rest; controls with PD-level tremor), leaving only
+**~19 patients (~5 %)** as label-error candidates. The ceiling is mostly
+phenotype–task mismatch. The original reading follows for the record.
 **So both accounts hold, in almost equal measure.** Crucially, consistently
 wrong = mislabelled ∪ genuinely atypical, so **~55 % is an upper bound on the
 label-noise share of errors, not an estimate** — never quote it as "half the

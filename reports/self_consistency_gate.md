@@ -1,5 +1,16 @@
 # The gate: about half the errors look like label noise, and it names which patients
 
+> **Superseded in part by `readjudication_list.md`.** The ~55 % upper bound on
+> the label-noise share was an upper bound because a consistently-wrong patient
+> could be mislabelled *or* genuinely atypical. A model-free amplitude test on
+> the actual list separates the two, at least in part: **43 of 62**
+> consistently-wrong patients are N↔PD and explained by measured tremor
+> amplitude (PD patients with no tremor; controls with PD-level tremor), which is
+> phenotype, not mislabelling. Only **19 (~5 % of the cohort)** have no amplitude
+> explanation, far below the ~19 % mislabelling the arithmetic below allowed.
+> **Read the ceiling as mostly phenotype–task mismatch, with a small label-noise
+> residue.**
+
 ## What was measured
 
 Every patient has more than one recording and the pipeline averages them away.

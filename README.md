@@ -175,7 +175,7 @@ metrics/             stats.py            subject-clustered bootstrap CIs
                      benchmark.py        method ranking, BH + Bonferroni
                      merged.py           balanced accuracy, cohort probe
 
-experiments/         79 runnable studies. The ones that carry a result:
+experiments/         81 runnable studies. The ones that carry a result:
 
                      final_model.py            the reported merged model
                      headline_audit.py         that model re-checked at 40 splits
@@ -200,7 +200,7 @@ experiments/         79 runnable studies. The ones that carry a result:
                      cite it, and names the unreported ones honestly. Regenerate
                      it with tools/gen_experiment_index.py; do not hand-edit.
 
-reports/             87 findings, including every retraction and a register
+reports/             88 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
@@ -225,6 +225,12 @@ macroP 0.652, and the constraint has been measured rather than guessed:
   stated in **in-house ET (21 today)**, not merged ET, because merged precET is
   substantially PADS predicting PADS — in-house it is 0.193
   (`reports/own_data_reality_check.md`).
+* **`reports/readjudication_list.md`** (+ `.csv`) — **who** the model is
+  consistently wrong about. 62 patients; **43 are N↔PD with a model-free
+  physiological explanation** (PD with no tremor at posture or rest; controls
+  with PD-level tremor). Only ~19 (~5 %) are label-error candidates, so the
+  ceiling is mostly **phenotype–task mismatch**. The clinician's review list is
+  those 19, not all 62.
 * **`reports/self_consistency_gate.md`** — which account of the ceiling holds.
   On patients the model gets wrong it still gives both of their recordings the
   same answer 73 % of the time against a 55 % same-class control, but 0.149
