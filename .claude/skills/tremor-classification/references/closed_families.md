@@ -82,6 +82,7 @@ coverage. Quote that separately from PD-vs-ET — only the second is label-limit
 | tried | result | report |
 |---|---|---|
 | **+3 `SpectrumTransformer` members** (9 total, alongside the 6 incumbents) | **precET +0.040 [+0.004, +0.074] \*, macroP +0.016 \*, macroF1 +0.016 \* at 40 splits** — the first candidate in this project to survive doubling (it was +0.067 at 20). Against the matched **seed control**, macroF1 +0.017 \* survives, precET +0.032 \* has a lower bound of exactly 0 and a **win rate of 0.45**, macroP is null. **Adopt it; quote macroF1 as the established gain and precET as suggestive** | `diverse_ensemble.md` |
+| a **fourth** family on the adopted 9 (logistic regression on descriptors; CrossStreamAttention ×3; or a 2nd CNN family as control) | **saturated** — none beats the control; CrossStreamAttention hurts (macroF1 −0.018 \*, precN −0.023 \* vs control); the control is null vs the adopted model. 6 → 9 helped, 9 → 12 does not. **Ensemble axis closed at 3 families** | `diverse_ensemble_2.md` |
 | +3 bag-of-frames members | **harmful** — precET −0.058 \* vs baseline and −0.066 \* vs control. Combining with the transformer cancels the gain (union dilution, 17th instance) | `diverse_ensemble.md` |
 
 **Why this one worked when 6-seeds and balanced bagging did not:** those added

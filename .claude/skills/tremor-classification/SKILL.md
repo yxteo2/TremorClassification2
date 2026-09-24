@@ -17,8 +17,8 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~88 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (28 failed, 20 held); `experiments/INDEX.md` maps
+`reports/` holds ~89 findings; `reports/failed_predictions.md` is the register of
+predictions made before the run (28 failed, 21 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -72,7 +72,7 @@ arm — several results here were only valid because that assert passed.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here (twenty of twenty); mechanism stories have failed 28 times.
+   have held here (twenty-one of twenty-one); mechanism stories have failed 28 times.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
     called PCEN's failure that a reasoned prediction got backwards
