@@ -143,8 +143,12 @@ def fit_and_predict(spec, desc, traj, y, tr, va, te, Rspec, Rdesc, Rtraj):
     return np.stack(V).mean(0), np.stack(T).mean(0), np.stack(R).mean(0)
 
 
-def main():
-    torch.set_num_threads(1)
+def build_recording_tables():
+    """Patient-level blocks from build(), plus the same features per RECORDING.
+
+    Shared by this gate and `readjudication_list.py` so the per-recording
+    assembly exists once. Returns a dict.
+    """
     d = FM.build()
     y, key = d["y"], d["key"]
     SPEC = d["SPEC"]["multitaper"]
@@ -191,6 +195,18 @@ def main():
     # ASYM/HAVE are patient properties; broadcast them onto the patient's rows
     Rdesc = np.hstack([Rdesc, A[rec2pat]])
     assert Rdesc.shape[1] == D.shape[1], "recording desc width != patient"
+
+    return dict(d=d, y=y, key=key, SPEC=SPEC, A=A, D=D, TR=TR, Rspec=Rspec,
+                Rdesc=Rdesc, Rtraj=Rtraj, rec2pat=rec2pat, Rcoh=Rcoh,
+                pat_ids=pat_ids)
+
+
+def main():
+    torch.set_num_threads(1)
+    T_ = build_recording_tables()
+    d, y, key, SPEC, A, D, TR = (T_[k] for k in ("d", "y", "key", "SPEC", "A", "D", "TR"))
+    Rspec, Rdesc, Rtraj = T_["Rspec"], T_["Rdesc"], T_["Rtraj"]
+    rec2pat, Rcoh = T_["rec2pat"], T_["Rcoh"]
 
     n_rec = np.bincount(rec2pat, minlength=len(y))
     print(f"n={len(y)} patients, {len(rec2pat)} recordings; "

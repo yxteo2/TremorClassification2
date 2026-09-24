@@ -26,6 +26,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `cv_null` | 2026-08-19 | `permutation_null.md` |
 | `descriptor_trajectory_fix` | 2026-09-02 | `contested_profile.md`, `failed_predictions.md`, `peak_aligned_average.md` |
 | `diverse_ensemble` | 2026-09-23 | `failed_predictions.md` |
+| `diverse_ensemble_2` | uncommitted | **none** |
 | `early_fusion_confirm` | 2026-08-19 | `early_fusion_confirm.md`, `headline_audit.md`, `tcn_fusion.md` |
 | `ensemble_diversity` | 2026-08-27 | `balanced_bagging.md`, `cohort_id_input.md`, `contested_gating.md`, `contested_profile.md`, `contested_specialists.md`, `ensemble_diversity.md`, `failed_predictions.md`, `fragility_audit.md`, `pooling_rules.md` |
 | `estimator_smoothing` | 2026-09-08 | `attention_fair_test.md`, `estimator_smoothing.md`, `failed_predictions.md`, `fragility_audit.md` |
@@ -57,6 +58,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `pooling_rules` | 2026-08-27 | `balanced_bagging.md`, `contested_gating.md`, `ensemble_diversity.md`, `failed_predictions.md`, `pooling_rules.md` |
 | `prior_objective` | 2026-08-19 | `failed_predictions.md`, `logit_adjustment.md`, `one_vs_rest.md`, `prior_objective.md` |
 | `prune_training` | 2026-09-07 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `fragility_audit.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md`, `prune_training.md`, `self_consistency_gate.md` |
+| `readjudication_list` | uncommitted | **none** |
 | `resampling` | 2026-08-19 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
 | `riemann_axes` | 2026-09-04 | `data_plan.md`, `euclidean_alignment.md`, `failed_predictions.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
@@ -85,4 +87,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**79 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
+**81 experiments, 11 with no report:** `analytic_deep`, `diverse_ensemble_2`, `fewshot_oneclass`, `pd_vs_et_deep`, `readjudication_list`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
