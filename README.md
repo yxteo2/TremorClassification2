@@ -83,10 +83,14 @@ significance did not survive removing its transient end points.
 > Quoted at 40 rather than the original 20 splits. The claim was re-audited
 > because 20 splits resolves only ~0.04 and a paired +0.021 had already evaporated
 > on doubling. It held and its interval **tightened** (from [+0.014, +0.067]).
-> After all three fixes the reported model reads precET **0.654** / macroP
-> **0.652** at 40 splits; **those are the figures to quote**. sd(precET) is 0.19,
-> so every figure between 0.65 and 0.69 quoted earlier in this project is the
-> same number under noise.
+> After all three fixes the **6-member** model reads precET **0.654** / macroP
+> **0.652** at 40 splits (`python -m experiments.headline_audit`). The adopted
+> **9-member** ensemble reads precET **0.694** / macroP **0.667** at 40 splits
+> (`python -m experiments.diverse_ensemble`, arm `+ transformer`) — **quote that,
+> with its caveats below.** sd(precET) is 0.19, so *unpaired* figures between
+> 0.65 and 0.69 are the same number under noise; the 9-member claim rests on the
+> **paired** difference over identical splits, which is what makes +0.040 \*
+> distinguishable when the raw 0.694 alone would not be.
 
 > **The 9-member ensemble is the first change to survive 40 splits with a matched
 > control** (`reports/diverse_ensemble.md`): precET **+0.040 [+0.004, +0.074]** \*,

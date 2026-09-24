@@ -3,7 +3,8 @@
 ## The honest starting point
 
 **There is no performance contribution here, and the paper must not pretend
-otherwise.** precET 0.654 / macroP 0.652 on 404 patients is below clinical
+otherwise.** precET 0.694 / macroP 0.667 (9-member ensemble; 0.654 / 0.652 for
+the 6-member model) on 404 patients is below clinical
 usefulness and below published claims — and this project has spent 76
 experiments establishing that the gap is not a modelling failure. Seventy-six
 experiments, ~25 closed families with matched controls, and every architecture

@@ -38,7 +38,10 @@ experiments/        final_model.py (reported model, build()), headline_audit.py
                     spectra from raw recordings)
 ```
 
-`python -m experiments.final_model` reproduces the reported model. New
+`python -m experiments.final_model` reproduces the **6-member** model and
+`python -m experiments.headline_audit` its 40-split figures; the adopted
+**9-member** figures come from `python -m experiments.diverse_ensemble` (arm
+`+ transformer`). `fit_members` is still the 6-member trainer. New
 experiments should reuse `fit_members` and `load_cohorts` + `spec_for`, and
 assert bit-exactness against `build()["SPEC"]["multitaper"]` for the unchanged
 arm — several results here were only valid because that assert passed.
@@ -127,13 +130,18 @@ with `ResidualTCN`; 3 seeds each; per-class logit offsets tuned on validation.
 | | precN | precPD | precET | macroP |
 |---|---|---|---|---|
 | welch baseline | 0.640 | 0.635 | 0.550 | 0.608 |
-| **reported** | 0.648 | 0.654 | **0.654** | **0.652** |
+| 6-member (was reported) | 0.648 | 0.654 | 0.654 | 0.652 |
+| **9-member, adopted** | 0.650 | 0.658 | **0.694** | **0.667** |
 
 Paired **+0.044 [+0.020, +0.068] macroP**, **+0.104 [+0.041, +0.169] precET**,
 winning 72 % of splits. Transform alone +0.078 [+0.022, +0.132] precET \*;
 **the trajectory stream is no longer significant** (+0.026 [−0.009, +0.068])
 once its transient end points were removed — treat it as plausible, not
-verified. **Quote precET 0.654 / macroP 0.652.** These are on the fixed axis,
+verified. **Quote the 9-member precET 0.694 / macroP 0.667** (`diverse_ensemble`,
+40 splits: precET +0.040 \*, macroP +0.016 \*, macroF1 +0.016 \* vs the 6-member
+model; against a matched seed control only macroF1 +0.017 \* survives, precET
++0.032 has lower bound 0 and win 0.45 — so macroF1 is the established part).
+The 6-member 0.654 / 0.652 is on the fixed axis,
 fixed Q-factor and guarded trajectory; anything quoting 0.663 / 0.669 / 0.685
 predates one of those fixes.
 
