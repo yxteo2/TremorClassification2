@@ -17,7 +17,7 @@ reference file that matches the task:
 | designing an experiment or a control | `references/method_rules.md` — the traps that produced wrong conclusions here |
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
-`reports/` holds ~89 findings; `reports/failed_predictions.md` is the register of
+`reports/` holds ~90 findings; `reports/failed_predictions.md` is the register of
 predictions made before the run (28 failed, 21 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
@@ -114,6 +114,11 @@ All three are gyroscope angular velocity at 100 Hz; 2015/NewData use the
 manifest** — `raw_label` takes exactly three values, so no atypical-parkinsonism
 contamination remains (an earlier version of this file claimed otherwise; it was
 wrong). NewData at 6 ET is a training cohort, never an evaluation one.
+**In-house PD vs ET is not measurable from spectral features, and not only
+because of sample size** (`inhouse_pd_vs_et.md`): in-house ET patients match
+in-house PD on tremor amplitude, peak sharpness and frequency, while PADS ET
+have about 2x the amplitude and twice the sharpness. Pooling, transfer from PADS
+and switching sensors (hand / upper arm) all stay inside the chance range.
 
 Merge: cap PADS at 90/class, pool, one global set of validation-tuned priors,
 postural task only. Dropping PADS is catastrophic (precET 0.519 → 0.065);

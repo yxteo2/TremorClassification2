@@ -109,8 +109,21 @@ def describe(X, y, tag=""):
         print(f"{name:>14}" + "".join(f"{c:>20}" for c in cells))
 
 
-def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5):
-    """Cumulative feature-set classification, one characteristic at a time."""
+def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5,
+             n_perm=0, min_pos=5):
+    """Cumulative feature-set classification, one characteristic at a time.
+
+    ``n_perm`` > 0 adds a shuffled-label null for the full feature set, run
+    through the identical pipeline: the AUC that labels carrying no information
+    reach, as a 95 % range, plus a p-value. Without it a small-cohort AUC is
+    uninterpretable. 2015 PD-vs-ET reads 0.31, which looks like a model worse
+    than random, and sits inside its own null of about [0.29, 0.66].
+
+    ``min_pos`` skips a contrast whose smaller class is below it. With 6 ET
+    (NewData), each test fold holds about one ET patient and the pooled
+    out-of-fold AUC is dominated by small-sample effects. Default 5 keeps the
+    old behaviour; the notebook uses 10.
+    """
     if axis == "PD_vs_ET":
         m = y != 0
         Xa, ya = X[m], (y[m] == 2).astype(int)
@@ -118,8 +131,9 @@ def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5):
     else:
         Xa, ya = X, (y != 0).astype(int)
         pos = "Tremor"
-    if ya.sum() < 5 or (1 - ya).sum() < 5:
-        print(f"  {tag} {axis}: too few in one class, skipped")
+    if ya.sum() < min_pos or (1 - ya).sum() < min_pos:
+        print(f"\n  {tag}  {axis}: only {int(min(ya.sum(), (1 - ya).sum()))} in "
+              f"the smaller class (< {min_pos}) -- not evaluable, skipped")
         return
     print(f"\n  {tag}  {axis}   n={len(ya)}  {pos}={int(ya.sum())}")
     print(f"{'features used':>44}{'AUC':>8}{'prec':>8}{'rec':>8}")
@@ -136,6 +150,22 @@ def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5):
                                                      zero_division=0)
         print(f"{' + '.join(names[:k]):>44}{roc_auc_score(ya, pr):>8.3f}"
               f"{P[0]:>8.3f}{R[0]:>8.3f}")
+    if n_perm > 0:
+        real = roc_auc_score(ya, pr)
+        rng = np.random.default_rng(0)
+        null = []
+        for i in range(n_perm):
+            yp = rng.permutation(ya)
+            cvp = StratifiedKFold(n_splits, shuffle=True, random_state=i)
+            null.append(roc_auc_score(yp, cross_val_predict(
+                mdl, Xa[:, cols], yp, cv=cvp, method="predict_proba")[:, 1]))
+        null = np.array(null)
+        lo, hi = np.quantile(null, [0.025, 0.975])
+        p = float(np.mean(null >= real))
+        verdict = ("above chance" if p < 0.05 else
+                   "NOT distinguishable from chance")
+        print(f"{'shuffled-label null, all features':>44}   95 % range "
+              f"[{lo:.3f}, {hi:.3f}]   p={p:.3f}   -> {verdict}")
 
 
 def main():

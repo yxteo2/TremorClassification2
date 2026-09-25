@@ -83,7 +83,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `time_axis_transformer` | 2026-09-10 | `failed_predictions.md` |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
 | `verify_data` | 2026-09-09 | `newdata_epoch_choice.md`, `publication_plan.md` |
-| `verify_preprocessing` | 2026-09-09 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md`, `fragility_audit.md`, `publication_plan.md` |
+| `verify_preprocessing` | 2026-09-25 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md`, `fragility_audit.md`, `publication_plan.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 

@@ -203,7 +203,7 @@ experiments/         81 runnable studies. The ones that carry a result:
                      cite it, and names the unreported ones honestly. Regenerate
                      it with tools/gen_experiment_index.py; do not hand-edit.
 
-reports/             89 findings, including every retraction and a register
+reports/             90 findings, including every retraction and a register
                      of predictions made before the run (failed_predictions.md)
 ```
 
