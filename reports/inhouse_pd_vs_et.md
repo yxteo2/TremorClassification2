@@ -158,6 +158,7 @@ cannot help the in-house axis through frequency.
   NewData -- the task where in-house ET and PD are indistinguishable.
   `rest_postural_contrast.md` and `task_averaging.md` found REST hurt the
   *merged* model, but that is dominated by PADS, where REST runs the other way.
-  **In-house REST for PD vs ET has not been tested in the deep model.**
+  In-house REST was then tested in the deep model (`inhouse_rest.md`): a
+  +0.022 in-house ranking gain that a shuffled control mostly matches; not adopted.
 * 16 ET is thin. Three sensors all above chance is better than one, but this
   needs confirmation on more in-house ET before it is a claim.

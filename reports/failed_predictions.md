@@ -130,6 +130,8 @@ than two, and should be held that much more loosely.
 
 | 28 | the dominant confusion among consistently-wrong patients would be **PD↔ET**, not either-vs-N, since N-vs-Tremor already reaches 0.91–0.92 | `readjudication_list.md` | **failed — N↔PD is 43 of 62.** The reasoning confused a screen's overall precision with the make-up of its residual errors. And a model-free amplitude test then showed those 43 are *phenotype*, not mislabels: PD→N patients have Normal-level tremor (and are tremor-free at rest too), N→PD controls have PD-level tremor. |
 
+| 29 | in-house REST, given to the deep model as its own descriptor block, would lift in-house PD-vs-ET AUC by +0.03 to +0.08 over **both** the adopted model and a shuffled-REST control, because 2015 REST separates PD from ET at AUC ~0.65-0.70 on six features | `inhouse_rest.md` | failed — +0.022 \* over the adopted model, but +0.012 (null) over the control, which itself moved inAUC +0.010 with no patient-label link; in-house ET recall fell −0.062 \*. The side predictions held weakly: merged metrics stayed flat except recET −0.040 \*, and adding PADS REST was lower on inAUC (−0.013) but not significantly. Same failure as #5 and #22: a feature-level signal did not compose into the model. |
+
 ## Held
 
 | # | prediction | where | what happened |
