@@ -110,7 +110,7 @@ def describe(X, y, tag=""):
 
 
 def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5,
-             n_perm=0, min_pos=5):
+             n_perm=0, min_pos=5, n_repeats=1):
     """Cumulative feature-set classification, one characteristic at a time.
 
     ``n_perm`` > 0 adds a shuffled-label null for the full feature set, run
@@ -123,6 +123,14 @@ def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5,
     (NewData), each test fold holds about one ET patient and the pooled
     out-of-fold AUC is dominated by small-sample effects. Default 5 keeps the
     old behaviour; the notebook uses 10.
+
+    ``n_repeats`` > 1 averages AUC, precision and recall over that many
+    re-shuffled 5-fold partitions and prints the AUC range across them. One
+    partition is not enough at 15 ET: 2015 OUT ``max_freq`` alone scores
+    0.32-0.52 depending only on the CV seed, and seed 0 is the lowest -- the
+    0.31 the notebook used to print. The null is then built from the same
+    repeat-averaged statistic, so the two stay comparable. Default 1 keeps the
+    old output.
     """
     if axis == "PD_vs_ET":
         m = y != 0
@@ -136,29 +144,39 @@ def classify(X, y, names=FEATURES, tag="", axis="PD_vs_ET", n_splits=5,
               f"the smaller class (< {min_pos}) -- not evaluable, skipped")
         return
     print(f"\n  {tag}  {axis}   n={len(ya)}  {pos}={int(ya.sum())}")
-    print(f"{'features used':>44}{'AUC':>8}{'prec':>8}{'rec':>8}")
-    cv = StratifiedKFold(n_splits, shuffle=True, random_state=0)
+    rng_col = "  AUC range over CV seeds" if n_repeats > 1 else ""
+    print(f"{'features used':>44}{'AUC':>8}{'prec':>8}{'rec':>8}{rng_col}")
+
+    def mdl():
+        return make_pipeline(StandardScaler(),
+                             LogisticRegression(max_iter=5000,
+                                                class_weight="balanced"))
+
+    def cv_auc(Xc, yc, seed0):
+        """Mean AUC / precision / recall over n_repeats CV partitions."""
+        a, pp, rr = [], [], []
+        for r in range(n_repeats):
+            cv = StratifiedKFold(n_splits, shuffle=True, random_state=seed0 + r)
+            pr = cross_val_predict(mdl(), Xc, yc, cv=cv,
+                                   method="predict_proba")[:, 1]
+            P, R, _, _ = precision_recall_fscore_support(
+                yc, (pr >= 0.5).astype(int), labels=[1], zero_division=0)
+            a.append(roc_auc_score(yc, pr)); pp.append(P[0]); rr.append(R[0])
+        return np.array(a), float(np.mean(pp)), float(np.mean(rr))
+
     for k in range(1, len(names) + 1):
         cols = [FEATURES.index(n) for n in names[:k]]
-        mdl = make_pipeline(StandardScaler(),
-                            LogisticRegression(max_iter=5000,
-                                               class_weight="balanced"))
-        pr = cross_val_predict(mdl, Xa[:, cols], ya, cv=cv,
-                               method="predict_proba")[:, 1]
-        p = (pr >= 0.5).astype(int)
-        P, R, _, _ = precision_recall_fscore_support(ya, p, labels=[1],
-                                                     zero_division=0)
-        print(f"{' + '.join(names[:k]):>44}{roc_auc_score(ya, pr):>8.3f}"
-              f"{P[0]:>8.3f}{R[0]:>8.3f}")
+        a, P, R = cv_auc(Xa[:, cols], ya, 0)
+        extra = f"   [{a.min():.3f}, {a.max():.3f}]" if n_repeats > 1 else ""
+        print(f"{' + '.join(names[:k]):>44}{a.mean():>8.3f}{P:>8.3f}{R:>8.3f}"
+              f"{extra}")
     if n_perm > 0:
-        real = roc_auc_score(ya, pr)
+        real = a.mean()
         rng = np.random.default_rng(0)
         null = []
         for i in range(n_perm):
             yp = rng.permutation(ya)
-            cvp = StratifiedKFold(n_splits, shuffle=True, random_state=i)
-            null.append(roc_auc_score(yp, cross_val_predict(
-                mdl, Xa[:, cols], yp, cv=cvp, method="predict_proba")[:, 1]))
+            null.append(cv_auc(Xa[:, cols], yp, i * n_repeats)[0].mean())
         null = np.array(null)
         lo, hi = np.quantile(null, [0.025, 0.975])
         p = float(np.mean(null >= real))

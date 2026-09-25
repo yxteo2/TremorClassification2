@@ -1,4 +1,10 @@
-# In-house PD vs ET: the ET patients lack the ET tremor, so no method recovers it
+# In-house PD vs ET: no difference at OUT, a textbook one at REST, and PADS points the other way
+
+> **Update (follow-up audit, below).** Steps 1-3 describe the **OUT** task only.
+> The signal chain was then checked against independent code and found correct;
+> the 0.314 turned out to be one unlucky CV partition; and **2015 REST does
+> separate PD from ET** (AUC ~0.65-0.70 on all three sensors, above chance), in
+> the textbook direction -- opposite to PADS. See "Follow-up".
 
 ## The complaint
 
@@ -64,7 +70,8 @@ patients do not have it.
 
 ## What would change this
 
-Not a model. The recordings contain no difference to find. Candidate reasons for
+Not a model, at OUT: the postural recordings contain no difference to find.
+(At REST they do -- see Follow-up.) Candidate reasons for
 the phenotype gap, none measurable from these data: milder or earlier-stage
 in-house ET, medication state at recording, recruitment (PADS may favour
 pronounced tremor), or diagnostic protocol.
@@ -87,3 +94,70 @@ pronounced tremor), or diagnostic protocol.
   the stale PADS precision (0.924 → 0.916), and a bullet claiming
   instantaneous-frequency stability "works" on 2015 at AUC 0.652, which is
   inside the chance range at 15 ET and predates the trajectory end-point fix.
+
+## Follow-up: is the signal processing wrong? No. Is OUT the right task? No.
+
+Asked to "check the whole process" because 0.31 looked implausible.
+
+**Signal chain, checked against code it does not share**
+
+| check | result |
+|---|---|
+| angular velocity vs independent SciPy `Rotation` (central difference, 80 files x 3 sensors) | relative error median 0.00009, max 0.0011 |
+| quaternion convention `xyzw` vs `wxyz` (column 0 is the largest component in 45 % of rows, column 3 in 50 %) | band power changes by < 0.5 %; dominant frequency differs in 0.4 % of files |
+| duplicate files (whole-file and 2 s window hashes, all 799 2015 files) | none |
+| repeated samples (sample-and-hold) | none |
+| unit norm of every raw quaternion file, all tasks | **4 failures: `N 2` REST and WING, \|q\| ~ 9.7-9.8** -- gravity in m/s^2, i.e. accelerometer data saved as quaternions |
+
+The four `N 2` files are controls in REST/WING; OUT is clean. They are reported
+by the new `verify_data` check 13, not dropped; the fix is to re-export them.
+
+**Why 0.31.** On 2015 OUT every feature has a raw, no-CV AUC of 0.46-0.54: ET
+and PD have the same median on all six. The notebook printed one 5-fold
+partition, seed 0. The same one-feature model reads **0.32-0.52 depending only on
+the CV seed**, and seed 0 was the lowest. With 10 partitions averaged, the full
+feature set reads 0.288 against a null of [0.334, 0.662] on the lower-arm
+sensor, but 0.385 and 0.537 on hand and upper arm (both inside their nulls). The
+below-0.5 drift is the known cross-validation behaviour with no signal when the
+smaller class sits inside the larger one's spread (ET's ranges are narrower than
+PD's on max_freq and peak_sharp); the in-sample AUC is only 0.604.
+`classify` now takes `n_repeats`; the notebook uses 10.
+
+**At rest the in-house cohort separates PD from ET**
+
+PD vs ET, six characteristics, CV averaged over 10 partitions, 200-permutation
+null built from the same averaged statistic (16 ET, 75 PD):
+
+| 2015 REST sensor | AUC | null 95 % | p |
+|---|---|---|---|
+| hand | 0.683 | [0.278, 0.663] | 0.015 |
+| lower arm | 0.650 | [0.301, 0.649] | 0.025 |
+| upper arm | 0.670 | [0.287, 0.675] | 0.035 |
+
+The best subsets reach ~0.70-0.73. The driver is frequency: PD rest tremor is
+slower than ET's, the textbook ordering. **PADS goes the other way**:
+
+| | PD max_freq | ET max_freq | raw AUC, ET higher |
+|---|---|---|---|
+| 2015 OUT | 6.64 | 6.64 | 0.54 |
+| 2015 REST | 5.57 | 6.05 | 0.64 |
+| PADS StretchHold | 6.93 | 5.81 | 0.33 |
+| PADS Relaxed | 6.05 | 4.83 | 0.30 |
+
+NewData REST (6 ET, not evaluable) leans the in-house way: PD 5.27, ET 5.52.
+
+So the two sources teach **opposite frequency rules**: in-house, ET is faster
+than PD at rest; in PADS, ET is slower at both tasks (older or more severe ET,
+whose frequency falls with severity, is one candidate). That is consistent with
+the PADS-trained model scoring chance in-house (0.47), and it means pooling
+cannot help the in-house axis through frequency.
+
+**What this changes**
+
+* The in-house pipeline (`common/cohorts.py`) uses OUT only for 2015 and
+  NewData -- the task where in-house ET and PD are indistinguishable.
+  `rest_postural_contrast.md` and `task_averaging.md` found REST hurt the
+  *merged* model, but that is dominated by PADS, where REST runs the other way.
+  **In-house REST for PD vs ET has not been tested in the deep model.**
+* 16 ET is thin. Three sensors all above chance is better than one, but this
+  needs confirmation on more in-house ET before it is a claim.

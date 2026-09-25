@@ -211,6 +211,26 @@ def main():
     check("cohort frame counts are documented as a known open issue", True,
           "21 / 13 / 12 — see SKILL.md; unequal averaging is not yet tested")
 
+    # ---------- 9. 2015 raw files really are unit quaternions, every task ----------
+    # The loader normalises every row to |q| = 1 before differentiating, so a
+    # file of some other quantity is silently turned into a plausible-looking
+    # angular velocity. N 2's REST and WING files have |q| ~ 9.7-9.8, which is
+    # gravity in m/s^2: accelerometer data saved under raw_quaternion. OUT is
+    # clean. Reported, not dropped -- the fix is to re-export those files.
+    import glob
+    import pandas as pd
+    print()
+    bad = []
+    for p in sorted(glob.glob("Data/raw_quaternion/*/*/*.txt")):
+        Q = pd.read_csv(p, sep=None, engine="python", header=None).to_numpy(float)
+        nq = np.median(np.linalg.norm(Q.reshape(len(Q), -1, 4), axis=2))
+        if not 0.95 < nq < 1.05:
+            bad.append(f"{p.split('raw_quaternion/')[1]} (|q| {nq:.2f})")
+    for b in bad:
+        print(f"       not unit quaternions: {b}")
+    check("every 2015 raw_quaternion file is unit-norm (all tasks)", not bad,
+          f"{len(bad)} file(s) are not quaternions" if bad else "")
+
     n_fail = sum(not ok for _, ok in res)
     print(f"\n{len(res)} checks, {n_fail} failed")
     print("MARKER_DONE", flush=True)

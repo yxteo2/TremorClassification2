@@ -114,11 +114,19 @@ All three are gyroscope angular velocity at 100 Hz; 2015/NewData use the
 manifest** — `raw_label` takes exactly three values, so no atypical-parkinsonism
 contamination remains (an earlier version of this file claimed otherwise; it was
 wrong). NewData at 6 ET is a training cohort, never an evaluation one.
-**In-house PD vs ET is not measurable from spectral features, and not only
-because of sample size** (`inhouse_pd_vs_et.md`): in-house ET patients match
+**In-house PD vs ET at OUT is not measurable from spectral features, and not
+only because of sample size** (`inhouse_pd_vs_et.md`): at OUT, in-house ET match
 in-house PD on tremor amplitude, peak sharpness and frequency, while PADS ET
 have about 2x the amplitude and twice the sharpness. Pooling, transfer from PADS
-and switching sensors (hand / upper arm) all stay inside the chance range.
+and switching sensors all stay inside the chance range. The signal chain was
+audited against independent SciPy code and is correct; the notebook's 0.31 was
+one unlucky CV partition (0.32-0.52 across CV seeds) -- **report small-cohort CV
+AUCs averaged over repeated partitions** (`classify(n_repeats=10)`). **At REST,
+2015 does separate PD from ET** (AUC ~0.65-0.70, above chance on all three
+sensors, 16 ET) with PD slower, the textbook direction; **PADS ET are slower
+than PD** at both tasks, so the two sources teach opposite frequency rules.
+In-house REST in the deep model is untested. `N 2` REST/WING files hold
+accelerometer data (|q| ~ 9.8; `verify_data` check 13 fails on purpose).
 
 Merge: cap PADS at 90/class, pool, one global set of validation-tuned priors,
 postural task only. Dropping PADS is catastrophic (precET 0.519 → 0.065);
