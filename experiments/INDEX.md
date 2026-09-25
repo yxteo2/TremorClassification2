@@ -38,6 +38,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `influence_prune` | 2026-08-26 | `balanced_bagging.md`, `failed_predictions.md`, `influence_stable.md` |
 | `influence_stable` | 2026-08-27 | `influence_prune.md` |
 | `inhouse_axes` | 2026-08-19 | `band_truncation.md` |
+| `inhouse_rest` | uncommitted | **none** |
 | `inhouse_shortwindow` | 2026-08-22 | `inhouse_shortwindow.md` |
 | `kinetic_task_audit` | 2026-08-21 | `headline_audit.md`, `kinetic_task_audit.md` |
 | `loco_pd_et` | 2026-08-19 | `pd_vs_et_transfer.md` |
@@ -82,9 +83,9 @@ An empty reports column means the study was run but never written up, or was sup
 | `time_axis_sweep` | 2026-09-10 | **none** |
 | `time_axis_transformer` | 2026-09-10 | `failed_predictions.md` |
 | `trajectory_tuning` | 2026-08-19 | `band_truncation.md` |
-| `verify_data` | 2026-09-09 | `inhouse_pd_vs_et.md`, `newdata_epoch_choice.md`, `publication_plan.md` |
+| `verify_data` | 2026-09-25 | `inhouse_pd_vs_et.md`, `newdata_epoch_choice.md`, `publication_plan.md` |
 | `verify_preprocessing` | 2026-09-25 | `descriptor_trajectory_fix.md`, `estimator_smoothing.md`, `fragility_audit.md`, `publication_plan.md` |
 | `waveform_deep` | 2026-08-20 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**81 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
+**82 experiments, 10 with no report:** `analytic_deep`, `fewshot_oneclass`, `inhouse_rest`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
