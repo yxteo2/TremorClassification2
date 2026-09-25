@@ -98,7 +98,7 @@ def rest_block(recs, ch, order):
     ok = []
     for r in recs:
         q = getattr(r, "path", None)
-        if q is not None and str(q).endswith(".txt"):
+        if q is not None and "raw_quaternion" in str(q):
             import pandas as pd
             Q = pd.read_csv(q, sep=None, engine="python", header=None).to_numpy(float)
             nq = np.median(np.linalg.norm(Q.reshape(len(Q), -1, 4), axis=2))
