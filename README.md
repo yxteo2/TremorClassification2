@@ -113,7 +113,10 @@ noise.
 ### N vs Tremor — the one place >0.90 is reached
 
 Six frequency characteristics and a logistic regression: **precision 0.910
-(2015) / 0.924 (PADS)**.
+(2015) / 0.916 (PADS)** (`python -m frequency.characteristics`). PADS read 0.924
+before `harm_ratio`'s harmonic window was corrected for frequency jitter; the
+feature had been reading at about half its true value, and the change in
+precision is within single-run noise.
 
 ### Tremor characteristics (PADS, 383 patients)
 

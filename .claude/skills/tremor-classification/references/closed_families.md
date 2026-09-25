@@ -74,7 +74,7 @@ ones**. That is the same population `self_consistency_gate.md` identified as
 **abstention cannot fix label noise, because the model is confident on
 mislabelled patients.**
 
-**Where 0.90 genuinely exists:** the N-vs-Tremor screen, 0.910 / 0.924 at full
+**Where 0.90 genuinely exists:** the N-vs-Tremor screen, 0.910 / 0.916 at full
 coverage. Quote that separately from PD-vs-ET — only the second is label-limited.
 
 ## The one ensemble change that worked

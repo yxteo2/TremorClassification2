@@ -190,6 +190,25 @@ _dd = max(float(np.abs(_logbin(_R, nb) - _logbin_n(_R, nb)).max()) for nb in (8,
 check("logbin_n reproduces common.logbin exactly (no duplicate drift)",
       _dd == 0.0, f"max|diff| {_dd:.1e} on the 61-column welch width")
 
+# ---------- (n) harmonic ratios must survive frequency jitter ----------
+# A true harmonic is phase-locked at k x the INSTANTANEOUS frequency, so jitter
+# spreads it k times wider than the fundamental. Equal-width windows under-read
+# the ratio (0.25 -> 0.18 at 0.4 Hz jitter). Both implementations are checked.
+from frequency.characteristics import spectrum_characteristics as _sc
+from signal_processing.tremor_physics import harmonic_features as _hf
+_g = np.random.default_rng(3)
+def _jit(sd, f0=8.0, n=1024):
+    tt = np.arange(n) / FS
+    inst = f0 + sd * np.convolve(_g.standard_normal(n), np.ones(50) / np.sqrt(50), "same")
+    ph = 2 * np.pi * np.cumsum(inst) / FS
+    return np.atleast_2d(np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.05 * _g.standard_normal(n))
+_a = float(np.median([_sc(_jit(0.4))["harm_ratio"] for _ in range(30)]))
+_b = float(np.median([_hf(_jit(0.4))["h2_ratio"] for _ in range(30)]))
+check("harm_ratio ~0.25 under 0.4 Hz jitter (8 Hz tone + 0.5-amplitude harmonic)",
+      abs(_a - 0.25) < 0.03, f"harm_ratio {_a:.3f}")
+check("tremor_physics h2_ratio ~0.25 under 0.4 Hz jitter", abs(_b - 0.25) < 0.03,
+      f"h2 {_b:.3f}")
+
 n_fail = sum(not ok for _, ok in res)
 print(f"\n{len(res)} checks, {n_fail} failed")
 print("MARKER_DONE", flush=True)

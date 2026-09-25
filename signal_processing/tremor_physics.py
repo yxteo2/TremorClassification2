@@ -72,7 +72,11 @@ def harmonic_features(x, fs=100.0, f_lo=3.0, f_hi=15.0):
         m = (f >= c - half) & (f <= c + half)
         return float(P[m].sum()) if m.any() else 0.0
 
-    p1, p2, p3 = band(f0), band(2 * f0), band(3 * f0)
+    # Harmonic k spreads k times as wide as the fundamental under frequency
+    # jitter (it is phase-locked at k x the instantaneous frequency), so its
+    # window scales with k. Equal-width windows under-read h2 by ~26 % at 0.4 Hz
+    # of jitter, and h3 by more.
+    p1, p2, p3 = band(f0), band(2 * f0, 1.5), band(3 * f0, 2.25)
     out["h2_ratio"] = p2 / (p1 + 1e-20)
     out["h3_ratio"] = p3 / (p1 + 1e-20)
     tot = float(P[(f >= 0.5) & (f <= 40)].sum())

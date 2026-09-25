@@ -72,7 +72,11 @@ def spectrum_characteristics(x, fs=100.0, f_lo=3.0, f_hi=15.0):
         "mean_freq": fmean,
         "bandwidth": bw,
         "inband_frac": float(pb.sum() / (P[wide].sum() + 1e-20)),
-        "harm_ratio": float(near(2 * fmax) / (p1 + 1e-20)) if p1 > 0 else 0.0,
+        # The harmonic window is TWICE the fundamental's. A true 2nd harmonic is
+        # phase-locked at exactly 2x the instantaneous frequency, so frequency
+        # jitter widens its peak twice as much; an equal-width window cut the
+        # ratio from 0.25 to 0.18 at 0.4 Hz of jitter (0.16 at 0.6 Hz).
+        "harm_ratio": float(near(2 * fmax, half=1.5) / (p1 + 1e-20)) if p1 > 0 else 0.0,
         "peak_sharp": float(pb.max() / (pb.mean() + 1e-20)),
     }
 
