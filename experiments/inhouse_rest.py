@@ -245,6 +245,13 @@ def main():
         print(f"  split {sp + 1}/{SPLITS}", flush=True)
 
     R = {a: np.array(res[a], float) for a in ARMS}
+    # fallback assert when the per-split checkpoint is gone: the 20-split means
+    # recorded in diverse_ensemble_2.md for the adopted model
+    rec = np.array([0.656, 0.655, 0.715, 0.675, 0.611, 0.460])
+    got = R["reported9"][:, :6].mean(0)
+    assert np.abs(got.round(3) - rec).max() < 1e-9, \
+        f"baseline means {got.round(3)} do not reproduce {rec}"
+    print("baseline 20-split means reproduce diverse_ensemble_2.md exactly")
     print(f"\n{'arm':>18}" + "".join(f"{c:>9}" for c in NM))
     for a in ARMS:
         print(f"{a:>18}" + "".join(f"{v:>9.3f}" for v in np.nanmean(R[a], 0)))
