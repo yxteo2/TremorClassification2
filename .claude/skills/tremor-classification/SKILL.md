@@ -18,7 +18,7 @@ reference file that matches the task:
 | the ceiling, preprocessing, transfer, literature | `references/ceiling_and_preprocessing.md` |
 
 `reports/` holds ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (29 failed, 21 held); `experiments/INDEX.md` maps
+predictions made before the run (30 failed, 22 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -125,7 +125,7 @@ AUCs averaged over repeated partitions** (`classify(n_repeats=10)`). **At REST,
 2015 does separate PD from ET** (AUC ~0.65-0.70, above chance on all three
 sensors, 16 ET) with PD slower, the textbook direction; **PADS ET are slower
 than PD** at both tasks, so the two sources teach opposite frequency rules.
-In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. `N 2` REST/WING files hold
+In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold
 accelerometer data (|q| ~ 9.8; `verify_data` check 13 fails on purpose).
 
 Merge: cap PADS at 90/class, pool, one global set of validation-tuned priors,

@@ -162,3 +162,8 @@ cannot help the in-house axis through frequency.
   +0.022 in-house ranking gain that a shuffled control mostly matches; not adopted.
 * 16 ET is thin. Three sensors all above chance is better than one, but this
   needs confirmation on more in-house ET before it is a claim.
+
+**Replication (`rest_replication.md`).** The 2015 REST signal does not carry to
+the pooled in-house set (0.573, p = 0.162) and a frozen 2015 rule is reversed on
+PADS Relaxed (0.280, p < 0.001). The paper should claim that the PD-vs-ET
+frequency relationship is cohort-dependent, not that in-house REST separates them.

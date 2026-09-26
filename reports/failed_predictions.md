@@ -132,6 +132,8 @@ than two, and should be held that much more loosely.
 
 | 29 | in-house REST, given to the deep model as its own descriptor block, would lift in-house PD-vs-ET AUC by +0.03 to +0.08 over **both** the adopted model and a shuffled-REST control, because 2015 REST separates PD from ET at AUC ~0.65-0.70 on six features | `inhouse_rest.md` | failed — +0.022 \* over the adopted model, but +0.012 (null) over the control, which itself moved inAUC +0.010 with no patient-label link; in-house ET recall fell −0.062 \*. The side predictions held weakly: merged metrics stayed flat except recET −0.040 \*, and adding PADS REST was lower on inAUC (−0.013) but not significantly. Same failure as #5 and #22: a feature-level signal did not compose into the model. |
 
+| 30 | pooling NewData REST with 2015 REST (z-scored within cohort) would stay above its shuffled-label null, only weaker than 2015 alone | `rest_replication.md` | failed — 0.573 against a null of [0.334, 0.644], p = 0.162. NewData's 6 ET diluted the 2015 signal rather than adding to it; together with 2015's own p = 0.038 on a sensor chosen among three, the in-house REST signal is not established. |
+
 ## Held
 
 | # | prediction | where | what happened |
@@ -157,6 +159,7 @@ than two, and should be held that much more loosely.
 | T | the re-adjudication list would flag 40–70 patients with ET over-represented relative to its 12 % share | `readjudication_list.md` | held — 62 flagged, ET 29 % of them |
 | U | a fourth ensemble family would not beat the family-count control — diversity saturates — with logistic regression the better of the two candidates | `diverse_ensemble_2.md` | held — both null or worse (CrossStreamAttention macroF1 −0.018 \* vs control), control itself null vs the adopted model; logistic regression was the better of the two, though not positive on macroF1 as hoped |
 | J | HPSS should order harmonic > dense-hop control > percussive on precET, because tremor is the sustained component and movement artifacts are transients | `pcen_hpss.md` | held exactly — 0.660 / 0.639 / 0.523, and the percussive arm is significantly worse than its matched control (precET −0.117 *, macroP −0.046 *). Adoption is null (+0.021 precET n.s.), so the physics is confirmed while the separation is unnecessary. |
+| V | a 2015-REST PD-vs-ET model, frozen, would transfer to NewData above 0.5 but not significantly (6 ET), and would be significantly **reversed** on PADS Relaxed | `rest_replication.md` | held on both halves — NewData 0.533 (p = 0.41); PADS 0.280 (p < 0.001), and a one-feature max_freq rule 0.300. Not blind: univariate medians had been printed earlier; the multivariate transfer had not. |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one

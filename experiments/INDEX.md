@@ -61,6 +61,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `prune_training` | 2026-09-07 | `balanced_bagging.md`, `data_plan.md`, `failed_predictions.md`, `fragility_audit.md`, `influence_prune.md`, `influence_stable.md`, `one_vs_rest.md`, `prune_training.md`, `self_consistency_gate.md` |
 | `readjudication_list` | 2026-09-24 | `failed_predictions.md`, `publication_plan.md`, `readjudication_list.md`, `self_consistency_gate.md` |
 | `resampling` | 2026-09-03 | `METHOD_COMPARISON.md`, `descriptor_trajectory_fix.md`, `pcen_hpss.md`, `peak_aligned_average.md`, `resampling.md`, `tf_information_loss_audit.md`, `window_training.md` |
+| `rest_replication` | uncommitted | `failed_predictions.md`, `inhouse_pd_vs_et.md`, `rest_replication.md` |
 | `riemann_axes` | 2026-09-04 | `data_plan.md`, `euclidean_alignment.md`, `failed_predictions.md` |
 | `rocket_dimensionality` | 2026-09-03 | `rocket_waveform.md` |
 | `rocket_waveform` | 2026-09-03 | `failed_predictions.md` |
@@ -88,4 +89,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `waveform_deep` | 2026-09-03 | **none** |
 | `window_training` | 2026-09-04 | `failed_predictions.md` |
 
-**82 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
+**83 experiments, 9 with no report:** `analytic_deep`, `fewshot_oneclass`, `pd_vs_et_deep`, `selection_and_calibration`, `shortwindow_deep`, `tf_variability_screen`, `tf_window_paired`, `time_axis_sweep`, `waveform_deep`
