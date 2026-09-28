@@ -10,6 +10,6 @@ An empty reports column means the study was run but never written up, or was sup
 | `transfer_2015` | 2026-09-28 | `failed_predictions.md`, `transfer_2015.md` |
 | `transfer_2015_explore` | 2026-09-28 | `transfer_2015.md` |
 | `verify_data` | 2026-09-28 | `inhouse_pd_vs_et.md`, `signal_audit_2015.md` |
-| `verify_preprocessing` | 2026-09-25 | `signal_audit_2015.md` |
+| `verify_preprocessing` | 2026-09-28 | `signal_audit_2015.md` |
 
 **6 experiments, 0 with no report:** 

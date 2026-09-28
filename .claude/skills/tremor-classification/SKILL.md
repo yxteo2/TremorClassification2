@@ -28,8 +28,10 @@ every study to the reports that cite it.
 ## Layout and entry points
 
 ```
-signal_processing/  transforms (12 estimators, METHODS dict), tfd, quaternion,
-                    stability (TSI, IF trajectory), tremor_physics, preprocessing
+signal_processing/  transforms (METHODS: welch, stft512, multitaper,
+                    wavelet_packet -- 8 benchmark estimators removed, commit
+                    57fd8a72), tfd, quaternion, stability (TSI, IF trajectory),
+                    tremor_physics
 frequency/          characteristics (biomarker table, notebook 01), descriptors
                     (10), tables
 common/             loaders per cohort (quaternion_data skips non-unit files),

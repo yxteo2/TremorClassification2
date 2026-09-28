@@ -46,8 +46,6 @@ AMPMOD = ("mod_peak_hz", "mod_low_frac", "mod_entropy", "burst_frac",
           "burst_rate", "env_cv")
 AMPLITUDE = ("rms",)
 FEATURE_NAMES = HARMONIC + AXES + AMPMOD + AMPLITUDE
-FAMILIES = {"harmonic": HARMONIC, "axes": AXES, "ampmod": AMPMOD,
-            "amplitude": AMPLITUDE}
 
 
 def _dominant(f, P, f_lo, f_hi):

@@ -101,7 +101,3 @@ def load_recordings(
     return recordings
 
 
-def filter_by_length(
-    recs: list[Recording], min_len: int, max_len: int
-) -> list[Recording]:
-    return [r for r in recs if min_len <= r.x.shape[1] <= max_len]

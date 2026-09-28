@@ -158,69 +158,50 @@ non-ET records in the ET class (`reports/pads_label_bug.md`).
 ## Package layout
 
 ```
-models/              architectures.py — every model: CNN / TCN / BiLSTM /
-                     two-stream / transformer / cross-attention
+models/              architectures.py    the networks the pipeline uses:
+                                         Spectrum1DCNN, ResidualTCN, two-stream
+                                         (TrajectoryEncoder), DescriptorFusion
 
-signal_processing/   transforms.py       12 TF methods, all power-scaled
-                     tfd.py              multitaper / SST / CWT
-                     quaternion.py       quaternion -> angular velocity
-                     preprocessing.py    band-pass, framing, STFT
-                     spectral.py         log compression, SpecAugment
+signal_processing/   quaternion.py       quaternion -> angular velocity
+                     transforms.py       METHODS: welch, stft512, multitaper,
+                                         wavelet_packet (all power-scaled)
+                     tfd.py              multitaper + wavelet-packet internals
                      stability.py        Tremor Stability Index, IF trajectories
                      tremor_physics.py   harmonics, rotation-invariant axes,
                                          modulation spectrum, amplitude
-                     reemergence.py      envelope timing from recording start
 
 frequency/           characteristics.py  6 characteristics + classification
+                                         (the biomarkers in notebook 01)
                      descriptors.py      10 spectral descriptors
                      tables.py           per-patient spectra, asymmetry features
-                     report.py           frequency comparison across cohorts
 
 common/              data.py             the Recording type
-                     quaternion_data.py  2015 loader
+                     quaternion_data.py  2015 loader (skips non-unit files)
                      load_2025.py        NewData loader
                      extract_pads.py     PADS extraction (exact-match labels)
                      loaders.py          PADS loader
-                     cohorts.py          merged assembly, capping, missing modality
-                     training.py         training loops
-                     protocol.py         splits + validation-tuned priors
-                     cache.py            on-disk caching
+                     cohorts.py          merged assembly, logbin, descriptors
+                     training.py         LOSO training loop
+                     protocol.py         train loop (GPU: TREMOR_DEVICE=cuda),
+                                         validation-tuned priors
 
-metrics/             stats.py            subject-clustered bootstrap CIs
-                     selective.py        precision at reduced coverage
-                     benchmark.py        method ranking, BH + Bonferroni
-                     merged.py           balanced accuracy, cohort probe
+metrics/             selective.py        precision at reduced coverage
 
-experiments/         81 runnable studies. The ones that carry a result:
+experiments/         final_model.py              merged model, build() -- notebook 02
+                     own_data_10et.py            2015 / NewData / PADS feature blocks
+                     transfer_2015.py            2015 OUT model: PADS pretrain -> fine-tune
+                     transfer_2015_explore.py    variants of that model
+                     _inhouse_transfer_diagnostic.py  PADS -> in-house pre-check
+                     verify_data.py              data checks (exit code = failures)
+                     verify_preprocessing.py     every stage vs synthetic ground truth
 
-                     final_model.py            the reported merged model
-                     headline_audit.py         that model re-checked at 40 splits
-                     own_data_10et.py          in-house, 10 ET per test set
-                     pd_vs_et.py               the binary axis, per cohort
-                     permutation_null.py *     detection floors  (see reports/)
-                     catch22_family.py         waveform features vs spectral ones
-                     tf_variability_screen.py  window-length sweep
-                     tf_window_paired.py       short-window spectrum, paired
-                     oneclass_paired.py        one-class PD + logreg hybrid
-                     binning.py                band coverage vs estimator
-                     loco_pd_et.py             cross-cohort transfer
-                     kinetic_task_audit.py     auditing lever #3
-                     ensemble_diversity.py     the ceiling's shape: 60/40 split
-                     contested_specialists.py  is the contested 40 % readable?
-
-                     The rest are recorded negatives — SSL, attention, MIL,
-                     time-domain TCNs, fusion points, rest/postural contrasts.
-                     None improved the reported model. Most have a report under
-                     a different name; a handful were never written up.
-                     experiments/INDEX.md maps every study to the reports that
-                     cite it, and names the unreported ones honestly. Regenerate
-                     it with tools/gen_experiment_index.py; do not hand-edit.
-
-reports/             90 findings, including every retraction and a register
-                     of predictions made before the run (failed_predictions.md)
+tools/               gen_experiment_index.py     regenerates experiments/INDEX.md
 ```
 
-The ViT checkpoint is stored split; rebuild with `cat vit_chunk_0* > vit_fp16.pt`.
+Removed studies, estimators and networks are in git history: tag
+`archive/pre-tidy-2026-09-27` (first prune), commit `6ea8ba09` (merged-model
+scripts), commit `57fd8a72` (benchmark estimators CWT/HHT/SST/S-transform/VMD/AR
+and the unused networks).
 
 ## Where the project stands
 

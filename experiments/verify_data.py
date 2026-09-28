@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import warnings
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 import numpy as np
 from scipy.signal import butter, sosfiltfilt, welch
@@ -203,7 +203,6 @@ def main():
     # ---------- 8. frames actually averaged, per cohort ----------
     print()
     for c, (rs, ch) in data.items():
-        n = [max((min(256, gyro(r, ch).shape[-1]) - 192), 0) for r in rs]
         L = [gyro(r, ch).shape[-1] for r in rs]
         nf = [1 + max(0, (l - 256)) // 64 for l in L]
         print(f"       {c:<9} multitaper frames per recording: median "

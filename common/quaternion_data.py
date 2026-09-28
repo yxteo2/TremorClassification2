@@ -95,26 +95,3 @@ def load_quaternion_recordings(
     return recordings
 
 
-def load_quaternion_recordings_multi(
-    root: Path | str,
-    actions: list[str],
-    **kwargs,
-) -> list[Recording]:
-    """Load several actions and key subjects at the PATIENT level.
-
-    The single-action loader keys subjects as ``"ET 10_OUT"`` — the action is
-    baked into the id. That is fine within one action, but pooling actions that
-    way would place the SAME patient's OUT and REST recordings in different
-    LOSO folds, i.e. subject leakage. Here we strip the trailing ``_<ACTION>``
-    so every recording of patient ``"ET 10"`` shares one group id across
-    conditions, and tag each recording with its ``condition``.
-    """
-    recordings: list[Recording] = []
-    for action in actions:
-        recs = load_quaternion_recordings(root, action=action, **kwargs)
-        suffix = re.compile(rf"_{re.escape(action)}$")
-        for r in recs:
-            r.subject = suffix.sub("", r.subject)
-            r.condition = action
-        recordings.extend(recs)
-    return recordings

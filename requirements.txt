@@ -1,24 +1,8 @@
-# Core — the pipeline will not import without these.
+# Core -- the pipeline will not import without these.
 numpy>=1.24
 pandas>=2.0
 scipy>=1.10
 scikit-learn>=1.3
-torch>=2.0
+torch>=2.0         # GPU training: install a CUDA build and set TREMOR_DEVICE=cuda
 h5py>=3.8          # NewData loading (common/load_2025.py)
 PyWavelets>=1.4    # wavelet_packet transform, used by final_model.build()
-
-# Optional transforms. Only needed for the corresponding --tfd-method.
-EMD-signal>=1.5    # hht, emd
-vmdpy>=0.2         # vmd
-stockwell>=1.2     # S-transform
-
-# optional -- benchmark-only transforms in signal_processing/transforms.py (hht, hht_imf2plus, vmd);
-# not used by the reported model. Uncomment to run the full 12-transform benchmark.
-# EMD-signal>=1.5
-# vmdpy>=0.2
-
-# optional -- ROCKET/MiniRocket experiments (experiments/rocket_*.py).
-# Refuted as an input (reports/rocket_waveform.md); kept so the result is
-# reproducible. numba is a hard transitive dependency of MiniRocket.
-# sktime>=1.1
-# numba>=0.57

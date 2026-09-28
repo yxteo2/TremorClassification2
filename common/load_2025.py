@@ -27,7 +27,6 @@ ACTION = {"01": "REST",        "08": "REST",
           "05": "POUR",        "12": "POUR",
           "06": "TAP",         "13": "TAP",
           "07": "PRON_SUP",    "14": "PRON_SUP"}
-ALL_TASKS_2025 = ["REST", "OUT", "DRINK", "FINGER_NOSE", "POUR", "TAP", "PRON_SUP"]
 FS_SRC, FS_DST = 128.0, 100.0
 
 def _load_h5(path, sensors=SENSOR_ORDER):

@@ -42,12 +42,8 @@ from collections import defaultdict
 
 import numpy as np
 import torch
-import torch.nn as nn
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.model_selection import StratifiedShuffleSplit
 
 from frequency.descriptors import DESCRIPTOR_NAMES, describe
-from models.architectures import DescriptorFusion, ResidualTCN, Spectrum1DCNN, TRUNKS
 from frequency.tables import asym_feats, bilateral_table, spectrum_table
 
 from signal_processing.transforms import METHODS

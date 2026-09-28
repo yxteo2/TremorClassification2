@@ -16,10 +16,9 @@ Run: ``python -m experiments.verify_preprocessing``  (exit code = number of fail
 """
 import numpy as np, warnings
 warnings.filterwarnings("ignore")
-from scipy.signal import resample_poly, butter, filtfilt
-from signal_processing.quaternion import (angular_velocity_from_quaternions, quat_multiply,
-                                          _normalize_quaternions)
-from signal_processing.transforms import METHODS, _band, F_MIN, F_MAX
+from scipy.signal import resample_poly
+from signal_processing.quaternion import angular_velocity_from_quaternions
+from signal_processing.transforms import METHODS
 from signal_processing.stability import stability_features, if_trajectory, trajectory_table
 from signal_processing.tremor_physics import axis_features, harmonic_features
 from frequency.descriptors import describe
@@ -35,18 +34,6 @@ def check(name, ok, detail=""):
     res.append((name, bool(ok))); print(f"[{'PASS' if ok else 'FAIL'}] {name}  {detail}", flush=True)
 
 # ---------- helpers ----------
-def quat_from_body_omega(omega, fs, conv="xyzw"):
-    """Integrate q_dot = 0.5 * q (x) omega_body (scalar-last)."""
-    n = len(omega); q = np.zeros((n, 4)); q[0] = [0, 0, 0, 1.0]
-    dt = 1/fs
-    for i in range(1, n):
-        w = omega[i-1]; th = np.linalg.norm(w)*dt
-        if th < 1e-12: dq = np.array([0,0,0,1.0])
-        else:
-            ax = w/np.linalg.norm(w); dq = np.concatenate([ax*np.sin(th/2), [np.cos(th/2)]])
-        q[i] = quat_multiply(q[i-1][None], dq[None], conv)[0]          # body-frame update: q * dq
-        q[i] /= np.linalg.norm(q[i])
-    return q
 def tone(f0, A=1.0): return A*np.sin(2*np.pi*f0*t)
 
 # ---------- (a) quaternion -> angular velocity ----------
@@ -174,7 +161,6 @@ from frequency.characteristics import spectrum_characteristics as _sc
 from signal_processing.tremor_physics import harmonic_features as _hf
 _g = np.random.default_rng(3)
 def _jit(sd, f0=8.0, n=1024):
-    tt = np.arange(n) / FS
     inst = f0 + sd * np.convolve(_g.standard_normal(n), np.ones(50) / np.sqrt(50), "same")
     ph = 2 * np.pi * np.cumsum(inst) / FS
     return np.atleast_2d(np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.05 * _g.standard_normal(n))
