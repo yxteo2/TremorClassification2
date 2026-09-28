@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (34 failed, 25 held); `experiments/INDEX.md` maps
+predictions made before the run (36 failed, 26 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -84,10 +84,10 @@ and compare against the `scratch` and `ft` arms on the same partitions.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   held twenty-one of twenty-one until the 2015 transfer work; #29-#33 are five
-   failures since, mostly extrapolations beyond the measured quantity -- a binary
-   ranking AUC read as 3-class precision (#29, #30), or an endpoint (head-only)
-   read as the limit of a family (#32, #33). Mechanism stories have failed 28
+   held twenty-one of twenty-one until the in-house REST and 2015 transfer work;
+   several have failed since (#29-#36), mostly extrapolations beyond the measured quantity -- a binary
+   ranking AUC read as 3-class precision (#31, #32), or an endpoint (head-only)
+   read as the limit of a family (#34, #35). Mechanism stories have failed 28
    times. Measure the quantity you predict, at the setting you predict.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
@@ -164,7 +164,8 @@ raises ranking on fresh partitions (AUC +0.012 \*) but not precision
 (precET −0.007, precPD −0.017 \*) -- its selection-partition precET gain
 was selection bias. Plain `ft` stays adopted.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
-default so existing results reproduce bit-for-bit). `N 2` REST/WING files hold
+default so existing results reproduce bit-for-bit).
+In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold
 accelerometer data (|q| ~ 9.8; `verify_data` check 13 fails on purpose).
 
 Merge: cap PADS at 90/class, pool, one global set of validation-tuned priors,
