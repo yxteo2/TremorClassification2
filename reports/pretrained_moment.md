@@ -136,19 +136,76 @@ favourable splits, not a gain (invariant 5). The PD-vs-ET ranking gain is spread
 through the ranking rather than concentrated among the top ET candidates, and
 the ET-vs-rest ranking also has to beat N patients.
 
+## Fine-tuning MOMENT (LP-FT, 20 fresh partitions, seeds 200-219)
+
+`experiments/moment_finetune.py`. Linear probe on frozen embeddings, then all
+weights at lr 1e-5 (head 1e-4), up to 15 epochs, early stopping on validation
+patients with the probe as epoch 0; hyperparameters fixed in advance. Control:
+identical LP-FT from weight-permuted MOMENT. `ft` and frozen `mom_lr` re-run on
+the same partitions. Trained in the `moment` env with CUDA PyTorch
+(2.14.0+cu130) on the RTX 5070 Ti.
+
+**A trap, caught before the run:** `momentfm` freezes the encoder and patch
+embedder by default (`freeze_encoder` / `freeze_embedder` = True). The first
+smoke run therefore "fine-tuned" only the head and produced plausible numbers;
+a `check_backward_validity` warning and a direct gradient test exposed it. The
+experiment now passes `freeze_encoder=False, freeze_embedder=False` and asserts
+the encoder receives gradient on the first step. That smoke result was
+discarded.
+
+| arm | precN | precPD | precET | macroP | macroF1 | PD-vs-ET AUC |
+|---|---|---|---|---|---|---|
+| ft | 0.714 | 0.740 | 0.343 | 0.599 | 0.588 | 0.644 |
+| mom_lr (frozen) | 0.744 | 0.758 | 0.324 | 0.609 | 0.608 | 0.703 |
+| mom_ft (fine-tuned) | 0.703 | 0.768 | 0.306 | 0.592 | 0.586 | 0.693 |
+| mom_ft_perm (control) | 0.570 | 0.747 | 0.249 | 0.522 | 0.483 | 0.577 |
+| ens_lr (ft + frozen) | 0.746 | 0.756 | 0.363 | 0.622 | 0.613 | 0.708 |
+| ens_ft (ft + fine-tuned) | 0.723 | 0.770 | 0.372 | 0.621 | 0.610 | 0.701 |
+
+Early stopping kept the probe in 15 % of folds (median epoch 8), so fine-tuning
+did move the encoder; for the permuted control it kept the probe in 51 %.
+
+| contrast | precN | precPD | precET | macroP | PD-vs-ET AUC |
+|---|---|---|---|---|---|
+| mom_ft − mom_lr | −0.042 \* | +0.011 | −0.017 | −0.016 | −0.010 |
+| mom_ft − mom_ft_perm | +0.132 \* | +0.021 | +0.057 \* | +0.070 \* | **+0.117 \*** |
+| ens_ft − ens_lr | −0.023 \* | +0.014 | +0.009 | −0.000 | −0.007 |
+
+**Fine-tuning adds nothing over the frozen encoder** (all three predictions
+held): ~90 training patients per fold cannot improve a ~35 M-parameter encoder's
+features, and it costs a little N precision. The pretrained start still matters
+enormously when every weight trains (+0.117 AUC over the permuted start).
+**Keep MOMENT frozen.**
+
+## The ensemble across all 100 fresh-or-reused partitions
+
+ft + frozen MOMENT minus ft, three independent partition sets:
+
+| partitions | precET | macroP | PD-vs-ET AUC |
+|---|---|---|---|
+| 0-39 | −0.010 | +0.019 \* | +0.064 \* |
+| 100-139 | −0.058 \* | −0.001 | +0.063 \* |
+| 200-219 | +0.020 | +0.022 | +0.064 \* |
+| **pooled (100)** | **−0.023** [−0.049, +0.002] | **+0.012 \*** [+0.002, +0.022] | **+0.064 \*** [+0.055, +0.072] |
+
+The ranking gain is the most reproducible effect in this study (+0.063 to +0.064
+on every set). The ET-precision effect swings from −0.058 to +0.020 with the
+partitions -- the instability invariant 4 warns about -- and pools to a
+non-significant −0.023.
+
 ## Standing
 
 * **MOMENT transfer is real** -- above the spectrum features, far above
   weight-permuted MOMENT, above its label null -- and it is the first external
   pretrained model to help here.
-* **For the ET-precision target, keep `ft`.** The ft + MOMENT ensemble raises
-  PD-vs-ET ranking and N / PD precision but not ET precision at any operating
-  point measured.
+* **For the ET-precision target, keep `ft`.** Over 100 partitions the ft + MOMENT
+  ensemble raises PD-vs-ET ranking (+0.064 \*) and macroP (+0.012 \*) but not ET
+  precision (−0.023, n.s.), at the tuned offsets or among the top-k ET candidates.
+* **Keep MOMENT frozen**: LP-FT fine-tuning is null against the frozen encoder.
 * **Use the ensemble** when the goal is balanced three-class performance or
   PD-vs-ET ranking.
-* Not tried: fine-tuning MOMENT itself (needs a CUDA PyTorch build in the
-  `moment` env, ~2.5 GB), MOMENT embeddings of PADS as an extra pretraining
-  signal, MOMENT-large.
+* Not tried: MOMENT embeddings of PADS as an extra pretraining signal,
+  MOMENT-base / -large (larger downloads), parameter-efficient fine-tuning (LoRA).
 
 ## Reproducing the weights
 
