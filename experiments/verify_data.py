@@ -222,6 +222,7 @@ def main():
     print()
     bad = []
     for p in sorted(glob.glob("Data/raw_quaternion/*/*/*.txt")):
+        p = p.replace("\\", "/")          # Windows glob returns backslashes
         Q = pd.read_csv(p, sep=None, engine="python", header=None).to_numpy(float)
         nq = np.median(np.linalg.norm(Q.reshape(len(Q), -1, 4), axis=2))
         if not 0.95 < nq < 1.05:

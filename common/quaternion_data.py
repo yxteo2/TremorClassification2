@@ -16,6 +16,7 @@ amplitude data.
 from __future__ import annotations
 
 import re
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -71,6 +72,15 @@ def load_quaternion_recordings(
                     f"{n_sensors} sensors x 4 quaternion components, "
                     f"got shape {Q12.shape}"
                 )
+            # process_quaternion_data normalises every row to |q| = 1, which would
+            # silently turn a file of some other quantity into plausible-looking
+            # angular velocity. `N 2` REST/WING hold accelerometer data (|q| ~ 9.8,
+            # gravity in m/s^2; verify_data check 13) -- skip, don't convert.
+            nq = np.median(np.linalg.norm(Q12.reshape(len(Q12), -1, 4), axis=2))
+            if not 0.95 < nq < 1.05:
+                warnings.warn(f"skipping {path}: not unit quaternions "
+                              f"(median |q| {nq:.2f})")
+                continue
             try:
                 x = process_quaternion_data(
                     Q12, fs=fs, mode=mode, convention=convention,

@@ -81,8 +81,15 @@ def spectrum_characteristics(x, fs=100.0, f_lo=3.0, f_hi=15.0):
     }
 
 
-def patient_table(recs, ch=slice(0, 3), fs=100.0, **kw):
-    """(patients, 6) characteristics, averaged over a patient's recordings."""
+def patient_table(recs, ch=slice(3, 6), fs=100.0, **kw):
+    """(patients, 6) characteristics, averaged over a patient's recordings.
+
+    ``ch`` defaults to the lower-arm sensor (channels 3-5), the wrist-equivalent
+    the whole pipeline uses; 3-channel recordings (PADS) are used whole. The
+    default was previously ``slice(0, 3)`` -- the HAND sensor on 2015/NewData --
+    which no caller relied on (all pass ``ch``), but a new caller would have
+    silently analysed a different sensor from the model.
+    """
     rows, lab = defaultdict(list), {}
     for r in recs:
         sig = r.x[ch] if r.x.shape[0] > 3 else r.x

@@ -110,6 +110,13 @@ def m_hht_imf2plus(x, fs=FS, max_imfs=8, step=0.25, **kw):
     a clean 6 Hz tone is recovered exactly, but at noise sd=0.3 the peak jumps
     to the top of the band). Dropping IMF1 is the standard remedy and makes the
     comparison against the other methods fair.
+
+    **Invalid on high-SNR tremor.** EMD's IMF1 is the *highest-frequency*
+    oscillation, which is noise only when noise dominates. When the tremor is
+    strong it IS IMF1 and this discards it: on a clean 6 Hz tone the peak lands
+    at the 3 Hz band edge (the one `verify_preprocessing` failure). Pronounced
+    tremor is exactly the case that matters, so do not use this estimator for
+    classification; it is benchmark-only and not in the reported model.
     """
     from signal_processing.tfd import _emd_imfs
     X2 = np.atleast_2d(x)

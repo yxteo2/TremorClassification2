@@ -7,6 +7,8 @@ in this project (ET precision 0.475 -> 0.612).
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -19,12 +21,21 @@ SPLITS, TEST_FRAC, VAL_FRAC = 10, 0.20, 0.20
 
 from models.architectures import DescriptorFusion, ResidualTCN, Spectrum1DCNN, TRUNKS
 
+#: Training device. CPU by default so every reported result stays
+#: bit-reproducible; ``TREMOR_DEVICE=cuda`` trains on the GPU (numbers then
+#: differ from the CPU run at the floating-point level, not in expectation).
+DEVICE = torch.device(os.environ.get("TREMOR_DEVICE", "cpu"))
 
 
 def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
           wd=1e-3, nc=3, sw=None, pre=None, ft_lr=1e-3, ft_epochs=80,
-          logit_adj=None):
+          logit_adj=None, ft_head_only=False):
     """Full-batch trainer. ``sw`` weights samples; ``pre`` pretrains first.
+
+    ``ft_head_only`` (with ``pre``): fine-tune only the final ``nn.Linear`` (the
+    classifier -- ``head.1`` / ``fc`` in the reported members) and hold every
+    BatchNorm at its pretrained statistics, i.e. a linear probe on the
+    pretrained features. Default False keeps every existing result identical.
 
     ``logit_adj`` (float tau) switches the loss from inverse-frequency class
     weighting to **training-time logit adjustment** (Menon et al., ICLR 2021):
@@ -36,24 +47,26 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
     it was, so every existing result is bit-reproducible.
     """
     torch.manual_seed(seed)
-    T = lambda z: torch.tensor(z, dtype=torch.float32)
-    xt, yt = T(Xtr), torch.tensor(ytr, dtype=torch.long)
-    xv, yv = T(Xva), torch.tensor(yva, dtype=torch.long)
-    m = model_fn()
+    dev = DEVICE
+    T = lambda z: torch.tensor(z, dtype=torch.float32, device=dev)
+    L = lambda z: torch.tensor(z, dtype=torch.long, device=dev)
+    xt, yt = T(Xtr), L(ytr)
+    xv, yv = T(Xva), L(yva)
+    m = model_fn().to(dev)
 
     def wt(yy):
         c = np.bincount(yy, minlength=nc).astype(float)
-        return torch.tensor(c.sum() / (nc * np.maximum(c, 1)), dtype=torch.float32)
+        return T(c.sum() / (nc * np.maximum(c, 1)))
 
     la = None
     if logit_adj is not None:
         c = np.bincount(ytr, minlength=nc).astype(float)
         prior = np.maximum(c, 1) / max(c.sum(), 1)
-        la = torch.tensor(logit_adj * np.log(prior), dtype=torch.float32)
+        la = T(logit_adj * np.log(prior))
 
     if pre is not None:
         Xp, yp = pre
-        xp, ypt = T(Xp), torch.tensor(yp, dtype=torch.long)
+        xp, ypt = T(Xp), L(yp)
         lf = nn.CrossEntropyLoss(weight=wt(yp))
         op = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=wd)
         sp = torch.optim.lr_scheduler.CosineAnnealingLR(op, epochs)
@@ -62,17 +75,31 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
             op.zero_grad(); lf(m(xp), ypt).backward(); op.step(); sp.step()
         lr, epochs = ft_lr, ft_epochs
 
+    frozen_bn = []
+    params = list(m.parameters())
+    if pre is not None and ft_head_only:
+        head = [x for x in m.modules() if isinstance(x, nn.Linear)][-1]
+        for p in m.parameters():
+            p.requires_grad_(False)
+        for p in head.parameters():
+            p.requires_grad_(True)
+        params = list(head.parameters())
+        frozen_bn = [x for x in m.modules()
+                     if isinstance(x, nn.modules.batchnorm._BatchNorm)]
+
     w = wt(ytr)
     # logit adjustment replaces class weighting; applying both would correct the
     # same imbalance twice
     cw = None if la is not None else w
     adj = (lambda z: z + la) if la is not None else (lambda z: z)
-    opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=wd)
+    opt = torch.optim.AdamW(params, lr=lr, weight_decay=wd)
     sch = torch.optim.lr_scheduler.CosineAnnealingLR(opt, epochs)
     swt = T(sw) if sw is not None else None
     best, state = np.inf, None
     for _ in range(epochs):
         m.train(); opt.zero_grad()
+        for b in frozen_bn:
+            b.eval()
         if swt is None:
             loss = nn.CrossEntropyLoss(weight=cw)(adj(m(xt)), yt)
         else:
@@ -89,7 +116,7 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
         m.load_state_dict(state)
     m.eval()
     with torch.no_grad():
-        return [torch.softmax(m(T(z)), 1).numpy() for z in Xout]
+        return [torch.softmax(m(T(z)), 1).cpu().numpy() for z in Xout]
 def tune_offsets(pv, yv):
     """Per-class logit offsets maximising VALIDATION macro F1."""
     best, bo = -1.0, np.zeros(3)
