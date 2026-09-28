@@ -50,7 +50,7 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from common.protocol import DEVICE, train, tune_offsets
-from experiments.inhouse_transfer import NAMES, members, zfit
+from experiments.transfer_2015 import NAMES, members, zfit
 from experiments.own_data_10et import build
 
 ARMS = ("scratch", "ft", "ft_long", "ft_head", "ft_uncap", "ft_pn", "ens", "ft_x2")

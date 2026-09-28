@@ -20,7 +20,9 @@ test. Each domain is z-scored on its own statistics (label-free, every class
 present in both -- invariant 13). The reported recipe (two-stream +
 ResidualTCN x 3 seeds), GPU via ``TREMOR_DEVICE=cuda``.
 
-Arms (from ``inhouse_transfer``): scratch, pool, ft, ft_gentle, ft_NT, ft_shuf.
+Arms: scratch (2015 only), pool (PADS in training), ft (pretrain on PADS,
+fine-tune all), ft_gentle (fine-tune lr 1e-4), ft_NT (pretrain N-vs-tremor
+only), ft_shuf (control: pretrain with PADS labels permuted).
 
 PREDICTION (before the run): precET null for every transfer arm vs scratch
 (|mean| < 0.05, CI spanning 0), because PD-vs-ET does not transfer; precN up
@@ -43,12 +45,55 @@ import torch
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-from common.protocol import DEVICE, tune_offsets
-from experiments.inhouse_transfer import ARMS, NAMES, fit
+from common.protocol import DEVICE, NBIN, train, tune_offsets
 from experiments.own_data_10et import build
+from models.architectures import ResidualTCN, Spectrum1DCNN, TRUNKS, TwoStreamNet
 
-CAP = 90
+TL, CAP = 64, 90
+ARMS = ("scratch", "pool", "ft", "ft_gentle", "ft_NT", "ft_shuf")
+NAMES = ("precN", "precPD", "precET", "macroP", "macroF1")
 OUT_DIR = os.environ.get("OUT_DIR", "transfer_2015_runs")
+
+
+def zfit(X):
+    """Standardiser fitted on X (label-free; applied per domain)."""
+    mu, sd = X.mean(0, keepdims=True), X.std(0, keepdims=True) + 1e-8
+    return lambda Z: (Z - mu) / sd
+
+
+def members(nd):
+    """The reported recipe's two members: two-stream net and ResidualTCN."""
+    mk1 = lambda: TwoStreamNet(Spectrum1DCNN(NBIN, 3, ch=8), TRUNKS["cnn"],
+                               8 * 2 * 4, NBIN, nd, TL)
+    mk2 = lambda: ResidualTCN(NBIN, num_classes=3, ch=16)
+    return mk1, mk2
+
+
+def fit(arm, own, pads, y, tr, va, te, yp, seeds=(0, 1, 2)):
+    """own / pads: (packed, spec) per domain. Returns val / test probs."""
+    mk1, mk2 = members(own["nd"])
+    pv_l, pt_l = [], []
+    for key, mk in (("packed", mk1), ("spec", mk2)):
+        X, P = own[key], pads[key]
+        f = zfit(X[tr])
+        Xtr, Xva, Xte = f(X[tr]), f(X[va]), f(X[te])
+        kw = {}
+        if arm == "pool":
+            Xtr = np.vstack([Xtr, zfit(P)(P)])
+            ytr = np.concatenate([y[tr], yp])
+        else:
+            ytr = y[tr]
+        if arm.startswith("ft"):
+            lab = {"ft_NT": (yp != 0).astype(int),
+                   "ft_shuf": np.random.default_rng(len(tr)).permutation(yp)
+                   }.get(arm, yp)
+            kw = dict(pre=(zfit(P)(P), lab))
+            if arm == "ft_gentle":
+                kw["ft_lr"] = 1e-4
+        r = [train(mk, Xtr, ytr, Xva, y[va], [Xva, Xte], seed=s, **kw) for s in seeds]
+        pv_l.append(np.mean([a[0] for a in r], 0))
+        pt_l.append(np.mean([a[1] for a in r], 0))
+    return np.mean(pv_l, 0), np.mean(pt_l, 0)
 
 
 def run(reps):

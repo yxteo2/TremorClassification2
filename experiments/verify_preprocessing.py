@@ -161,34 +161,10 @@ ep = select_task_epoch(xe, fs=FS, win_s=10.0)
 check("select_task_epoch returns exactly 10 s", ep.shape[1] == 1000, f"{ep.shape[1]} samples")
 check("select_task_epoch lands on the tremor window", np.abs(ep[3:6]).max() > 0.1)
 
-# ---------- (l) duplicated estimator implementations must not drift ----------
-# `estimator_smoothing.mt_variant` reimplements the multitaper path instead of
-# calling METHODS["multitaper"]. It kept the 1.05 % linspace frequency-axis
-# stretch for three weeks after `transforms.py` was fixed, because nobody re-ran
-# the experiment. Any reimplementation of a shared estimator is checked here
-# against the canonical one, so drift fails immediately rather than on next use.
-from experiments.estimator_smoothing import mt_variant
-from signal_processing.transforms import METHODS
-_x = np.atleast_2d(tone(f0) + 0.3 * tone(2 * f0))
-_fa, _Pa = METHODS["multitaper"](_x)
-_fb, _Pb = mt_variant(256, 2.5, 4)(_x)
-check("mt_variant reproduces METHODS['multitaper'] exactly (no duplicate drift)",
-      len(_fa) == len(_fb) and np.abs(_fa - _fb).max() < 1e-12
-      and np.abs(_Pa - _Pb).max() < 1e-12,
-      f"max|df| {np.abs(_fa - _fb).max():.1e}  max|dP| {np.abs(_Pa - _Pb).max():.1e}"
-      if len(_fa) == len(_fb) else f"axis lengths {len(_fa)} vs {len(_fb)}")
-
-# ---------- (m) the second duplicated implementation ----------
-# `tf_window_control.logbin_n` is a copy of `common.cohorts.logbin`. logbin was
-# itself fixed once (the old version reshaped and silently dropped the
-# remainder, losing 21 % of the band on the 61-column welch path), and the copy
-# would not have followed. Same hazard as mt_variant, currently in sync.
-from common.cohorts import logbin as _logbin
-from experiments.tf_window_control import logbin_n as _logbin_n
-_R = np.random.default_rng(0).random((7, 61)) + 0.01
-_dd = max(float(np.abs(_logbin(_R, nb) - _logbin_n(_R, nb)).max()) for nb in (8, 16))
-check("logbin_n reproduces common.logbin exactly (no duplicate drift)",
-      _dd == 0.0, f"max|diff| {_dd:.1e} on the 61-column welch width")
+# ---------- (l, m) removed 2026-09-28 ----------
+# They guarded copies of the multitaper path and of logbin inside experiment
+# scripts (estimator_smoothing, tf_window_control). Those scripts were pruned,
+# so no duplicate remains to drift. Re-add a check here if a copy reappears.
 
 # ---------- (n) harmonic ratios must survive frequency jitter ----------
 # A true harmonic is phase-locked at k x the INSTANTANEOUS frequency, so jitter

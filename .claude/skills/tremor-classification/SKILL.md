@@ -29,26 +29,32 @@ every study to the reports that cite it.
 
 ```
 signal_processing/  transforms (12 estimators, METHODS dict), tfd, quaternion,
-                    stability (TSI, IF trajectory), tremor_physics, reemergence
-frequency/          characteristics, descriptors (10), tables
-common/             loaders per cohort, cohorts (merge, logbin), protocol (splits,
-                    train loop, tune_offsets), extract_pads
-models/             architectures.py — every network
-experiments/        final_model.py (reported model, build()), headline_audit.py
-                    (40-split re-check), verify_preprocessing.py (every stage
-                    vs synthetic ground truth; exit code = failures),
-                    pooling_rules.fit_members (reusable 6-member trainer),
-                    estimator_smoothing.load_cohorts / spec_for (rebuild
-                    spectra from raw recordings)
+                    stability (TSI, IF trajectory), tremor_physics, preprocessing
+frequency/          characteristics (biomarker table, notebook 01), descriptors
+                    (10), tables
+common/             loaders per cohort (quaternion_data skips non-unit files),
+                    cohorts (merge, logbin), protocol (train loop -- GPU via
+                    TREMOR_DEVICE=cuda, ft_head_only; tune_offsets), extract_pads
+models/             architectures.py -- every network
+experiments/        final_model.py (merged 6-member model, build(); notebook 02)
+                    own_data_10et.build (2015 / NewData / PADS feature blocks)
+                    transfer_2015.py (2015 OUT model: members, zfit, fit)
+                    transfer_2015_explore.py (variants of the transfer model)
+                    _inhouse_transfer_diagnostic.py (PADS -> in-house pre-check)
+                    verify_data.py / verify_preprocessing.py (exit code =
+                    failures; the one expected failure each is documented)
 ```
 
-`python -m experiments.final_model` reproduces the **6-member** model and
-`python -m experiments.headline_audit` its 40-split figures; the adopted
-**9-member** figures come from `python -m experiments.diverse_ensemble` (arm
-`+ transformer`). `fit_members` is still the 6-member trainer. New
-experiments should reuse `fit_members` and `load_cohorts` + `spec_for`, and
-assert bit-exactness against `build()["SPEC"]["multitaper"]` for the unchanged
-arm — several results here were only valid because that assert passed.
+**Pruned twice (2026-09-27/28).** Scripts cited below that no longer exist --
+`headline_audit`, `diverse_ensemble`, `pooling_rules.fit_members`,
+`estimator_smoothing.load_cohorts / spec_for`, `pcen_hpss`, `inhouse_rest_deep`
+and ~80 others -- are in git history: the tag `archive/pre-tidy-2026-09-27`
+holds the first set, commit `6ea8ba09` the second. `git checkout <ref> --
+<path>` restores one. The merged 9-member figures (precET 0.694 / macroP 0.667)
+came from `diverse_ensemble`; `python -m experiments.final_model` still
+reproduces the 6-member model. For the current scope (2015, one action) build
+new experiments on `own_data_10et.build` and `transfer_2015.fit` / `members`,
+and compare against the `scratch` and `ft` arms on the same partitions.
 
 ## Non-negotiable invariants
 
@@ -132,7 +138,7 @@ AUCs averaged over repeated partitions** (`classify(n_repeats=10)`). **At REST,
 sensors, 16 ET) with PD slower, the textbook direction; **PADS ET are slower
 than PD** at both tasks, so the two sources teach opposite frequency rules.
 **In-house REST in the deep model is now tested and closed for ET**
-(`inhouse_rest_deep.md`): REST alone, OUT+REST score fusion and the hand
+(`inhouse_rest_deep.md`, now in git history): REST alone, OUT+REST score fusion and the hand
 sensor all leave in-house precET at ~0.16 (prevalence 0.105); the only
 baseline-significant gain is precPD +0.059 \* (hand, OUT+REST, 20 repeats).
 **2015 OUT transfer learning works** (`transfer_2015.md`, 40 repeats): PADS

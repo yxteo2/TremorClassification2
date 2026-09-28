@@ -14,7 +14,13 @@ Two lines of work:
 > experiments and their reports were removed; links to them below point at
 > the git tag `archive/pre-tidy-2026-09-27`. Restore any file with
 > `git checkout archive/pre-tidy-2026-09-27 -- reports/<name>.md`.
+> A second prune (2026-09-28) removed the merged 9-member model scripts and
+> the in-house REST study; they are in commit `6ea8ba09`.
 > Train on the GPU with `TREMOR_DEVICE=cuda` (CPU is the default).
+>
+> **Current 2015 OUT model:** PADS pretrain -> 2015 fine-tune, precET 0.333 /
+> macroP 0.596 over 40 CV repeats (`python -m experiments.transfer_2015`,
+> `reports/transfer_2015.md`).
 
 ## Start here
 

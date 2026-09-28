@@ -13,3 +13,6 @@ scratch/
 
 # assembled ViT checkpoint (rebuild with: cat vit_chunk_0* > vit_fp16.pt)
 vit_fp16.pt
+
+# experiment run outputs (per-repeat .npz)
+*_runs/
