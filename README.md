@@ -151,9 +151,22 @@ single axis.
 | NewData | 56 | 27 / 23 / 6 | `NewData/` — 2025 Moveo, both limbs, 7 tasks |
 | PADS | 383 | 79 / 276 / 28 | `pads_stretchhold/`, `pads_relaxed/` — both wrists |
 
-PADS is extracted with `python -m common.extract_pads`. Labels are re-derived
-from the manifest by **exact** diagnosis match — a substring match once put 13
-non-ET records in the ET class (`reports/pads_label_bug.md`).
+**The recordings are not in the repository** (patient data; ~5.4 GB). They
+are `.gitignore`d and live only on local disk, at exactly the paths above,
+relative to the repo root:
+
+```
+Data/raw_quaternion/<OUT|REST|WING>/<N|PD|ET>/*.txt     2015 cohort
+NewData/<HC|PD|ET>/<subject export>/rawData/*.h5        2025 Moveo cohort
+pads_stretchhold/*.txt, pads_relaxed/*.txt              PADS, extracted
+```
+
+Commits up to and including `dcd6250a` still contain them; removing them from history
+needs a rewrite (`git filter-repo`) and a force-push.
+
+PADS is extracted with `python -m common.extract_pads` (`docs/GET_PADS.md`).
+Labels are re-derived from the manifest by **exact** diagnosis match — a
+substring match once put 13 non-ET records in the ET class.
 
 ## Package layout
 
