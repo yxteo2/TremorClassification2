@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (36 failed, 26 held); `experiments/INDEX.md` maps
+predictions made before the run (37 failed, 28 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -163,6 +163,12 @@ Rounds 2-3 (L2-SP, pretrain length, per-recording pretrain): L2-SP λ 1
 raises ranking on fresh partitions (AUC +0.012 \*) but not precision
 (precET −0.007, precPD −0.017 \*) -- its selection-partition precET gain
 was selection bias. Plain `ft` stays adopted.
+**Online pretrained model: MOMENT-1-small transfers** (`pretrained_moment.md`):
+frozen embeddings beat the spectrum features (PD-vs-ET AUC 0.701 vs 0.621) and
+weight-permuted MOMENT by 0.08-0.17; ft + MOMENT raises PD-vs-ET AUC +0.063 \*
+and precN / precPD on fresh partitions but NOT precET (−0.058 \*), macroP flat.
+Runs in a separate conda env `moment` (momentfm pins numpy 1.25). ImageNet ViT
+stays closed; time-series pretraining is the family that transfers.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit).
 In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold
