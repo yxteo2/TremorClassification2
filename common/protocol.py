@@ -29,13 +29,18 @@ DEVICE = torch.device(os.environ.get("TREMOR_DEVICE", "cpu"))
 
 def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
           wd=1e-3, nc=3, sw=None, pre=None, ft_lr=1e-3, ft_epochs=80,
-          logit_adj=None, ft_head_only=False):
+          logit_adj=None, ft_head_only=False, ft_l2sp=None):
     """Full-batch trainer. ``sw`` weights samples; ``pre`` pretrains first.
 
     ``ft_head_only`` (with ``pre``): fine-tune only the final ``nn.Linear`` (the
     classifier -- ``head.1`` / ``fc`` in the reported members) and hold every
     BatchNorm at its pretrained statistics, i.e. a linear probe on the
     pretrained features. Default False keeps every existing result identical.
+
+    ``ft_l2sp`` (float, with ``pre``): L2-SP fine-tuning (Li et al., ICML 2018)
+    -- add ``ft_l2sp * sum ||w - w_pretrained||^2`` over every parameter except
+    the final classifier, so the network adapts while staying anchored to what
+    pretraining learned. Default None leaves the loss unchanged.
 
     ``logit_adj`` (float tau) switches the loss from inverse-frequency class
     weighting to **training-time logit adjustment** (Menon et al., ICLR 2021):
@@ -77,6 +82,12 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
 
     frozen_bn = []
     params = list(m.parameters())
+    anchor = None
+    if pre is not None and ft_l2sp:
+        head_ids = {id(p) for p in
+                    [x for x in m.modules() if isinstance(x, nn.Linear)][-1].parameters()}
+        anchor = [(p, p.detach().clone()) for p in m.parameters()
+                  if id(p) not in head_ids]
     if pre is not None and ft_head_only:
         head = [x for x in m.modules() if isinstance(x, nn.Linear)][-1]
         for p in m.parameters():
@@ -105,6 +116,8 @@ def train(model_fn, Xtr, ytr, Xva, yva, Xout, seed=0, epochs=200, lr=3e-3,
         else:
             per = nn.CrossEntropyLoss(weight=cw, reduction="none")(adj(m(xt)), yt)
             loss = (per * swt).sum() / swt.sum()
+        if anchor is not None:
+            loss = loss + ft_l2sp * sum(((p - p0) ** 2).sum() for p, p0 in anchor)
         loss.backward(); opt.step(); sch.step()
         m.eval()
         with torch.no_grad():

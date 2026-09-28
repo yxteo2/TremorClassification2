@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (31 failed, 22 held); `experiments/INDEX.md` maps
+predictions made before the run (34 failed, 25 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -84,9 +84,11 @@ and compare against the `scratch` and `ft` arms on the same partitions.
    distinguishable from chance.
 9. **Record the prediction in the docstring before launching**, then append the
    outcome to `reports/failed_predictions.md`. Measurement-derived predictions
-   have held here twenty-one of twenty-three; mechanism stories have failed 28
-   times. Both measurement-derived failures (#29, #30) extrapolated a binary
-   ranking AUC to a 3-class precision, in opposite directions -- measure the quantity you predict.
+   held twenty-one of twenty-one until the 2015 transfer work; #29-#33 are five
+   failures since, mostly extrapolations beyond the measured quantity -- a binary
+   ranking AUC read as 3-class precision (#29, #30), or an endpoint (head-only)
+   read as the limit of a family (#32, #33). Mechanism stories have failed 28
+   times. Measure the quantity you predict, at the setting you predict.
 10. **Run the cheap diagnostic before the fits** when a proposal changes the
     representation. Two statistics of the 16-bin spectrum, taken in minutes,
     called PCEN's failure that a reasoned prediction got backwards
@@ -139,7 +141,12 @@ AUCs averaged over repeated partitions** (`classify(n_repeats=10)`). **At REST,
 2015 does separate PD from ET** (AUC ~0.65-0.70, above chance on all three
 sensors, 16 ET) with PD slower, the textbook direction; **PADS ET are slower
 than PD** at both tasks, so the two sources teach opposite frequency rules.
-**In-house REST in the deep model is now tested and closed for ET**
+**2015 REST as its own model is closed for ET** (`rest_2015.md`, 40 repeats):
+precET 0.124 at prevalence 0.106 from scratch, and PADS Relaxed transfer
+reverses ET-vs-PD ranking (AUC 0.484, −0.105 \*, below its permuted-label
+control) -- PADS's opposite rest-frequency rule, inside the deep model. The
+2015 REST PD-vs-ET linear signal is borderline (0.61-0.65, p 0.03-0.12).
+Earlier: **In-house REST in the deep model is now tested and closed for ET**
 (`inhouse_rest_deep.md`, now in git history): REST alone, OUT+REST score fusion and the hand
 sensor all leave in-house precET at ~0.16 (prevalence 0.105); the only
 baseline-significant gain is precPD +0.059 \* (hand, OUT+REST, 20 repeats).
@@ -152,6 +159,10 @@ Explored (`transfer_2015_explore`, 40 repeats): the recipe is a local optimum --
 longer fine-tune, head-only fine-tune, uncapped PADS, NewData in pretraining
 and ensembling with scratch are null or worse; 6 seeds is +0.021 precET n.s.
 The gain is in ranking (PD-vs-ET AUC +0.055 \*, win 0.93).
+Rounds 2-3 (L2-SP, pretrain length, per-recording pretrain): L2-SP λ 1
+raises ranking on fresh partitions (AUC +0.012 \*) but not precision
+(precET −0.007, precPD −0.017 \*) -- its selection-partition precET gain
+was selection bias. Plain `ft` stays adopted.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit). `N 2` REST/WING files hold
 accelerometer data (|q| ~ 9.8; `verify_data` check 13 fails on purpose).

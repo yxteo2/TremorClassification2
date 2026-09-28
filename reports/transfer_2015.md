@@ -127,14 +127,72 @@ offsets) at ~2.5 of 15 ET found. The absolute PD-vs-ET AUC (0.63) is still
 modest, and no permutation null has been fitted for it -- the paired
 improvement over scratch is the claim, not the absolute level.
 
+## Round 2: transfer methods aimed at weight drift (40 repeats)
+
+`python -m experiments.transfer_2015_explore2`. Round 1's clue was that
+fine-tuning longer lost ET (−0.021 \*) -- drifting from the pretrained weights
+costs what PADS taught -- so this round tests L2-SP fine-tuning (penalise
+sum||w − w_pretrained||², Li et al. 2018), pretraining length, and
+per-recording pretraining. The L2-SP scale was measured first: unconstrained
+fine-tuning drifts 0.67 / 0.76 (two-stream / TCN) while its CE ends near 0.7.
+
+| arm | precN | precPD | precET | macroP | PD-vs-ET AUC |
+|---|---|---|---|---|---|
+| ft | 0.717 | 0.733 | 0.338 | 0.596 | 0.627 |
+| L2-SP λ 0.1 | 0.717 | 0.730 | 0.341 | 0.596 | 0.631 |
+| L2-SP λ 1.0 | 0.732 | 0.720 | 0.369 | 0.607 | 0.645 |
+| pretrain 100 epochs | 0.710 | 0.754 | 0.357 | 0.607 | 0.608 |
+| pretrain 400 epochs | 0.720 | 0.718 | 0.301 | 0.580 | 0.629 |
+| per-recording pretrain | 0.721 | 0.729 | 0.350 | 0.600 | 0.630 |
+
+Paired vs ft: L2-SP λ 1 AUC **+0.018 \*** (win 0.80), precET +0.031 [−0.000,
++0.064], precN +0.016 \*, precPD −0.014 \*; pretrain 100 precPD +0.021 \* but
+AUC −0.020 \*; pretrain 400 macroP −0.016 \*; λ 0.1 and per-recording null.
+Head-only fine-tuning (round 1) ranks at AUC 0.628, i.e. the λ → ∞ end gives
+the gain back.
+
+## Round 3: L2-SP strength sweep (40 repeats, same partitions)
+
+`STAGE=sweep python -m experiments.transfer_2015_l2sp`.
+
+| λ | 0 (ft) | 1 | 3 | 10 | 30 |
+|---|---|---|---|---|---|
+| PD-vs-ET AUC | 0.628 | **0.645** | **0.647** | 0.640 | 0.633 |
+| precET | 0.344 | **0.367** | 0.335 | 0.301 \* | 0.273 \* |
+| precPD | **0.734** | 0.721 \* | 0.710 \* | 0.691 \* | 0.683 \* |
+| macroP | 0.600 | **0.604** | 0.589 | 0.574 \* | 0.565 \* |
+
+(\* = paired difference from ft significant.) Ranking follows an inverted U
+that is flat between λ 1 and 3; precision falls from λ 3 on. **λ = 1 chosen**
+(best precET and macroP, ranking tied with 3). Choosing it on these
+partitions biases its numbers upward, so it is being confirmed against ft on
+40 fresh partitions (`STAGE=confirm`, seeds 100-139) before adoption.
+
+### Confirmation on 40 fresh partitions (seeds 100-139)
+
+| arm | precN | precPD | precET | macroP | macroF1 | PD-vs-ET AUC |
+|---|---|---|---|---|---|---|
+| ft | 0.721 | **0.733** | **0.370** | **0.608** | **0.598** | 0.630 |
+| ft + L2-SP λ 1 | 0.726 | 0.716 | 0.363 | 0.602 | 0.591 | **0.642** |
+
+Paired: AUC **+0.012 [+0.007, +0.017] \*** (win 0.72), precPD **−0.017 \***,
+precET −0.007, macroP −0.006 (both n.s.). **The ranking gain replicates; the
+precision gain does not.** The +0.023-0.031 precET on the selection partitions
+was selection bias plus noise -- exactly what the confirmation stage was for.
+**L2-SP is not adopted** for a precision target; use it only if the model's
+job is ranking (flag the k most ET-like patients for review).
+
 ## Standing
 
 * **2015 OUT model:** `ft` (PADS StretchHold capped 90/class, pretrain 200
   epochs, fine-tune all weights lr 1e-3 for 80 epochs), 6 seeds per member.
+  Round 2-3 transfer methods (L2-SP, pretrain length, per-recording
+  pretraining) do not raise precision on fresh partitions; L2-SP λ 1 raises
+  ranking only (AUC +0.012 \*).
   Keep scratch if PD precision matters more than ET.
 * If the clinical use is "flag likely ET for review", use a stricter ET
   threshold on `ft` rather than the macro-F1-tuned offsets.
 * Closed on 2015 OUT: fine-tune length, head-only fine-tuning, uncapped PADS,
   NewData in pretraining, ensembling with the scratch model.
-* Not yet tried: a separate REST model (never combined with OUT), with PADS
-  Relaxed as its pretraining source.
+* The separate REST model was tried and is closed for ET (`rest_2015.md`):
+  PADS Relaxed transfer reverses the ET-vs-PD ranking.
