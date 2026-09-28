@@ -9,6 +9,13 @@ Two lines of work:
    frequency and oscillation-shape quantities.
 2. **Deep learning** — classify each patient's time-frequency signal.
 
+> **Repo pruned 2026-09-27.** Only the code the two notebooks and the model
+> entry points need is kept, plus the core reports. The ~80 closed one-off
+> experiments and their reports were removed; links to them below point at
+> the git tag `archive/pre-tidy-2026-09-27`. Restore any file with
+> `git checkout archive/pre-tidy-2026-09-27 -- reports/<name>.md`.
+> Train on the GPU with `TREMOR_DEVICE=cuda` (CPU is the default).
+
 ## Start here
 
 | notebook | what it does |
