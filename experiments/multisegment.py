@@ -162,7 +162,8 @@ def load(task):
 def features_main():
     print("Multi-segment coupling features, univariate AUC (* p < 0.05, "
           "> 0.5 = positive class higher)\n")
-    for task in ("OUT", "REST"):
+    import os
+    for task in os.environ.get("MS_TASKS", "OUT,REST").split(","):
         tabs = {c: seg_table(r) for c, r in load(task).items()}
         for axis in ("PD_vs_ET", "N_vs_Tremor"):
             print(f"{task}  {axis}")
