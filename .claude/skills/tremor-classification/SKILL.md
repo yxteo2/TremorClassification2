@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (38 failed, 27 held); `experiments/INDEX.md` maps
+predictions made before the run (39 failed, 28 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -172,6 +172,12 @@ shuffled-row control; precET +0.036 borderline); on top of `ft` nothing
 significant on precision (precET +0.018), AUC +0.015 \* within what extra
 columns give. Not adopted on `ft`. Feature level: hand-forearm coherence lower
 in ET on 2015 OUT (p = 0.045), not on NewData.
+**What limits `ft`** (`stack_2015.md`): 14 of its 27 consistent errors are patients with
+no measurable tremor in OUT, REST or WING (PD->N 11, ET->N 3) -- unreachable by
+tremor features. ET is found when its tremor is sharp (peak sharpness 12 vs 4).
+A second stage on `ft`'s probabilities + coupling is real vs a shuffled control
+but nets ~0 vs `ft` (refitting the decision on 151 patients costs macroP
+−0.035 \*); REST amplitude as late fusion gives precN / precPD +0.02 \*.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit).
 In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold

@@ -10,7 +10,8 @@ An empty reports column means the study was run but never written up, or was sup
 | `multisegment` | 2026-10-01 | `multisegment_2015.md` |
 | `own_data_10et` | 2026-09-03 | `own_data_reality_check.md` |
 | `rest_2015` | 2026-09-28 | `failed_predictions.md`, `rest_2015.md`, `transfer_2015.md` |
-| `segments_2015` | 2026-10-01 | `multisegment_2015.md` |
+| `segments_2015` | 2026-10-01 | `multisegment_2015.md`, `stack_2015.md` |
+| `stack_2015` | uncommitted | `failed_predictions.md`, `stack_2015.md` |
 | `transfer_2015` | 2026-09-28 | `failed_predictions.md`, `multisegment_2015.md`, `rest_2015.md`, `transfer_2015.md` |
 | `transfer_2015_explore` | 2026-09-28 | `transfer_2015.md` |
 | `transfer_2015_explore2` | 2026-09-28 | `transfer_2015.md` |
@@ -18,4 +19,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `verify_data` | 2026-09-28 | `inhouse_pd_vs_et.md`, `inhouse_rest.md`, `signal_audit_2015.md` |
 | `verify_preprocessing` | 2026-09-28 | `signal_audit_2015.md` |
 
-**12 experiments, 0 with no report:** 
+**13 experiments, 0 with no report:** 
