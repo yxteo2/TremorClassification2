@@ -174,6 +174,7 @@ than two, and should be held that much more loosely.
 | Z | on 40 fresh partitions, L2-SP λ 1 would keep a significant PD-vs-ET AUC gain over `ft`, while its ~+0.03 precET gain from the selection partitions might not reach significance | `transfer_2015.md` | held -- AUC +0.012 \* (win 0.72); precET −0.007 (n.s.), so the selection-partition gain was selection bias plus noise. |
 | AA | 2015 OUT multi-segment coupling separates N from tremor above its null (tremor propagates coherently through the arm) | `multisegment_2015.md` | held — CV AUC 0.786, null [0.379, 0.614], p = 0.005; REST 0.693, p = 0.005 |
 | AB | adding REST tremor amplitude to the 2015 `ft` probabilities raises precPD and precN (the N->PD controls have tremor at OUT only) and leaves precET flat | `stack_2015.md` | held — precN +0.021 \*, precPD +0.019 \*, precET +0.009 |
+| AC | OUT + REST late fusion on 2015 beats the 6-seed size control on precPD (+0.02 to +0.05) and precN with precET flat or lower, and REST weight 0.25 keeps more ET precision than 0.5 | `fusion_2015.md` | held — precPD +0.036 \*, precN +0.023 \*, precET −0.066 \*; weight 0.25 vs 0.5 precET +0.038 \*. Derived from the second-stage measurement in `stack_2015.md` |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
