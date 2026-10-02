@@ -57,6 +57,7 @@ from experiments.transfer_2015 import CAP, fit
 ARMS = ("ft", "ft_x2", "rest", "fuse", "fuse_w25")
 NAMES = ("precN", "precPD", "precET", "macroP", "macroF1", "aucPDET")
 OUT_DIR = os.environ.get("OUT_DIR", "fusion_2015_runs")
+TOPK = (3, 5, 10, 15)
 _TASK = re.compile(r"_(OUT|REST|WING)$")
 
 
@@ -170,6 +171,30 @@ def report():
             star = "*" if lo > 0 or hi < 0 else " "
             print(f"  {c:>8} {dd[:, i].mean():+.3f} [{lo:+.3f}, {hi:+.3f}] {star}"
                   f"  win {np.mean(dd[:, i] > 0):.2f}")
+    # ranking use (transfer_2015.md's framing): ET precision among the k
+    # patients a repeat ranks most ET-like, per repeat, by P(ET) from the
+    # out-of-fold probabilities over all 151 patients
+    print("\nET precision among the k most ET-like patients (mean over repeats; "
+          "15 ET of 151)")
+    print(f"{'arm':>10}" + "".join(f"{'k=' + str(k):>8}" for k in TOPK))
+    top = {}
+    for k_ in ARMS:
+        rows = []
+        for f in files:
+            d = np.load(f)
+            o = np.argsort(-d[f"p_{k_}"][:, 2])
+            rows.append([(d["y"][o[:k]] == 2).mean() for k in TOPK])
+        top[k_] = np.array(rows)
+        print(f"{k_:>10}" + "".join(f"{v:>8.3f}" for v in top[k_].mean(0)))
+    for a, b in (("fuse", "ft"), ("fuse", "ft_x2"), ("fuse_w25", "ft")):
+        dd = top[a] - top[b]
+        cells = []
+        for i in range(len(TOPK)):
+            bs = [np.random.default_rng(s).choice(dd[:, i], n).mean()
+                  for s in range(4000)]
+            lo, hi = np.percentile(bs, [2.5, 97.5])
+            cells.append(f"{dd[:, i].mean():+.3f}{'*' if lo > 0 or hi < 0 else ' '}")
+        print(f"{a + ' - ' + b:>16}  " + "  ".join(cells))
     print("\nMARKER_DONE", flush=True)
 
 
