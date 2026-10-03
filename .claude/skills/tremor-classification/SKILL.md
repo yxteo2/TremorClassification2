@@ -196,6 +196,9 @@ base's ET labels by that ranking (fixed count) LOWERS precET (−0.03): AUC gain
 mid-ranking, not in the top calls.
 **Default 2015 model: `ft` + 0.25 x REST scratch** (`fusion_2015.md`): precN
 +0.016 \* and AUC +0.023-0.029 \* on both partition sets, ET unchanged.
+**+ 0.25 WING** (`fusion3_2015.md`, confirmed on fresh partitions): precPD
++0.032 \* / +0.027 \*, ET unchanged -- use it for the standard 3-class decision;
+for the high-confidence >= 80 % rule keep OUT + 0.25 REST (WING lowers precN there).
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit).
 In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold

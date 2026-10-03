@@ -1,4 +1,4 @@
-# WING as a third task: a small PD / control gain over OUT + 0.25 REST
+# WING as a third task: PD precision +0.03, replicated -- at the standard decision point only
 
 Run: `REPS=a-b python -m experiments.fusion3_2015` in parts, then
 `python -m experiments.fusion3_2015 report` (40 repeats, CPU ~10 min/repeat/process).
@@ -42,6 +42,39 @@ for bit on every selection repeat.
 "+ WING beats + OUT2 on precPD (+0.01 to +0.03) and precN, ET flat": precN
 +0.015 \*, precPD +0.012 (in range, CI touching 0), ET +0.009. (AF)
 
-## Confirmation on fresh partitions
+## Confirmation on fresh partitions (seeds 100-139)
 
-Running (seeds 100-139); verdict pending.
+`base` reproduces `fusion_2015_confirm`'s `fuse_w25` bit for bit in 40 of 40
+repeats (checked after the run).
+
+| arm | precN | precPD | precET | macroP | macroF1 | AUC |
+|---|---|---|---|---|---|---|
+| base | 0.740 | 0.751 | 0.357 | 0.616 | 0.606 | 0.656 |
+| **+ WING** | 0.744 | **0.778** | 0.345 | **0.623** | **0.609** | 0.663 |
+| + OUT2 | 0.732 | 0.763 | 0.328 | 0.607 | 0.595 | 0.656 |
+
+| contrast (fresh) | precN | precPD | precET | macroP | macroF1 |
+|---|---|---|---|---|---|
+| + WING − base | +0.004 | **+0.027 \*** | −0.012 | +0.006 | +0.003 |
+| + WING − + OUT2 | +0.012 | **+0.015 \*** | +0.018 | **+0.015 \*** | **+0.013 \*** |
+
+**The PD-precision gain replicates** (+0.032 \* / +0.027 \* over base) with ET
+unchanged (+0.003 / −0.012), and on fresh partitions it is attributable to WING
+(+0.015 \* over the size control). macroP over base: +0.015 \* / +0.006.
+
+## Under the high-confidence rule it does not help (`high_precision_2015.py`)
+
+Nested rule asking 0.90, held-out precision (recall):
+
+| partitions | base N | + WING N | base PD | + WING PD |
+|---|---|---|---|---|
+| selection | **0.846** (0.45) | 0.814 (0.37) | **0.872** (0.36) | 0.864 (0.38) |
+| fresh | **0.826** (0.40) | 0.799 (0.36) | 0.860 (0.38) | **0.866** (0.41) |
+
+## Verdict
+
+* **Standard 3-class decision (macro-F1 offsets): use OUT + 0.25 REST + 0.25
+  WING** -- PD precision ~0.78 vs ~0.75, ET unchanged, replicated.
+* **High-confidence >= 80 % rule: keep OUT + 0.25 REST** -- WING does not raise
+  PD there and lowers control precision (0.80-0.81 vs 0.83-0.85).
+* Neither moves ET precision.

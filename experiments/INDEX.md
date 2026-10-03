@@ -9,7 +9,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `fusion3_2015` | 2026-10-03 | `failed_predictions.md`, `fusion3_2015.md` |
 | `fusion_2015` | 2026-10-02 | `failed_predictions.md`, `fusion3_2015.md`, `fusion_2015.md`, `high_precision_2015.md`, `pdet_2015.md` |
 | `hht_audit` | 2026-10-01 | `failed_predictions.md`, `hht_audit.md` |
-| `high_precision_2015` | 2026-10-03 | `failed_predictions.md`, `high_precision_2015.md` |
+| `high_precision_2015` | 2026-10-03 | `failed_predictions.md`, `fusion3_2015.md`, `high_precision_2015.md` |
 | `multisegment` | 2026-10-01 | `multisegment_2015.md` |
 | `own_data_10et` | 2026-09-03 | `own_data_reality_check.md` |
 | `pdet_2015` | 2026-10-03 | `failed_predictions.md`, `fusion_2015.md`, `pdet_2015.md` |
