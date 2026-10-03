@@ -11,11 +11,11 @@ An empty reports column means the study was run but never written up, or was sup
 | `high_precision_2015` | 2026-10-03 | `failed_predictions.md`, `high_precision_2015.md` |
 | `multisegment` | 2026-10-01 | `multisegment_2015.md` |
 | `own_data_10et` | 2026-09-03 | `own_data_reality_check.md` |
-| `pdet_2015` | uncommitted | `pdet_2015.md` |
+| `pdet_2015` | 2026-10-03 | `failed_predictions.md`, `fusion_2015.md`, `pdet_2015.md` |
 | `rest_2015` | 2026-09-28 | `failed_predictions.md`, `fusion_2015.md`, `rest_2015.md`, `transfer_2015.md` |
 | `segments_2015` | 2026-10-01 | `high_precision_2015.md`, `multisegment_2015.md`, `stack_2015.md`, `tremor_present_2015.md` |
 | `stack_2015` | 2026-10-02 | `failed_predictions.md`, `fusion_2015.md`, `stack_2015.md`, `tremor_present_2015.md` |
-| `transfer_2015` | 2026-09-28 | `failed_predictions.md`, `fusion_2015.md`, `multisegment_2015.md`, `rest_2015.md`, `transfer_2015.md` |
+| `transfer_2015` | 2026-09-28 | `failed_predictions.md`, `fusion_2015.md`, `multisegment_2015.md`, `pdet_2015.md`, `rest_2015.md`, `transfer_2015.md` |
 | `transfer_2015_explore` | 2026-09-28 | `transfer_2015.md` |
 | `transfer_2015_explore2` | 2026-09-28 | `transfer_2015.md` |
 | `transfer_2015_l2sp` | 2026-09-28 | `transfer_2015.md` |

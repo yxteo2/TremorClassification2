@@ -68,3 +68,23 @@ lower; fuse_w25 keeps more ET precision than fuse." precPD +0.036 \*, precN
 +0.023 \*, precET −0.066 \*; fuse_w25 − fuse precET +0.038 \*. Registered as AC.
 Derived from a measurement of this dataset (`stack_2015.md`), like most held
 predictions in the register.
+
+## Fresh partitions (seeds 100-139, run for `pdet_2015.md`'s confirmation)
+
+| arm | precN | precPD | precET | macroP | macroF1 | AUC | ET top-5 |
+|---|---|---|---|---|---|---|---|
+| ft | 0.726 | 0.733 | 0.357 | 0.605 | 0.596 | 0.633 | 0.470 |
+| ft_x2 | 0.724 | 0.735 | 0.354 | 0.604 | 0.594 | 0.627 | 0.460 |
+| fuse | 0.737 | **0.773** | 0.286 | 0.598 | 0.593 | **0.678** | 0.445 |
+| **fuse_w25** | **0.740** | 0.751 | **0.357** | **0.616** | **0.606** | 0.656 | **0.520** |
+
+fuse − ft: precPD +0.040 \*, precET −0.071 \*, AUC +0.045 \* -- replicates.
+**fuse_w25 − ft_x2: precN +0.016 \*, precPD +0.016 \*, precET +0.003,
+macroF1 +0.012 \*, AUC +0.029 \*** -- no ET cost on fresh partitions.
+
+Across both partition sets, REST weight 0.25 raises precN (+0.016 \* both),
+ranking (AUC +0.023 / +0.029 \*), and leaves ET statistically unchanged (−0.028 /
++0.003), with precPD +0.012 / +0.016 \*. **Recommended default: `ft` on OUT +
+0.25 x REST scratch** -- a small, replicated improvement on every class but ET,
+which it does not hurt. Equal weight remains the choice when PD precision is
+the target.
