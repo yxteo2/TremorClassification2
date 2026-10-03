@@ -138,7 +138,8 @@ def run(reps):
                 prob[k][te] = pt
                 pred[k][te] = (np.log(pt + 1e-12) + tune_offsets(pv, y[va])).argmax(1)
         # assert first: base must be fusion_2015's fuse_w25, bit for bit
-        ref = f"fusion_2015_runs/rep{rep:02d}.npz"
+        ref = (f"fusion_2015_runs/rep{rep:02d}.npz" if rep < 100
+               else f"fusion_2015_confirm/rep{rep:02d}.npz")
         if os.path.exists(ref):
             assert np.array_equal(np.load(ref)["fuse_w25"], pred["base"]), \
                 f"rep {rep}: base does not reproduce fusion_2015 fuse_w25"

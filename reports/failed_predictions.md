@@ -180,6 +180,7 @@ than two, and should be held that much more loosely.
 | AC | OUT + REST late fusion on 2015 beats the 6-seed size control on precPD (+0.02 to +0.05) and precN with precET flat or lower, and REST weight 0.25 keeps more ET precision than 0.5 | `fusion_2015.md` | held — precPD +0.036 \*, precN +0.023 \*, precET −0.066 \*; weight 0.25 vs 0.5 precET +0.038 \*. Derived from the second-stage measurement in `stack_2015.md` |
 | AD | ET does not reach 80 % precision on 2015 OUT under a nested threshold, though the non-nested (oracle) line will claim it | `high_precision_2015.md` | held — nested 0.10-0.33 on 0.2-0.5 flags per repeat (no flags in 31-36 of 40); oracle 0.90-1.00 on 0.1-0.4 flags |
 | AE | a PD-vs-ET second stage adding the 8 coupling features to the OUT + REST fusion logit beats fusion and a shuffled-coupling control by +0.02 to +0.05 AUC; averaging fusion with ft_seg gains < +0.015 | `pdet_2015.md` | held and **replicated on fresh partitions** — within-fold AUC 0.712 / 0.710 (+0.051 \* / +0.033 \* over fusion, +0.148 \* / +0.136 \* over the control); averaging −0.006 |
+| AF | a 2015 WING model as a third fused task beats a size-matched third OUT model on precPD (+0.01-0.03) and precN, with ET flat | `fusion3_2015.md` | held weakly — precN +0.015 \*, precPD +0.012 (CI touching 0), precET +0.009; a 15-repeat interim had read precET +0.056 \* |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one

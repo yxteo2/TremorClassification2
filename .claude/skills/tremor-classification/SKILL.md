@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (42 failed, 31 held); `experiments/INDEX.md` maps
+predictions made before the run (42 failed, 32 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
