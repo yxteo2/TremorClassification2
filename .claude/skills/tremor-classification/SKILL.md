@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (41 failed, 31 held); `experiments/INDEX.md` maps
+predictions made before the run (42 failed, 31 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -191,7 +191,9 @@ tremor vs none 0.894 at 0.78 recall. **ET cannot reach 0.80** -- nested 0.1-0.3 
 fusion -> second stage + 8 coupling features, within-fold AUC 0.636 -> 0.710
 (+0.074 \*); its top-1 ET pick is worse -- use `ft`/`ft_seg` to flag a few.
 Score second stages WITHIN folds: pooled out-of-fold scores from differently
-calibrated fold models cost even a monotone refit 0.023 AUC.
+calibrated fold models cost even a monotone refit 0.023 AUC. Re-assigning the
+base's ET labels by that ranking (fixed count) LOWERS precET (−0.03): AUC gain is
+mid-ranking, not in the top calls.
 **Default 2015 model: `ft` + 0.25 x REST scratch** (`fusion_2015.md`): precN
 +0.016 \* and AUC +0.023-0.029 \* on both partition sets, ET unchanged.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the

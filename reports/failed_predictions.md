@@ -143,6 +143,7 @@ than two, and should be held that much more loosely.
 | 39 | a second stage adding hand-forearm coherence to the 2015 `ft` probabilities would beat both the plain second stage and a shuffled control on precET by +0.03-0.06, and all 8 coupling features would do no better than coherence alone | `stack_2015.md` | **half failed** — vs shuffled +0.049 \* (held) but vs the plain second stage −0.003; and coupling8 beat coh_hl (precN +0.035 \*, macroF1 +0.020 \*). The diagnostic picked the strongest single feature, not the only informative one. |
 | 40 | a nested high-confidence rule asking for 80 % precision would deliver >= 0.80 held-out precision for N and PD on 2015 OUT | `high_precision_2015.md` | failed narrowly — 0.789 / 0.789: a threshold chosen on training folds gives back ~0.01-0.03 on held-out ones. Asking for 0.90 delivers 0.849 / 0.873. |
 | 41 | (post hoc) giving the PD-vs-ET second stage tremor amplitude and its products with the coupling features would fix its weak top-1 pick, since coherence is meaningless without tremor | `pdet_2015.md` | failed on both partition sets — fold AUC −0.012 \* / −0.013 \*, top-1 −0.070 \* / −0.050 |
+| 42 | re-assigning the recommended model's ET labels (same count per fold) by the coupling second stage's PD-vs-ET ranking would raise precET +0.03-0.08 on both partition sets | `pdet_2015.md` (`rerank_2015.py`) | failed — −0.033 / −0.031 \*; +0.084 \* / +0.101 \* over a shuffled-coupling rerank. The AUC gain sits in the middle of the ranking, not in the ~3 top calls per fold |
 
 ## Held
 
