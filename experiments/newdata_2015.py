@@ -50,7 +50,7 @@ from experiments.training_methods_2015 import (EPOCHS, FT_EPOCHS, FT_LR, LR, WD,
                                                _T, _finetune, _wt)
 from experiments.transfer_2015 import CAP, members, zfit
 
-ARMS = ("ft", "nd_pool", "nd_pool_shuf", "nd_seq")
+ARMS = tuple(os.environ.get("ND_ARMS", "ft,nd_pool,nd_pool_shuf,nd_seq").split(","))
 NAMES = ("precN", "precPD", "precET", "macroP", "macroF1", "aucPDET", "top5ET")
 OUT_DIR = os.environ.get("OUT_DIR", "newdata_2015_runs")
 
@@ -146,8 +146,9 @@ def run(reps):
                 v, t = np.mean(pv[k], 0), np.mean(pt[k], 0)
                 prob[k][te] = t
                 pred[k][te] = (np.log(t + 1e-12) + tune_offsets(v, y[va])).argmax(1)
-        ref = f"segments_2015_runs/rep{rep:02d}.npz"
-        if os.path.exists(ref):
+        ref = (f"segments_2015_runs/rep{rep:02d}.npz" if rep < 100
+               else f"fusion_2015_confirm/rep{rep:02d}.npz")
+        if os.path.exists(ref) and "ft" in ARMS:
             r = np.load(ref)
             assert np.array_equal(r["ft"], pred["ft"]), \
                 f"rep {rep}: ft arm does not reproduce transfer_2015's ft"
@@ -184,6 +185,8 @@ def report():
         print(f"{k:>13}" + "".join(f"{v:>9.3f}" for v in R[k].mean(0)))
     for a, b in (("nd_pool", "ft"), ("nd_pool", "nd_pool_shuf"),
                  ("nd_pool_shuf", "ft"), ("nd_seq", "ft")):
+        if a not in R or b not in R:
+            continue
         dd = R[a] - R[b]
         print(f"\n{a} - {b}  (paired, {n} repeats)")
         for i, c in enumerate(NAMES):

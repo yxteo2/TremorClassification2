@@ -183,6 +183,7 @@ than two, and should be held that much more loosely.
 | AE | a PD-vs-ET second stage adding the 8 coupling features to the OUT + REST fusion logit beats fusion and a shuffled-coupling control by +0.02 to +0.05 AUC; averaging fusion with ft_seg gains < +0.015 | `pdet_2015.md` | held and **replicated on fresh partitions** — within-fold AUC 0.712 / 0.710 (+0.051 \* / +0.033 \* over fusion, +0.148 \* / +0.136 \* over the control); averaging −0.006 |
 | AF | a 2015 WING model as a third fused task beats a size-matched third OUT model on precPD (+0.01-0.03) and precN, with ET flat | `fusion3_2015.md` | held weakly — precN +0.015 \*, precPD +0.012 (CI touching 0), precET +0.009; a 15-repeat interim had read precET +0.056 \* |
 | AG | none of LP-FT, WiSE-FT, SWA, SAM or label smoothing raises the 2015 transfer model's ET precision significantly; SAM null; label smoothing null or slightly negative | `training_methods_2015.md` | held — best is LP-FT +0.008 (n.s.); WiSE-FT and SWA −0.049 \*; SAM −0.012; label smoothing −0.025 |
+| AH | NewData pooled into the 2015 transfer model's fine-tuning (or as a sequential stage) adds nothing significant to ET precision; pooled vs label-shuffled within ±0.04 | `newdata_2015.md` | held on precision — precET −0.017 / +0.036 / −0.014, all n.s.; unpredicted: PD-vs-ET AUC +0.044 \* (win 0.95), +0.037 \* over shuffled labels |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
