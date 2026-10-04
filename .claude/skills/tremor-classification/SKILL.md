@@ -205,7 +205,9 @@ PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET
 −0.049 \*); SAM, label smoothing null. The `ft` recipe is at its optimum.
 **NewData pooled into 2015 fine-tuning** (`newdata_2015.md`): PD-vs-ET AUC +0.044 \*
 (+0.037 \* over shuffled labels), precision flat. Ranking gains stack: NewData +
-REST + coupling -> within-fold AUC 0.722 vs `ft` 0.625 (selection; fresh pending).
+REST + coupling -> within-fold AUC 0.722 vs `ft` 0.625 (selection). **Fresh
+partitions: NewData pooling +0.043 \* replicates, precision cost 0; best ranker =
+NewData-pooled `ft` + REST (0.5/0.5), AUC 0.714; coupling adds +0.007 n.s. on top.**
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit).
 In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold
