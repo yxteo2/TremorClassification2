@@ -28,6 +28,7 @@ table.
 | drop by exact leave-one-out harm, 20 inner splits | same — LOO-vs-random precET −0.023 [−0.084, +0.032]; ranking overlap 0.15 vs 0.04 chance, against 0.60 when a harmful set is planted | `influence_stable.md` |
 | cohort-ID input | precN +0.024 [+0.009, +0.041] \* over a *valid* per-split random control; precET +0.007; macroP +0.011 [−0.000, +0.021]. Does not reduce NewData's contested rate | `cohort_id_input.md` |
 | mixup / SpecAugment / shift+noise | worse or null | `deep_model_improvement.md` |
+| **fine-tuning methods on the 2015 transfer model** -- LP-FT, WiSE-FT, SWA, SAM, label smoothing | no ET gain; WiSE-FT −0.049 \* precET and top-5 ET 0.50 -> 0.23 \*; SWA −0.049 \*; LP-FT +0.005 AUC only | `training_methods_2015.md` |
 | SMOTE | plain hurts; boundary variants help only where minority n suffices | `resampling.md` |
 | PADS pretrain → in-house finetune | precET −0.188 \*, the worst thing tried | `cohort_strategies.md` |
 | masked-spectrum SSL on 3,081 recordings | no transferable benefit; the reported gain was frozen-vs-finetuned confounding | `ssl_retraction.md` |

@@ -144,6 +144,7 @@ than two, and should be held that much more loosely.
 | 40 | a nested high-confidence rule asking for 80 % precision would deliver >= 0.80 held-out precision for N and PD on 2015 OUT | `high_precision_2015.md` | failed narrowly — 0.789 / 0.789: a threshold chosen on training folds gives back ~0.01-0.03 on held-out ones. Asking for 0.90 delivers 0.849 / 0.873. |
 | 41 | (post hoc) giving the PD-vs-ET second stage tremor amplitude and its products with the coupling features would fix its weak top-1 pick, since coherence is meaningless without tremor | `pdet_2015.md` | failed on both partition sets — fold AUC −0.012 \* / −0.013 \*, top-1 −0.070 \* / −0.050 |
 | 42 | re-assigning the recommended model's ET labels (same count per fold) by the coupling second stage's PD-vs-ET ranking would raise precET +0.03-0.08 on both partition sets | `pdet_2015.md` (`rerank_2015.py`) | failed — −0.033 / −0.031 \*; +0.084 \* / +0.101 \* over a shuffled-coupling rerank. The AUC gain sits in the middle of the ranking, not in the ~3 top calls per fold |
+| 43 | WiSE-FT and LP-FT would raise the 2015 transfer model's PD-vs-ET AUC by +0.01-0.02 (they limit drift from the PADS weights, like L2-SP), and SWA would cut spread without moving the mean | `training_methods_2015.md` | failed — LP-FT +0.005 \*, WiSE-FT −0.006 with precPD −0.046 \* and top-5 ET 0.495 -> 0.225 \* (the PADS boundary is wrong for 2015); SWA mean precET −0.049 \* |
 
 ## Held
 
@@ -181,6 +182,7 @@ than two, and should be held that much more loosely.
 | AD | ET does not reach 80 % precision on 2015 OUT under a nested threshold, though the non-nested (oracle) line will claim it | `high_precision_2015.md` | held — nested 0.10-0.33 on 0.2-0.5 flags per repeat (no flags in 31-36 of 40); oracle 0.90-1.00 on 0.1-0.4 flags |
 | AE | a PD-vs-ET second stage adding the 8 coupling features to the OUT + REST fusion logit beats fusion and a shuffled-coupling control by +0.02 to +0.05 AUC; averaging fusion with ft_seg gains < +0.015 | `pdet_2015.md` | held and **replicated on fresh partitions** — within-fold AUC 0.712 / 0.710 (+0.051 \* / +0.033 \* over fusion, +0.148 \* / +0.136 \* over the control); averaging −0.006 |
 | AF | a 2015 WING model as a third fused task beats a size-matched third OUT model on precPD (+0.01-0.03) and precN, with ET flat | `fusion3_2015.md` | held weakly — precN +0.015 \*, precPD +0.012 (CI touching 0), precET +0.009; a 15-repeat interim had read precET +0.056 \* |
+| AG | none of LP-FT, WiSE-FT, SWA, SAM or label smoothing raises the 2015 transfer model's ET precision significantly; SAM null; label smoothing null or slightly negative | `training_methods_2015.md` | held — best is LP-FT +0.008 (n.s.); WiSE-FT and SWA −0.049 \*; SAM −0.012; label smoothing −0.025 |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
