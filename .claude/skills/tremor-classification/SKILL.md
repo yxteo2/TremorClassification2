@@ -199,6 +199,10 @@ mid-ranking, not in the top calls.
 **+ 0.25 WING** (`fusion3_2015.md`, confirmed on fresh partitions): precPD
 +0.032 \* / +0.027 \*, ET unchanged -- use it for the standard 3-class decision;
 for the high-confidence >= 80 % rule keep OUT + 0.25 REST (WING lowers precN there).
+**Patient-level bootstrap** (`patient_bootstrap_2015.md`): only transfer's precET
+(+0.092 [+0.012, +0.211]), WING's precPD (+0.03) and NewData's AUC (+0.044) survive
+patient resampling; REST fusion / coupling / transfer AUC do not. **2015 OUT is 150
+patients** after the PD 12 id fix in `quaternion_data` (saved runs used 151 rows).
 **Fine-tuning methods closed** (`training_methods_2015.md`, 40 repeats, `ft` arm
 bit-exact): LP-FT +0.005 AUC only; WiSE-FT harmful (top-5 ET 0.50 -> 0.23 \*: the
 PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET
