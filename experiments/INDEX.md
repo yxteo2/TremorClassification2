@@ -12,6 +12,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `fusion_2015` | 2026-10-02 | `failed_predictions.md`, `fusion3_2015.md`, `fusion_2015.md`, `high_precision_2015.md`, `pdet_2015.md` |
 | `hht_audit` | 2026-10-01 | `failed_predictions.md`, `hht_audit.md` |
 | `high_precision_2015` | 2026-10-03 | `failed_predictions.md`, `fusion3_2015.md`, `high_precision_2015.md` |
+| `infold_epoch_150` | uncommitted | **none** |
 | `legacy_ids` | 2026-10-05 | **none** |
 | `loss_curves_2015` | 2026-10-05 | `ckpt_ensemble_150.md`, `loss_curves_2015.md` |
 | `multisegment` | 2026-10-01 | `multisegment_2015.md` |
@@ -35,4 +36,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `verify_preprocessing` | 2026-09-28 | `signal_audit_2015.md` |
 | `verify_transfer_150` | 2026-10-05 | **none** |
 
-**29 experiments, 3 with no report:** `legacy_ids`, `pretrain_stop_150`, `verify_transfer_150`
+**30 experiments, 4 with no report:** `infold_epoch_150`, `legacy_ids`, `pretrain_stop_150`, `verify_transfer_150`
