@@ -36,44 +36,42 @@ predictions exactly on every repeat.**
   precET −0.017 n.s.) -- the same ranking-not-decision pattern as REST fusion.
 * Sequential transfer gains less (+0.015 \* AUC) and costs control precision.
 
-## The ranking gains stack (selection partitions, within-fold AUC)
+## The ranking gains stack (within-fold AUC)
 
-| model | PD-vs-ET AUC |
-|---|---|
-| ft | 0.625 |
-| nd_pool | 0.669 |
-| fuse (ft + REST) | 0.660 |
-| **fuse_nd (nd_pool + REST)** | **0.694** (+0.033 \* over fuse) |
-| fuse + coupling (`pdet_2015`, 0.710 on fresh partitions) | 0.712 |
-| **fuse_nd + coupling** | **0.722** (+0.011 \* over fuse + coupling; +0.097 \* over ft) |
+Recomputed after the audit fix in `pdet_stack_2015` (patients without REST keep
+the OUT model; the first version mixed in a placeholder and read 0.002-0.004
+higher). Values match an independent recomputation by the report-verification
+agent.
 
-Assembled after seeing the parts -- a candidate; tested below.
-
-## Fresh partitions (seeds 100-139; nothing changed)
-
-`ft` reproduces `fusion_2015_confirm`'s saved `ft` exactly in 40 of 40 repeats.
-
-| model | AUC selection | **AUC fresh** |
+| model | AUC selection (0-39) | AUC fresh (100-139) |
 |---|---|---|
 | ft | 0.625 | 0.633 |
-| nd_pool | 0.669 | **0.676** (+0.043 \*, win 0.95) |
+| nd_pool | 0.669 (+0.044 \*) | 0.676 (+0.043 \*) |
 | fuse (ft + REST) | 0.660 | 0.677 |
-| **fuse_nd (nd_pool + REST)** | 0.694 | **0.714** (+0.036 \* over fuse; +0.038 \* over nd_pool) |
-| fuse + coupling | 0.712 | 0.709 |
-| fuse_nd + coupling | 0.722 | 0.716 (+0.007 over fuse + coupling, n.s.; +0.083 \* over ft) |
+| **fuse_nd (nd_pool + REST)** | **0.692** (+0.032 \* over fuse) | **0.710** (+0.032 \* over fuse; +0.034 \* over nd_pool) |
+| fuse + coupling (`pdet_2015`) | 0.712 | 0.709 |
+| fuse_nd + coupling | 0.719 (+0.007 \* over fuse + coupling; +0.094 \* over ft) | 0.718 (+0.008 \* over fuse + coupling; +0.085 \* over ft) |
+
+`fuse_nd` was assembled after seeing its parts; the fresh partitions reproduce
+it on the **same 151 patients** -- robust to re-partitioning, not a test on new
+patients. Of its parts, only NewData pooling has a patient-level interval
+(`patient_bootstrap_2015.md`: AUC +0.044 [+0.007, +0.087] / [+0.010, +0.083]);
+the stacked rankers were not patient-bootstrapped.
 
 `nd_pool` at the operating point, fresh: precET +0.007, macroF1 −0.002,
-precPD −0.008 (all n.s.) -- no precision cost; top-5 ET +0.035 (n.s.).
+precPD −0.008 (all n.s.); top-5 ET +0.035 (n.s.). On the selection partitions
+macroF1 was −0.015 \*.
 
 ## Verdict
 
-* **NewData pooled into fine-tuning is a free, replicated ranking gain**: AUC
-  +0.044 \* on both partition sets, precision unchanged on fresh partitions.
-  **Fine-tune `ft` on 2015 + NewData by default.**
-* **Best PD-vs-ET ranker: `fuse_nd`** -- NewData-pooled `ft` + REST, geometric
-  mean 0.5 / 0.5 -- **AUC 0.714 on fresh partitions (0.694 selection)**, with no
-  second stage. The coupling second stage adds nothing significant on top of it
-  (+0.007), and has the weaker top-1 pick (`pdet_2015.md`); drop it for this use.
+* **NewData pooled into fine-tuning raises PD-vs-ET ranking** (AUC +0.044 \* on
+  both partition sets, and it holds under patient resampling), with no
+  significant precision cost on fresh partitions (selection-partition macroF1
+  −0.015 \*). **Fine-tune `ft` on 2015 + NewData for ranking use.**
+* **Best PD-vs-ET rankers (fresh partitions): `fuse_nd` 0.710 ~= fuse + coupling
+  0.709; `fuse_nd` + coupling 0.718.** Coupling adds +0.008 \* on top of `fuse_nd`
+  (repeat level) and has the weaker top-1 pick (`pdet_2015.md`); `fuse_nd` alone
+  is the simpler choice at nearly the same AUC.
 * As everywhere else, the ranking gain does not raise thresholded ET precision.
 
 ## Prediction (in `newdata_2015.py`'s docstring)

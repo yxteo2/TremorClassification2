@@ -35,7 +35,9 @@ That is the number a non-nested report would publish; it is noise.
 ## Reading
 
 * **N and PD exceed 80 % precision on held-out patients** with the fused
-  OUT + REST model and a high-confidence rule: 0.849 / 0.873, flagging about 40 %
+  OUT + REST model (REST weight 0.5; the recommended weight 0.25 gives 0.846 /
+  0.872 at recall 0.45 / 0.36, `fusion3_2015.md`) and a high-confidence rule:
+  0.849 / 0.873, flagging about 40 %
   of each class; the rest go to review. `fuse` beats `ft` here because REST
   sharpens exactly the N/PD boundary (`fusion_2015.md`).
 * **Tremor vs none reaches 0.89 precision at 0.78 recall** -- the screening use.

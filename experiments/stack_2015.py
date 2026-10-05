@@ -92,7 +92,8 @@ def extras(ids):
     from scipy.signal import butter, sosfiltfilt
     from common.quaternion_data import load_quaternion_recordings
     from experiments.multisegment import seg_table
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows("segments_2015_runs"))
     S, _, sp = seg_table(recs)
     i = {p: k for k, p in enumerate(sp)}
     seg = S[[i[p] for p in ids]]
@@ -115,7 +116,8 @@ def main():
     from frequency.tables import spectrum_table
     files = sorted(glob.glob("segments_2015_runs/rep*.npz"))
     assert files, "run experiments.segments_2015 first"
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows("segments_2015_runs"))
     ids = spectrum_table(recs, ch=slice(3, 6))[2]
     seg, rest = extras(ids)
     coh = seg[:, [0]]

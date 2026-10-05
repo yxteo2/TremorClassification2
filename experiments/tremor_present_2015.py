@@ -32,7 +32,8 @@ def tremor_rms(ids):
     from common.quaternion_data import load_quaternion_recordings
     sos = butter(4, [3 / 50, 15 / 50], btype="band", output="sos")
     d = {}
-    for r in load_quaternion_recordings("Data", action="OUT", mode="angular_velocity"):
+    from experiments.legacy_ids import n_rows, recordings_for
+    for r in recordings_for(n_rows("segments_2015_runs")):
         x = np.asarray(r.x[3:6], float)
         d.setdefault(r.subject, []).append(
             np.sqrt(np.mean(sosfiltfilt(sos, x, axis=-1) ** 2)))
@@ -44,7 +45,8 @@ def main():
     from frequency.tables import spectrum_table
     files = sorted(glob.glob("segments_2015_runs/rep*.npz"))
     assert files, "run experiments.segments_2015 first"
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows("segments_2015_runs"))
     ids = spectrum_table(recs, ch=slice(3, 6))[2]
     D = [np.load(f) for f in files]
     y = D[0]["y"]

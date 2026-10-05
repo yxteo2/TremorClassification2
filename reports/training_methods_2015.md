@@ -39,8 +39,8 @@ exactly on every repeat.
 
 ## Reading
 
-* **No method raises ET precision.** LP-FT is the only non-negative arm, and its
-  gain is +0.005 AUC.
+* **No method raises ET precision.** LP-FT is the only arm with no significant
+  loss, and its only gain is +0.005 AUC.
 * **WiSE-FT is harmful, and informatively so**: pulling the weights halfway back
   to the PADS-pretrained model cuts PD precision (−0.046 \*) and collapses the top
   of the ET ranking (top-5 0.495 -> 0.225 \*). The PADS-trained decision rule is
@@ -66,6 +66,6 @@ data.
 
 * No method raises ET precision significantly -- **held** (AG); SAM null, label
   smoothing null-to-negative -- held.
-* WiSE-FT and LP-FT raise PD-vs-ET AUC +0.01-0.02 -- **failed** (+0.005 /
-  −0.006); SWA reduces spread but not the mean -- **failed** (mean −0.049 \*).
+* WiSE-FT and LP-FT raise PD-vs-ET AUC +0.01-0.02 -- **failed** (LP-FT +0.005 /
+  WiSE-FT −0.006); SWA reduces spread but not the mean -- **failed** (mean −0.049 \*).
   #43.

@@ -48,7 +48,8 @@ def main():
     from frequency.tables import spectrum_table
     fdir = os.environ.get("FUSION_DIR", "fusion_2015_runs")
     ndir = os.environ.get("ND_DIR", "newdata_2015_runs")
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows(ndir))
     ids = spectrum_table(recs, ch=slice(3, 6))[2]
     S, _, sp = seg_table(recs)
     i = {p: k for k, p in enumerate(sp)}

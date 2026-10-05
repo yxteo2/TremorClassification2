@@ -43,8 +43,9 @@ ET precision among the k patients ranked most ET-like (15 ET of 151):
 * **REST fixes the N/PD side, as the diagnostic said**: precPD +0.036 \* and
   precN +0.019-0.023 \* against both `ft` and the size-matched 6-seed control.
   The control itself is null (6 seeds = 3 seeds here), so the gain is REST's.
-* **It costs ET** at every operating point: thresholded precET −0.062 \*, and at
-  the top of the ranking (k = 3: 0.533 -> 0.358 \*). REST has no 2015 ET signal
+* **It costs thresholded ET precision** (−0.062 \* selection, −0.071 \* fresh). The
+  top-of-ranking cost on the selection partitions (k = 3: 0.533 -> 0.358 \*) does
+  not repeat on fresh partitions (top-3 / top-5 −0.025, n.s.). REST has no 2015 ET signal
   (alone: precET 0.112, chance 0.099), so averaging dilutes the most confident
   ET calls. The PD-vs-ET AUC gain (+0.037 \*) is in the middle of the ranking,
   not at the top where ET is flagged.
@@ -82,9 +83,13 @@ fuse − ft: precPD +0.040 \*, precET −0.071 \*, AUC +0.045 \* -- replicates.
 **fuse_w25 − ft_x2: precN +0.016 \*, precPD +0.016 \*, precET +0.003,
 macroF1 +0.012 \*, AUC +0.029 \*** -- no ET cost on fresh partitions.
 
-Across both partition sets, REST weight 0.25 raises precN (+0.016 \* both),
-ranking (AUC +0.023 / +0.029 \*), and leaves ET statistically unchanged (−0.028 /
-+0.003), with precPD +0.012 / +0.016 \*. **Recommended default: `ft` on OUT +
-0.25 x REST scratch** -- a small, replicated improvement on every class but ET,
-which it does not hurt. Equal weight remains the choice when PD precision is
+Against the extra-seeds control (`ft_x2`), REST weight 0.25 raises precN (+0.016 \*
+on both partition sets) and ranking (AUC +0.023 / +0.029 \*), precPD +0.012 /
++0.016 \*, and leaves ET statistically unchanged (−0.028 / +0.003). Against plain
+`ft` only AUC is significant on the selection partitions (+0.021 \*; precN /
+precPD +0.012 / +0.011 n.s.), precN / precPD +0.014 \* / +0.018 \* on fresh.
+**Under patient resampling none of these is significant**
+(`patient_bootstrap_2015.md`). **Default: `ft` on OUT + 0.25 x REST scratch** --
+chosen for robustness to re-partitioning at no ET cost, not a demonstrated gain
+for new patients. Equal weight remains the choice when PD precision is
 the target.

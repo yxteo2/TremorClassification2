@@ -67,7 +67,9 @@ Paired, 40 repeats:
 
 ## Reading
 
-* **On the 2015-only model, coupling is a real, attributable gain**: macroP
+* **On the 2015-only model, coupling is an attributable gain over a shuffled control,
+  robust to re-partitioning but not patient-bootstrapped** (and below the ~0.03
+  patient-level resolution): macroP
   +0.016 \* and macroF1 +0.013 \* over scratch, and the same against the
   shuffled control (+0.018 \*, +0.014 \*), which itself moves nothing but AUC.
   ET precision +0.035-0.036 sits just at the edge of its CI on both contrasts.
@@ -86,7 +88,7 @@ Paired, 40 repeats:
 ## Verdict
 
 * **2015 model without transfer:** add the coupling block (small, attributable
-  macro gain; costs no PD precision -- it raises it).
+  macro gain; costs no PD precision: +0.010 n.s. vs scratch, +0.012 \* vs shuffled).
 * **2015 model with transfer (`ft`, the adopted recipe):** coupling is **not
   adopted** -- no significant precision gain; the ranking gain is within what
   extra columns give.

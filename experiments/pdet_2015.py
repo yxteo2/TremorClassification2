@@ -69,7 +69,8 @@ def main():
     if not S:      # confirmation run: no ft_seg / avg arms
         ARMS = tuple(a for a in ARMS if a not in ("ft_seg", "avg"))
         S = F
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows(os.environ.get("FUSION_DIR", "fusion_2015_runs")))
     ids = spectrum_table(recs, ch=slice(3, 6))[2]
     Sg, _, sp = seg_table(recs)
     i = {p: k for k, p in enumerate(sp)}

@@ -15,14 +15,16 @@ from `experiments.segments_2015`). `RULE=balanced` reproduces the first run.
 | ET -> N | 3 | OUT −2.03 | no tremor |
 | PD -> ET | 2 | -- | -- |
 
-* **14 of 27 consistent errors are patients with no measurable tremor** in OUT,
-  REST or WING (3 of 10 PD->N exceed the control 90th percentile in either other
-  task). No tremor feature or model on 2015 recordings can recover them -- the
+* **14 of 27 consistent errors are patients with no tremor above the control
+  range at OUT**; most show none in REST or WING either (of the 10 PD->N with a
+  REST / WING recording, 3 exceed the controls' 90th percentile in REST and 3 in
+  WING). No tremor feature or model on 2015 recordings can recover them -- the
   ceiling, and the same phenotype finding as `readjudication_list.md` on the
   merged cohort.
 * **ET is recognised when it has the classic ET tremor**: correctly classified
-  ET have peak sharpness 12.1, missed ET 4.0. 7 of 15 ET rank in the top 13 of
-  90 tremor patients by P(ET); the other 8 sit at ranks 47-83, among PD.
+  ET have peak sharpness 12.1, missed ET 4.0. By the repeat-averaged
+  P(ET) / (P(PD) + P(ET)), 6 of 15 ET rank in the top 13 of 90 tremor patients,
+  a 7th at 24, the other 8 at ranks 47-83, among PD.
 
 ## 2. Second stage on `ft`'s out-of-fold probabilities
 

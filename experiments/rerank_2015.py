@@ -55,7 +55,8 @@ def coupling():
     from common.quaternion_data import load_quaternion_recordings
     from experiments.multisegment import seg_table
     from frequency.tables import spectrum_table
-    recs = load_quaternion_recordings("Data", action="OUT", mode="angular_velocity")
+    from experiments.legacy_ids import n_rows, recordings_for
+    recs = recordings_for(n_rows("fusion_2015_runs"))
     ids = spectrum_table(recs, ch=slice(3, 6))[2]
     S, _, sp = seg_table(recs)
     i = {p: k for k, p in enumerate(sp)}

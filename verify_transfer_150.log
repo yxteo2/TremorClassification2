@@ -1,0 +1,8 @@
+device=cpu  2015 n=150 N/PD/ET=[61, 74, 15]  PADS n=383
+rep  0  scratch ET 0.00  ft ET 0.21
+rep  1  scratch ET 0.36  ft ET 0.17
+rep  2  scratch ET 0.18  ft ET 0.32
+rep  3  scratch ET 0.50  ft ET 0.57
+rep  4  scratch ET 0.25  ft ET 0.35
+rep  5  scratch ET 0.23  ft ET 0.40
+rep  6  scratch ET 0.16  ft ET 0.46

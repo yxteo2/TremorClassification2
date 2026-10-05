@@ -184,19 +184,21 @@ precision 0.533 -> 0.358 \*; macro unchanged. A class trade: keep `ft` for ET.
 **40 % of 2015 PD and ET show no OUT tremor above the control range**
 (`tremor_present_2015.md`); `ft` precPD 0.826 where tremor is present.
 **80 % precision** (`high_precision_2015.md`, nested thresholds): N 0.849 and PD
-0.873 held-out with the fused model asking for 0.90 (~40 % recall, rest referred);
+0.873 held-out with the REST-weight-0.5 fused model asking for 0.90 (weight 0.25:
+0.846 / 0.872) (~40 % recall, rest referred);
 tremor vs none 0.894 at 0.78 recall. **ET cannot reach 0.80** -- nested 0.1-0.3 on
 <1 flag per repeat; any non-nested ET >= 0.8 claim is fitting noise.
-**PD vs ET** (`pdet_2015.md`, confirmed on fresh partitions 100-139): OUT+REST
-fusion -> second stage + 8 coupling features, within-fold AUC 0.636 -> 0.710
-(+0.074 \*); its top-1 ET pick is worse -- use `ft`/`ft_seg` to flag a few.
+**PD vs ET** (`pdet_2015.md`, reproduced on fresh partitions 100-139 of the same
+patients; not patient-bootstrapped): OUT+REST fusion -> second stage + 8
+coupling features, within-fold AUC 0.633 -> 0.709 (+0.076 \*); its top-1 ET pick is worse -- use `ft`/`ft_seg` to flag a few.
 Score second stages WITHIN folds: pooled out-of-fold scores from differently
 calibrated fold models cost even a monotone refit 0.023 AUC. Re-assigning the
 base's ET labels by that ranking (fixed count) LOWERS precET (−0.03): AUC gain is
 mid-ranking, not in the top calls.
-**Default 2015 model: `ft` + 0.25 x REST scratch** (`fusion_2015.md`): precN
-+0.016 \* and AUC +0.023-0.029 \* on both partition sets, ET unchanged.
-**+ 0.25 WING** (`fusion3_2015.md`, confirmed on fresh partitions): precPD
+**Default 2015 model: `ft` + 0.25 x REST scratch** (`fusion_2015.md`): vs the
+extra-seeds control precN +0.016 \*, AUC +0.023-0.029 \* on both partition sets,
+ET unchanged; vs plain `ft` mostly n.s.; none significant at patient level.
+**+ 0.25 WING** (`fusion3_2015.md`; holds under patient resampling): precPD
 +0.032 \* / +0.027 \*, ET unchanged -- use it for the standard 3-class decision;
 for the high-confidence >= 80 % rule keep OUT + 0.25 REST (WING lowers precN there).
 **Patient-level bootstrap** (`patient_bootstrap_2015.md`): only transfer's precET
@@ -209,9 +211,12 @@ PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET
 −0.049 \*); SAM, label smoothing null. The `ft` recipe is at its optimum.
 **NewData pooled into 2015 fine-tuning** (`newdata_2015.md`): PD-vs-ET AUC +0.044 \*
 (+0.037 \* over shuffled labels), precision flat. Ranking gains stack: NewData +
-REST + coupling -> within-fold AUC 0.722 vs `ft` 0.625 (selection). **Fresh
-partitions: NewData pooling +0.043 \* replicates, precision cost 0; best ranker =
-NewData-pooled `ft` + REST (0.5/0.5), AUC 0.714; coupling adds +0.007 n.s. on top.**
+REST + coupling -> within-fold AUC 0.719 vs `ft` 0.625 (selection). **Fresh
+partitions: NewData pooling +0.043 \* (also at patient level), no significant
+precision cost; rankers `fuse_nd` (NewData-pooled `ft` + REST, 0.5/0.5) 0.710 ~=
+fuse + coupling 0.709; `fuse_nd` + coupling 0.718 (+0.008 \*).**
+**Report verification** (2026-10-05): 58 claims re-computed from saved runs; 40
+matched, 10 mismatches and 7 overstatements were corrected in the reports.
 `TREMOR_DEVICE=cuda` trains on the GPU (1.6-2.4x faster; CPU stays the
 default so existing results reproduce bit-for-bit).
 In-house REST as a separate descriptor block in the 9-member model (`inhouse_rest.md`; its scripts are in git history at 969633e0): inAUC +0.022 \* but only +0.012 (null) over a shuffled control, in-house ET recall −0.062 \*; not adopted. **The 2015 REST signal does not replicate** (`rest_replication.md`): pooled with NewData 0.573, inside its null; frozen 2015 rule on PADS Relaxed 0.280, reversed at p < 0.001. Claim cohort-dependence, not in-house separability. `N 2` REST/WING files hold
