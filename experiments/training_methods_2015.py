@@ -215,7 +215,10 @@ def run(reps):
                 prob[k][te] = t
                 pred[k][te] = (np.log(t + 1e-12) + tune_offsets(v, y[va])).argmax(1)
         ref = f"segments_2015_runs/rep{rep:02d}.npz"
-        if os.path.exists(ref):
+        if os.path.exists(ref) and len(np.load(ref)["y"]) != len(y):
+            print(f"rep {rep}: saved reference predates the PD 12 id fix "
+                  f"(151 rows vs {len(y)}); bit-exact check skipped", flush=True)
+        elif os.path.exists(ref):
             r = np.load(ref)
             assert np.array_equal(r["ft"], pred["ft"]) and np.allclose(r["p_ft"], prob["ft"]), \
                 f"rep {rep}: ft arm does not reproduce transfer_2015's ft"

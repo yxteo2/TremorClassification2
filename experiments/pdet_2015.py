@@ -85,7 +85,8 @@ def main():
     top = {a: [] for a in ARMS}
     wf = {a: [] for a in ARMS}
     fold_seed = int(os.environ.get("STAGE2_SEED", "8000"))
-    for r, (s, f) in enumerate(zip(S, F)):
+    for s, f in zip(S, F):
+        r = int(f.split("rep")[-1].split(".")[0])   # repeat number (audit item 6)
         a, b = np.load(s), np.load(f)
         assert np.allclose(a["p_ft"], b["p_ft"])
         a = dict(a)

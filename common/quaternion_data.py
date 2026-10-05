@@ -29,6 +29,19 @@ from signal_processing.quaternion import process_quaternion_data
 CLASS_FOLDER_TO_LETTER = {"N": "N", "PD": "P", "ET": "E"}
 
 _TRIAL_SUFFIX = re.compile(r"[_\s]+\d+$")
+#: Canonical patient id: "<class> <number>_<TASK>". Four 2015 files break the
+#: naming pattern -- "PD 1_out", "PD 23_out 1/2" (lower-case task) and
+#: "PD 12_OUT N LOAD" (an extra recording of PD 12). Taken literally they gave
+#: PD 12 two subject ids (the same person could sit in training and test) and
+#: made PD 1 / PD 23 fail every case-sensitive cross-task join.
+_CANON = re.compile(r"^\s*(N|PD|ET)\s*(\d+)_([A-Za-z]+)", re.IGNORECASE)
+
+
+def canonical_subject(stem: str) -> str:
+    m = _CANON.match(stem)
+    if m is None:
+        return _TRIAL_SUFFIX.sub("", stem)
+    return f"{m.group(1).upper()} {int(m.group(2))}_{m.group(3).upper()}"
 
 
 def load_quaternion_recordings(
@@ -88,7 +101,7 @@ def load_quaternion_recordings(
                 )
             except ValueError as e:
                 raise ValueError(f"failed to process {path}: {e}") from e
-            subject = _TRIAL_SUFFIX.sub("", path.stem)
+            subject = canonical_subject(path.stem)
             recordings.append(
                 Recording(x=x, y=label, subject=subject, path=path, condition=action)
             )

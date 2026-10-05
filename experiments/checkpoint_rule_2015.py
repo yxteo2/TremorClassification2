@@ -140,7 +140,10 @@ def run(reps):
                 pred[k][te] = (np.log(pt + 1e-12) + tune_offsets(pv, y[va])).argmax(1)
         ref = (f"segments_2015_runs/rep{rep:02d}.npz" if rep < 100
                else f"fusion_2015_confirm/rep{rep:02d}.npz")
-        if os.path.exists(ref):
+        if os.path.exists(ref) and len(np.load(ref)["y"]) != len(y):
+            print(f"rep {rep}: saved reference predates the PD 12 id fix "
+                  f"(151 rows vs {len(y)}); bit-exact check skipped", flush=True)
+        elif os.path.exists(ref):
             assert np.array_equal(np.load(ref)["ft"], pred["ckpt"]), \
                 f"rep {rep}: ckpt arm does not reproduce ft"
             print(f"rep {rep}: ckpt arm reproduces ft exactly", flush=True)

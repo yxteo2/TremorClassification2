@@ -64,7 +64,11 @@ def main():
         m = y != 0
         yy = (y[m] == 2).astype(int)
         base = {"ft": N["p_ft"], "nd_pool": N["p_nd_pool"], "fuse": F["p_fuse"],
-                "fuse_nd": geo(N["p_nd_pool"], F["p_rest"], 0.5)}
+                # patients without REST keep the OUT model alone (as fusion_2015
+                # does); an unmasked mean mixed in a placeholder (audit item 5)
+                "fuse_nd": np.where(F["has"][:, None],
+                                    geo(N["p_nd_pool"], F["p_rest"], 0.5),
+                                    N["p_nd_pool"])}
         cv = StratifiedKFold(5, shuffle=True, random_state=8000 + rep)
         sc = {k: logit_pdet(v)[m] for k, v in base.items()}
         for k in ("fuse", "fuse_nd"):
