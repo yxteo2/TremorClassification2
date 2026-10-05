@@ -88,6 +88,21 @@ def compare(tag, reps, a, b, cl, y):
         print(f"   {nm:>7} {point[i]:+.3f}  patient-level 95% [{lo[i]:+.3f}, {hi[i]:+.3f}] {star}")
 
 
+def bootstrap_dir(directory, a, b, tag=None):
+    """Patient-level paired comparison of two arms saved in `directory`.
+
+    Works for runs made before the PD 12 id fix (151 rows, PD 12 resampled as one
+    patient) and after it (150 rows, one row per patient). Use from new
+    experiments as ``bootstrap_dir("my_runs", "new_arm", "ft")``.
+    """
+    reps, y = load(directory, (a, b))
+    if len(y) == 151:
+        cl, _ = clusters()
+    else:
+        cl = np.arange(len(y))
+    compare(tag or directory, reps, a, b, cl, y)
+
+
 def load(directory, arms):
     reps = []
     for f in sorted(glob.glob(f"{directory}/rep*.npz")):
