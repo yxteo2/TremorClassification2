@@ -45,3 +45,6 @@ vit_chunk_*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# run logs
+*.log
