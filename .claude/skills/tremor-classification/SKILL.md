@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (43 failed, 34 held); `experiments/INDEX.md` maps
+predictions made before the run (44 failed, 34 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -209,6 +209,8 @@ patients** after the PD 12 id fix in `quaternion_data` (saved runs used 151 rows
 bit-exact): LP-FT +0.005 AUC only; WiSE-FT harmful (top-5 ET 0.50 -> 0.23 \*: the
 PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET
 −0.049 \*); SAM, label smoothing null. The `ft` recipe is at its optimum.
+Checkpoint prediction ensembling and gradient-disparity stopping also closed
+(`ckpt_ensemble_150.md`).
 **NewData pooled into 2015 fine-tuning** (`newdata_2015.md`): PD-vs-ET AUC +0.044 \*
 (+0.037 \* over shuffled labels), precision flat. Ranking gains stack: NewData +
 REST + coupling -> within-fold AUC 0.719 vs `ft` 0.625 (selection). **Fresh

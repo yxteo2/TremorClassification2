@@ -145,6 +145,7 @@ than two, and should be held that much more loosely.
 | 41 | (post hoc) giving the PD-vs-ET second stage tremor amplitude and its products with the coupling features would fix its weak top-1 pick, since coherence is meaningless without tremor | `pdet_2015.md` | failed on both partition sets — fold AUC −0.012 \* / −0.013 \*, top-1 −0.070 \* / −0.050 |
 | 42 | re-assigning the recommended model's ET labels (same count per fold) by the coupling second stage's PD-vs-ET ranking would raise precET +0.03-0.08 on both partition sets | `pdet_2015.md` (`rerank_2015.py`) | failed — −0.033 / −0.031 \*; +0.084 \* / +0.101 \* over a shuffled-coupling rerank. The AUC gain sits in the middle of the ranking, not in the ~3 top calls per fold |
 | 43 | WiSE-FT and LP-FT would raise the 2015 transfer model's PD-vs-ET AUC by +0.01-0.02 (they limit drift from the PADS weights, like L2-SP), and SWA would cut spread without moving the mean | `training_methods_2015.md` | failed — LP-FT +0.005 \*, WiSE-FT −0.006 with precPD −0.046 \* and top-5 ET 0.495 -> 0.225 \* (the PADS boundary is wrong for 2015); SWA mean precET −0.049 \* |
+| 44 | ensembling the predictions of the top-5 (or within-2 %) validation-loss checkpoints of one fine-tuning run would raise the 2015 transfer model's PD-vs-ET AUC by +0.005-0.015 | `ckpt_ensemble_150.md` | failed — top5 −0.000, win −0.005 \* with precET −0.024 \* (repeat level); averaging in late epochs costs ET, as SWA did. Gradient-disparity stopping picked late epochs and lost AUC (−0.017 \*), as predicted |
 
 ## Held
 

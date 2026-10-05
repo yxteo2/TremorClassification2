@@ -29,6 +29,7 @@ table.
 | cohort-ID input | precN +0.024 [+0.009, +0.041] \* over a *valid* per-split random control; precET +0.007; macroP +0.011 [−0.000, +0.021]. Does not reduce NewData's contested rate | `cohort_id_input.md` |
 | mixup / SpecAugment / shift+noise | worse or null | `deep_model_improvement.md` |
 | **fine-tuning methods on the 2015 transfer model** -- LP-FT, WiSE-FT, SWA, SAM, label smoothing | no ET gain; WiSE-FT −0.049 \* precET and top-5 ET 0.50 -> 0.23 \*; SWA −0.049 \*; LP-FT +0.005 AUC only | `training_methods_2015.md` |
+| **checkpoint selection on the 2015 transfer model** -- prediction ensembling over the top-5 / within-2 % validation-loss epochs, gradient-disparity early stopping (150-patient table, 20 repeats) | no gain; window ensembling precET −0.024 \*, gradient disparity AUC −0.017 \* (picks late epochs); best-val checkpoint stays | `ckpt_ensemble_150.md` |
 | SMOTE | plain hurts; boundary variants help only where minority n suffices | `resampling.md` |
 | PADS pretrain → in-house finetune | precET −0.188 \*, the worst thing tried | `cohort_strategies.md` |
 | masked-spectrum SSL on 3,081 recordings | no transferable benefit; the reported gain was frozen-vs-finetuned confounding | `ssl_retraction.md` |
