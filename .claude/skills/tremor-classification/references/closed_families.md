@@ -30,6 +30,8 @@ table.
 | mixup / SpecAugment / shift+noise | worse or null | `deep_model_improvement.md` |
 | **fine-tuning methods on the 2015 transfer model** -- LP-FT, WiSE-FT, SWA, SAM, label smoothing | no ET gain; WiSE-FT −0.049 \* precET and top-5 ET 0.50 -> 0.23 \*; SWA −0.049 \*; LP-FT +0.005 AUC only | `training_methods_2015.md` |
 | **checkpoint selection on the 2015 transfer model** -- prediction ensembling over the top-5 / within-2 % validation-loss epochs, gradient-disparity early stopping (150-patient table, 20 repeats) | no gain; window ensembling precET −0.024 \*, gradient disparity AUC −0.017 \* (picks late epochs); best-val checkpoint stays | `ckpt_ensemble_150.md` |
+| **pretraining stop epoch** chosen in-fold (2015 validation CE of the PADS head, LogME) | every early stop costs N precision (patient level \*); LogME also precET −0.061 \*; full 200 epochs stays | `pretrain_stop_150.md` |
+| **in-fold fine-tuning epoch choice** (seed-averaged validation loss / macro-F1; TCN-only variant) | null or worse; the test-curve 'TCN epoch 20' gain is not supported in-fold | `infold_epoch_150.md` |
 | SMOTE | plain hurts; boundary variants help only where minority n suffices | `resampling.md` |
 | PADS pretrain → in-house finetune | precET −0.188 \*, the worst thing tried | `cohort_strategies.md` |
 | masked-spectrum SSL on 3,081 recordings | no transferable benefit; the reported gain was frozen-vs-finetuned confounding | `ssl_retraction.md` |

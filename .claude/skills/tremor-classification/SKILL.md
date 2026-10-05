@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (44 failed, 34 held); `experiments/INDEX.md` maps
+predictions made before the run (46 failed, 36 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -205,6 +205,10 @@ for the high-confidence >= 80 % rule keep OUT + 0.25 REST (WING lowers precN the
 (+0.092 [+0.012, +0.211]), WING's precPD (+0.03) and NewData's AUC (+0.044) survive
 patient resampling; REST fusion / coupling / transfer AUC do not. **2015 OUT is 150
 patients** after the PD 12 id fix in `quaternion_data` (saved runs used 151 rows).
+**On the corrected 150-patient table** (`verify_transfer_150.md`): `ft` − scratch precET
++0.079 \* (repeat level) but patient-level [−0.028, +0.202] -- consistent, not established
+for new patients. Early pretraining stops and in-fold epoch choices are closed
+(`pretrain_stop_150.md`, `infold_epoch_150.md`).
 **Fine-tuning methods closed** (`training_methods_2015.md`, 40 repeats, `ft` arm
 bit-exact): LP-FT +0.005 AUC only; WiSE-FT harmful (top-5 ET 0.50 -> 0.23 \*: the
 PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET

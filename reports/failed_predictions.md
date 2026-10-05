@@ -146,6 +146,8 @@ than two, and should be held that much more loosely.
 | 42 | re-assigning the recommended model's ET labels (same count per fold) by the coupling second stage's PD-vs-ET ranking would raise precET +0.03-0.08 on both partition sets | `pdet_2015.md` (`rerank_2015.py`) | failed — −0.033 / −0.031 \*; +0.084 \* / +0.101 \* over a shuffled-coupling rerank. The AUC gain sits in the middle of the ranking, not in the ~3 top calls per fold |
 | 43 | WiSE-FT and LP-FT would raise the 2015 transfer model's PD-vs-ET AUC by +0.01-0.02 (they limit drift from the PADS weights, like L2-SP), and SWA would cut spread without moving the mean | `training_methods_2015.md` | failed — LP-FT +0.005 \*, WiSE-FT −0.006 with precPD −0.046 \* and top-5 ET 0.495 -> 0.225 \* (the PADS boundary is wrong for 2015); SWA mean precET −0.049 \* |
 | 44 | ensembling the predictions of the top-5 (or within-2 %) validation-loss checkpoints of one fine-tuning run would raise the 2015 transfer model's PD-vs-ET AUC by +0.005-0.015 | `ckpt_ensemble_150.md` | failed — top5 −0.000, win −0.005 \* with precET −0.024 \* (repeat level); averaging in late epochs costs ET, as SWA did. Gradient-disparity stopping picked late epochs and lost AUC (−0.017 \*), as predicted |
+| 45 | LogME-chosen pretraining stop would pick late epochs (median >= 100) and be null against the full 200-epoch pretraining | `pretrain_stop_150.md` | failed — median 52 / 60, and precET −0.061 \* at the patient level |
+| 46 | choosing the fine-tuning epoch from the seed-averaged validation loss would leave ET precision within ±0.03 | `infold_epoch_150.md` | failed — precET −0.045, significant at the patient level |
 
 ## Held
 
@@ -185,6 +187,8 @@ than two, and should be held that much more loosely.
 | AF | a 2015 WING model as a third fused task beats a size-matched third OUT model on precPD (+0.01-0.03) and precN, with ET flat | `fusion3_2015.md` | held weakly — precN +0.015 \*, precPD +0.012 (CI touching 0), precET +0.009; a 15-repeat interim had read precET +0.056 \* |
 | AG | none of LP-FT, WiSE-FT, SWA, SAM or label smoothing raises the 2015 transfer model's ET precision significantly; SAM null; label smoothing null or slightly negative | `training_methods_2015.md` | held — best is LP-FT +0.008 (n.s.); WiSE-FT and SWA −0.049 \*; SAM −0.012; label smoothing −0.025 |
 | AH | NewData pooled into the 2015 transfer model's fine-tuning (or as a sequential stage) adds nothing significant to ET precision; pooled vs label-shuffled within ±0.04 | `newdata_2015.md` | held on precision — precET −0.017 / +0.036 / −0.014, all n.s.; unpredicted: PD-vs-ET AUC +0.044 \* (win 0.95), +0.037 \* over shuffled labels |
+| AI | stopping PADS pretraining at the epoch with the lowest 2015 validation loss trades N/ET for PD precision (precPD +0.01-0.03, AUC −0.01 to −0.03) and is not adopted | `pretrain_stop_150.md` | held — precPD +0.017 \*, AUC −0.022 \*, precET −0.030 |
+| AJ | the in-fold analogue of the "TCN epoch 20" rule is null and does not reproduce the test-curve-chosen gain | `infold_epoch_150.md` | held — every metric n.s.; the biased rule itself AUC +0.011 (repeat level), n.s. at patient level |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
