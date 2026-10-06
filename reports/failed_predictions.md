@@ -148,6 +148,7 @@ than two, and should be held that much more loosely.
 | 44 | ensembling the predictions of the top-5 (or within-2 %) validation-loss checkpoints of one fine-tuning run would raise the 2015 transfer model's PD-vs-ET AUC by +0.005-0.015 | `ckpt_ensemble_150.md` | failed — top5 −0.000, win −0.005 \* with precET −0.024 \* (repeat level); averaging in late epochs costs ET, as SWA did. Gradient-disparity stopping picked late epochs and lost AUC (−0.017 \*), as predicted |
 | 45 | LogME-chosen pretraining stop would pick late epochs (median >= 100) and be null against the full 200-epoch pretraining | `pretrain_stop_150.md` | failed — median 52 / 60, and precET −0.061 \* at the patient level |
 | 46 | choosing the fine-tuning epoch from the seed-averaged validation loss would leave ET precision within ±0.03 | `infold_epoch_150.md` | failed — precET −0.045, significant at the patient level |
+| 47 | Co-Tuning (PADS-head relationship targets) during 2015 fine-tuning would leave PD-vs-ET AUC within ±0.015 and ET precision unchanged | `transfer_reg_150.md` | failed — precET −0.046 \* (patient level [−0.091, −0.007] \*), AUC −0.026 \*: the PADS head maps 2015 PD and ET to nearly the same mix, so its targets keep them confusable |
 
 ## Held
 
@@ -189,6 +190,7 @@ than two, and should be held that much more loosely.
 | AH | NewData pooled into the 2015 transfer model's fine-tuning (or as a sequential stage) adds nothing significant to ET precision; pooled vs label-shuffled within ±0.04 | `newdata_2015.md` | held on precision — precET −0.017 / +0.036 / −0.014, all n.s.; unpredicted: PD-vs-ET AUC +0.044 \* (win 0.95), +0.037 \* over shuffled labels |
 | AI | stopping PADS pretraining at the epoch with the lowest 2015 validation loss trades N/ET for PD precision (precPD +0.01-0.03, AUC −0.01 to −0.03) and is not adopted | `pretrain_stop_150.md` | held — precPD +0.017 \*, AUC −0.022 \*, precET −0.030 |
 | AJ | the in-fold analogue of the "TCN epoch 20" rule is null and does not reproduce the test-curve-chosen gain | `infold_epoch_150.md` | held — every metric n.s.; the biased rule itself AUC +0.011 (repeat level), n.s. at patient level |
+| AK | Batch Spectral Shrinkage (k = 1, 1e-3) is null on the 2015 transfer model, and Co-Tuning + BSS behaves like Co-Tuning | `transfer_reg_150.md` | held — BSS precET +0.001; on the two-stream member the smallest singular value is ~1e-7 (rank-deficient features), so the penalty never acts |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
