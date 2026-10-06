@@ -28,7 +28,7 @@ An empty reports column means the study was run but never written up, or was sup
 | `rest_2015` | 2026-09-28 | `failed_predictions.md`, `fusion_2015.md`, `rest_2015.md`, `transfer_2015.md` |
 | `segments_2015` | 2026-10-01 | `high_precision_2015.md`, `multisegment_2015.md`, `stack_2015.md`, `tremor_present_2015.md` |
 | `stack_2015` | 2026-10-05 | `failed_predictions.md`, `fusion_2015.md`, `stack_2015.md`, `tremor_present_2015.md` |
-| `supcon_150` | 2026-10-06 | **none** |
+| `supcon_150` | 2026-10-06 | `failed_predictions.md`, `supcon_150.md` |
 | `training_methods_2015` | 2026-10-05 | `failed_predictions.md`, `training_methods_2015.md`, `transfer_reg_150.md` |
 | `transfer_2015` | 2026-09-28 | `ckpt_ensemble_150.md`, `failed_predictions.md`, `fusion_2015.md`, `loss_curves_2015.md`, `multisegment_2015.md`, `patient_bootstrap_2015.md`, `pdet_2015.md`, `rest_2015.md`, `training_methods_2015.md`, `transfer_2015.md`, `transfer_reg_150.md`, `verify_transfer_150.md` |
 | `transfer_2015_explore` | 2026-09-28 | `transfer_2015.md` |
@@ -40,4 +40,4 @@ An empty reports column means the study was run but never written up, or was sup
 | `verify_preprocessing` | 2026-09-28 | `signal_audit_2015.md` |
 | `verify_transfer_150` | 2026-10-05 | `verify_transfer_150.md` |
 
-**34 experiments, 2 with no report:** `legacy_ids`, `supcon_150`
+**34 experiments, 1 with no report:** `legacy_ids`

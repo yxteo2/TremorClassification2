@@ -195,6 +195,7 @@ than two, and should be held that much more loosely.
 | AK | Batch Spectral Shrinkage (k = 1, 1e-3) is null on the 2015 transfer model, and Co-Tuning + BSS behaves like Co-Tuning | `transfer_reg_150.md` | held — BSS precET +0.001; on the two-stream member the smallest singular value is ~1e-7 (rank-deficient features), so the penalty never acts |
 | AL | no ranking-aware fine-tuning loss raises 2015 ET precision significantly at the patient level; AP is the closest to `ft` | `rank_loss_150.md` | held — best AP −0.004; AP top-5 ET +0.080 \* repeat level, n.s. at patient level |
 | AM | on the corrected table NewData pooling raises PD-vs-ET AUC +0.03-0.05 at repeat and patient level, and the fused system keeps high-confidence PD precision at higher recall | `combined_150.md` | held — AUC +0.043 [+0.002, +0.089]; PD 0.86-0.87 at recall 0.37-0.42 vs 0.856 at 0.21 |
+| AN | supervised contrastive PADS pretraining (with or without a noise view) is null on the 2015 transfer model | `supcon_150.md` | held — every contrast n.s. at repeat and patient level (precET +0.017 / +0.003) |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
