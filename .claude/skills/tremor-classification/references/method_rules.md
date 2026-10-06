@@ -220,3 +220,16 @@ of any unlabelled corpus or state the claim as transductive.
 
 **A canned print line is not a conclusion.** Two scripts here print verdicts
 that misread their own tables. Write the number; let the report interpret it.
+
+## Repeat-level CIs are not patient-level CIs
+
+Resampling the per-repeat differences (every paired CI in the 2015 reports)
+measures re-partitioning and seed noise: all repeats score the same patients.
+"Confirmed on fresh partitions" is the same patients again. A patient-level
+bootstrap (`experiments/patient_bootstrap_2015.py`) kept 3 of 9 headline 2015
+claims -- transfer's precET, WING's precPD, NewData's AUC -- and dropped REST
+fusion, in-network coupling and transfer's AUC, all +0.01-0.03. **Report the
+patient-level interval for any claim meant to generalise; with 15 ET, effects
+below ~0.03 are not resolvable.** And never read a design choice (an epoch, a
+weight) off test curves: in k-fold CV every patient is a test patient, so
+excluding repeats does not remove the leak.
