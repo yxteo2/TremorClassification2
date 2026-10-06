@@ -33,6 +33,7 @@ table.
 | **pretraining stop epoch** chosen in-fold (2015 validation CE of the PADS head, LogME) | every early stop costs N precision (patient level \*); LogME also precET −0.061 \*; full 200 epochs stays | `pretrain_stop_150.md` |
 | **in-fold fine-tuning epoch choice** (seed-averaged validation loss / macro-F1; TCN-only variant) | null or worse; the test-curve 'TCN epoch 20' gain is not supported in-fold | `infold_epoch_150.md` |
 | **Co-Tuning / Batch Spectral Shrinkage** on the 2015 transfer model | Co-Tuning precET −0.046 \* (also at patient level): PADS-head targets keep PD and ET confusable; BSS null (penalty inactive on rank-deficient two-stream features) | `transfer_reg_150.md` |
+| **ranking-aware fine-tuning losses** (pairwise AUC, partial AUC, smoothed AP on the ET margin) | AUC / pAUC precET −0.064 / −0.096 (patient level \*), more ET calls; AP neutral (top-5 +0.080 repeat level only) | `rank_loss_150.md` |
 | SMOTE | plain hurts; boundary variants help only where minority n suffices | `resampling.md` |
 | PADS pretrain → in-house finetune | precET −0.188 \*, the worst thing tried | `cohort_strategies.md` |
 | masked-spectrum SSL on 3,081 recordings | no transferable benefit; the reported gain was frozen-vs-finetuned confounding | `ssl_retraction.md` |

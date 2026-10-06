@@ -149,6 +149,7 @@ than two, and should be held that much more loosely.
 | 45 | LogME-chosen pretraining stop would pick late epochs (median >= 100) and be null against the full 200-epoch pretraining | `pretrain_stop_150.md` | failed — median 52 / 60, and precET −0.061 \* at the patient level |
 | 46 | choosing the fine-tuning epoch from the seed-averaged validation loss would leave ET precision within ±0.03 | `infold_epoch_150.md` | failed — precET −0.045, significant at the patient level |
 | 47 | Co-Tuning (PADS-head relationship targets) during 2015 fine-tuning would leave PD-vs-ET AUC within ±0.015 and ET precision unchanged | `transfer_reg_150.md` | failed — precET −0.046 \* (patient level [−0.091, −0.007] \*), AUC −0.026 \*: the PADS head maps 2015 PD and ET to nearly the same mix, so its targets keep them confusable |
+| 48 | AUC / partial-AUC / AP auxiliary losses on the ET margin would each leave 2015 ET precision within ±0.03 | `rank_loss_150.md` | failed — AUC surrogate −0.064 and partial-AUC −0.096, both significant at the patient level; AP −0.004 |
 
 ## Held
 
@@ -191,6 +192,7 @@ than two, and should be held that much more loosely.
 | AI | stopping PADS pretraining at the epoch with the lowest 2015 validation loss trades N/ET for PD precision (precPD +0.01-0.03, AUC −0.01 to −0.03) and is not adopted | `pretrain_stop_150.md` | held — precPD +0.017 \*, AUC −0.022 \*, precET −0.030 |
 | AJ | the in-fold analogue of the "TCN epoch 20" rule is null and does not reproduce the test-curve-chosen gain | `infold_epoch_150.md` | held — every metric n.s.; the biased rule itself AUC +0.011 (repeat level), n.s. at patient level |
 | AK | Batch Spectral Shrinkage (k = 1, 1e-3) is null on the 2015 transfer model, and Co-Tuning + BSS behaves like Co-Tuning | `transfer_reg_150.md` | held — BSS precET +0.001; on the two-stream member the smallest singular value is ~1e-7 (rank-deficient features), so the penalty never acts |
+| AL | no ranking-aware fine-tuning loss raises 2015 ET precision significantly at the patient level; AP is the closest to `ft` | `rank_loss_150.md` | held — best AP −0.004; AP top-5 ET +0.080 \* repeat level, n.s. at patient level |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
