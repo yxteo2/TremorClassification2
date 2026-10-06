@@ -22,7 +22,7 @@ removed from the working tree; read them with
 `git show archive/pre-tidy-2026-09-27:reports/<name>.md`. Current scope is
 2015 only, one action per model (OUT first), never combined.
 `reports/` held ~90 findings; `reports/failed_predictions.md` is the register of
-predictions made before the run (48 failed, 38 held); `experiments/INDEX.md` maps
+predictions made before the run (49 failed, 39 held); `experiments/INDEX.md` maps
 every study to the reports that cite it.
 
 ## Layout and entry points
@@ -209,6 +209,11 @@ patients** after the PD 12 id fix in `quaternion_data` (saved runs used 151 rows
 +0.079 \* (repeat level) but patient-level [−0.028, +0.202] -- consistent, not established
 for new patients. Early pretraining stops and in-fold epoch choices are closed
 (`pretrain_stop_150.md`, `infold_epoch_150.md`).
+**Best 2015 system for precision (corrected 150-patient table, `combined_150.md`):
+`ft` + 0.25 x REST + 0.25 x WING** -- precN 0.750 / precPD 0.777 / precET 0.342 /
+macroP 0.623; precPD +0.067 vs `ft` holds at patient level; high-confidence PD 0.87
+at recall 0.37 (ft: 0.21). NewData pooling inside it costs ET precision (−0.060 \*,
+patient level) while raising AUC -- use it for ranking only.
 **Fine-tuning methods closed** (`training_methods_2015.md`, 40 repeats, `ft` arm
 bit-exact): LP-FT +0.005 AUC only; WiSE-FT harmful (top-5 ET 0.50 -> 0.23 \*: the
 PADS boundary is wrong for 2015); SWA worse than the best-val checkpoint (precET

@@ -150,6 +150,7 @@ than two, and should be held that much more loosely.
 | 46 | choosing the fine-tuning epoch from the seed-averaged validation loss would leave ET precision within ±0.03 | `infold_epoch_150.md` | failed — precET −0.045, significant at the patient level |
 | 47 | Co-Tuning (PADS-head relationship targets) during 2015 fine-tuning would leave PD-vs-ET AUC within ±0.015 and ET precision unchanged | `transfer_reg_150.md` | failed — precET −0.046 \* (patient level [−0.091, −0.007] \*), AUC −0.026 \*: the PADS head maps 2015 PD and ET to nearly the same mix, so its targets keep them confusable |
 | 48 | AUC / partial-AUC / AP auxiliary losses on the ET margin would each leave 2015 ET precision within ±0.03 | `rank_loss_150.md` | failed — AUC surrogate −0.064 and partial-AUC −0.096, both significant at the patient level; AP −0.004 |
+| 49 | the NewData-pooled fused system (OUT + REST + WING) would keep ET precision within ±0.04 of `ft`, its AUC gain would survive patient resampling, and NewData would add no precision cost inside the fusion | `combined_150.md` | failed on all three — precET −0.047 \*; AUC +0.062, patient level n.s.; NewData inside the fusion precET −0.060 \* (patient level). Without NewData the fusion keeps ET (+0.013) and raises precPD +0.067 \* (patient level) |
 
 ## Held
 
@@ -193,6 +194,7 @@ than two, and should be held that much more loosely.
 | AJ | the in-fold analogue of the "TCN epoch 20" rule is null and does not reproduce the test-curve-chosen gain | `infold_epoch_150.md` | held — every metric n.s.; the biased rule itself AUC +0.011 (repeat level), n.s. at patient level |
 | AK | Batch Spectral Shrinkage (k = 1, 1e-3) is null on the 2015 transfer model, and Co-Tuning + BSS behaves like Co-Tuning | `transfer_reg_150.md` | held — BSS precET +0.001; on the two-stream member the smallest singular value is ~1e-7 (rank-deficient features), so the penalty never acts |
 | AL | no ranking-aware fine-tuning loss raises 2015 ET precision significantly at the patient level; AP is the closest to `ft` | `rank_loss_150.md` | held — best AP −0.004; AP top-5 ET +0.080 \* repeat level, n.s. at patient level |
+| AM | on the corrected table NewData pooling raises PD-vs-ET AUC +0.03-0.05 at repeat and patient level, and the fused system keeps high-confidence PD precision at higher recall | `combined_150.md` | held — AUC +0.043 [+0.002, +0.089]; PD 0.86-0.87 at recall 0.37-0.42 vs 0.856 at 0.21 |
 
 Prediction K is the cheapest thing in this register. It closed a published
 method **without fitting a single model**, by naming in advance the one
